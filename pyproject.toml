@@ -1,0 +1,24 @@
+[project]
+name = "cinemalibrarybot"
+version = "0.1.0"
+description = ""
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "annotated-types==0.7.0",
+    "dotenv==0.9.9",
+    "greenlet==3.2.0",
+    "pyaes==1.6.1",
+    "pydantic==2.11.3",
+    "pydantic-core==2.33.1",
+    "pyrogram",
+    "pysocks==1.7.1",
+    "python-dotenv==1.1.0",
+    "sqlalchemy==2.0.40",
+    "sqlmodel==0.0.24",
+    "typing-extensions==4.13.2",
+    "typing-inspection==0.4.0",
+]
+
+[tool.uv.sources]
+pyrogram = { git = "https://github.com/KurimuzonAkuma/pyrogram", rev = "df881ee8cf2fc794f5907bd6a5dbb929f71de594" }
