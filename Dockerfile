@@ -1,7 +1,8 @@
 FROM python:3.12-alpine
 
+RUN apk update
+RUN apk add -U --no-cache git
 RUN pip install --upgrade pip
-RUN apk add git
 
 COPY . /app
 WORKDIR /app
