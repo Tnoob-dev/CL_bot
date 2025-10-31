@@ -1,6 +1,7 @@
 FROM python:3.12-alpine
 
 RUN pip install --upgrade pip
+RUN apk add git
 
 COPY . /app
 WORKDIR /app
