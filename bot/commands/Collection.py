@@ -12,7 +12,7 @@ import os
 
 state = {}
 
-@bot.on_message(command("add") & private)
+@bot.on_message(command("add") & (private))
 async def start_collection(client: Client, message: Message):
     
     user_id = message.from_user.id
@@ -27,8 +27,9 @@ async def start_collection(client: Client, message: Message):
             await message.reply("Esperando mensajes...\n Al terminar envie /end para crear el post")
         else:
             await message.reply("Usted ya se encuentra actualmente coleccionando archivos")
-
-@bot.on_message(command("end") & private)
+            
+                
+@bot.on_message(command("end") & (private))
 async def end_collection(client: Client, message: Message):
     
     user_id = message.from_user.id
@@ -62,7 +63,7 @@ async def end_collection(client: Client, message: Message):
         
         del state[str(user_id)]
         
-@bot.on_message(private)
+@bot.on_message(filters=private)
 async def collect_messages(client: Client, message: Message):
     
     user_id = message.from_user.id
