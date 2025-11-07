@@ -2,7 +2,7 @@ from entry.entry import bot
 from pyrogram.client import Client
 from pyrogram.filters import command, group
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
-
+from utils.functions import check_administration
 
 @bot.on_message(command("cine", prefixes=["#"]) & (group))
 async def get_orders(client: Client, message: Message):
@@ -35,10 +35,13 @@ async def get_orders(client: Client, message: Message):
 
 @bot.on_callback_query()
 async def order_query(client: Client, query: CallbackQuery):
-    
-    if query.data == 'order_ready':
-        await client.send_message(chat_id="chat1080p", 
-                                  text="Su pedido ha sido completado",
-                                  reply_to_message_id=mes.reply_to_message_id)
-    
-    await query.message.delete()
+
+    try:
+        if query.data == 'order_ready':
+            if check_administration(query.message):
+                await client.send_message(chat_id="chat1080p", 
+                                        text="Su pedido ha sido completado",
+                                        reply_to_message_id=mes.reply_to_message_id)
+                await query.message.delete()
+    except (TypeError, ValueError):
+        return
