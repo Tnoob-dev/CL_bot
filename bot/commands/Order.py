@@ -36,12 +36,11 @@ async def get_orders(client: Client, message: Message):
 @bot.on_callback_query()
 async def order_query(client: Client, query: CallbackQuery):
 
-    try:
-        if query.data == 'order_ready':
-            if check_administration(query.message):
+    if query.data == 'order_ready':
+        if check_administration(query):
                 await client.send_message(chat_id="chat1080p", 
                                         text="Su pedido ha sido completado",
                                         reply_to_message_id=mes.reply_to_message_id)
                 await query.message.delete()
-    except (TypeError, ValueError):
-        return
+        else:
+            await query.answer(text="🤨", show_alert=True)
