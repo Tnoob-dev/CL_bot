@@ -1,7 +1,7 @@
 from entry.entry import bot
 from commands.Hello import hello
 from commands.Collection import start_collection, end_collection, collect_messages
-from commands.Order import get_orders, order_query
+from commands.Order import get_orders
 from pyrogram.handlers.message_handler import MessageHandler
 
 
@@ -11,6 +11,7 @@ bot.add_handler(MessageHandler(start_collection))
 bot.add_handler(MessageHandler(end_collection))
 bot.add_handler(MessageHandler(collect_messages))
 bot.add_handler(MessageHandler(get_orders))
+
 
 if __name__ == "__main__":
     print("starting bot")

@@ -4,7 +4,7 @@ from pyrogram.filters import command, group
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 from utils.functions import check_administration
 
-@bot.on_message(command("cine", prefixes=["#"]) & (group))
+@bot.on_message(command("cine", prefixes=["#"]) & group)
 async def get_orders(client: Client, message: Message):
     
     global mes
