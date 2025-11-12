@@ -2,7 +2,7 @@ from entry.entry import bot
 from utils.functions import check_administration, check_user_in_channel
 from utils.db_reqs import get_game
 from pyrogram.client import Client
-from pyrogram.filters import command, private
+from pyrogram.filters import command, private, text
 from pyrogram.types import Message
 from pyrogram.errors import FloodWait
 from typing import List
@@ -10,7 +10,7 @@ from pathlib import Path
 import asyncio
 import os
 
-@bot.on_message(command("start", prefixes=["/"]) & private)
+@bot.on_message(command("start", prefixes=["/"]) & private & text)
 async def hello(client: Client, message: Message):
     
     if message.command is not None:
@@ -46,5 +46,5 @@ async def hello(client: Client, message: Message):
                     await message.reply_sticker(Path.cwd() / Path("assets") / Path("dancer.tgs"))
                     await message.reply(f"Hola {message.from_user.mention}, Busca la pelicula en el canal o grupo y toca el enlace para obtenerlo aqui")
         
-        except (TypeError, ValueError):
-            return
+        except (TypeError, ValueError) as e:
+            print(e)
