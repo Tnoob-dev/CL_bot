@@ -17,6 +17,8 @@ async def hello(client: Client, message: Message):
     user_id = message.from_user.id
     username = message.from_user.username
     
+    user_founded = get_user(user_id)
+    
     if message.command is not None:
         try:
             if len(message.command) >= 2:
@@ -50,7 +52,10 @@ async def hello(client: Client, message: Message):
                     await message.reply_sticker(Path.cwd() / Path("assets") / Path("dancer.tgs"))
                     await message.reply(f"Hola {message.from_user.mention}, Busca la pelicula en el canal o grupo y toca el enlace para obtenerlo aqui")
             
-            user = User(id=user_id, username=username)
-            insert_user(user)
+            if not user_founded[0]:
+                print(f"Insertando usuario {username} ({user_id}) a la db")
+                user = User(id=user_id, username=username)
+                insert_user(user)
+                print(f"Usuario {username} añadido a la db")
         except (TypeError, ValueError) as e:
             print(e)

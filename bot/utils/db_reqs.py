@@ -33,8 +33,10 @@ def get_user(id: int) -> Tuple[bool, User] | Tuple[bool, None]:
             statement = select(User).where(User.id == id)
             result = session.exec(statement)
             
-            if result is not None:
-                return (True, result.first())
+            user = result.first()   
+                     
+            if user is not None:
+                return (True, user)
             else:
                 return (False, None)
     except Exception as e:
@@ -45,13 +47,15 @@ def insert_user(query: User) -> None:
     try:
         r = get_user(query.id)
         
-        if r[0]:
+        print(r)
+        
+        if not r[0]:
             with Session(users_engine) as session:
                 session.add(query)
                 session.commit()
-            print("Usuario annadido")
+            return True, "Usuario añadido a la db"
         else:
-            print("El usuario ya esta en la db")
+            return False, "El usuario ya se encuentra en la db"
     except Exception as e:
         raise Exception(f"Error al annadir a la db -> {e}")
     

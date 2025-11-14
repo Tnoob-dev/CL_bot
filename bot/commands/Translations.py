@@ -17,10 +17,13 @@ async def translate_srt(client: Client, message: Message):
     create_user_path(path=Path.cwd() / Path("bot") / Path("translations") / Path("downloads"), user_id=message.from_user.id)
     create_output_path(user_id=message.from_user.id)
     
+    user_founded = get_user(message.from_user.id)[0]
+    
     if not await check_user_in_channel(client, message):
         return
     else:
-        if not get_user(message.from_user.id)[0]:
+        if not user_founded:
+            await message.reply("Al parecer usted no habia entrado a la DB, ya se encuentra dentro, disfrute")
             user = User(id=message.from_user.id, username=message.from_user.username)
             insert_user(user)
         if message.reply_to_message is not None:
