@@ -14,6 +14,8 @@ import os
 
 @bot.on_message(command("start", prefixes=["/"]) & private & text)
 async def hello(client: Client, message: Message):
+    user_id = message.from_user.id
+    username = message.from_user.username
     
     if message.command is not None:
         try:
@@ -48,7 +50,7 @@ async def hello(client: Client, message: Message):
                     await message.reply_sticker(Path.cwd() / Path("assets") / Path("dancer.tgs"))
                     await message.reply(f"Hola {message.from_user.mention}, Busca la pelicula en el canal o grupo y toca el enlace para obtenerlo aqui")
             
-            user = User(id=message.from_user.id, username=message.from_user.username)
+            user = User(id=user_id, username=username)
             insert_user(user)
         except (TypeError, ValueError) as e:
             print(e)

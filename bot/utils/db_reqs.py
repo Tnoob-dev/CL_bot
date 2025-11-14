@@ -33,7 +33,7 @@ def get_user(id: int) -> Tuple[bool, User] | Tuple[bool, None]:
             statement = select(User).where(User.id == id)
             result = session.exec(statement)
             
-            if result:
+            if result is not None:
                 return (True, result.first())
             else:
                 return (False, None)
@@ -45,7 +45,7 @@ def insert_user(query: User) -> None:
     try:
         r = get_user(query.id)
         
-        if not r[0]:
+        if r[0]:
             with Session(users_engine) as session:
                 session.add(query)
                 session.commit()
