@@ -25,8 +25,6 @@ async def get_orders(client: Client, message: Message):
                                           ]
                                       ]
                                   ))
-        
-        
     else:
         await message.reply("No voy a reenviar una orden vacia")
 

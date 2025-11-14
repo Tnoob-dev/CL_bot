@@ -13,14 +13,6 @@ class Translate():
                 [
                     InlineKeyboardButton("🇪🇸 Español", callback_data="tr_es"),
                     InlineKeyboardButton("🇺🇸 English", callback_data="tr_en")
-                ],
-                [
-                    InlineKeyboardButton("🇫🇷 Français", callback_data="tr_fr"),
-                    InlineKeyboardButton("🇩🇪 Deutsch", callback_data="tr_de")
-                ],
-                [
-                    InlineKeyboardButton("🇮🇹 Italiano", callback_data="tr_it"),
-                    InlineKeyboardButton("🇵🇹 Português", callback_data="tr_pt")
                 ]
             ]
         )

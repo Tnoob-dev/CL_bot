@@ -5,6 +5,8 @@ def create_translations_path() -> bool:
     
     if not path.exists():
         path.mkdir()
+    
+    return True
 
 def create_download_path() -> bool:    
     path = Path.cwd() / Path("bot") / Path("translations") / Path("downloads")

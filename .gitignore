@@ -219,3 +219,5 @@ __marimo__/
 *.db
 *.session
 *session-journal
+
+tranlations/*

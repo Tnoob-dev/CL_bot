@@ -1,7 +1,7 @@
 from entry.entry import bot
 from utils.functions import check_administration
 from utils.db_reqs import insert
-from db.create_db import Game
+from db.create_cine_db import Game
 from pyrogram.client import Client
 from pyrogram.types import Message
 from pyrogram.filters import command, private, document, video, photo, text

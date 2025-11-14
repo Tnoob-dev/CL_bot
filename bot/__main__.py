@@ -5,9 +5,15 @@ from commands.Order import get_orders
 from commands.Translations import translate_srt
 from queries.queries import query_manager
 from utils.create_paths import create_translations_path, create_download_path
+from utils.db_reqs import start_daily_reset
+from db.create_cine_db import create_db
 from pyrogram.handlers.message_handler import MessageHandler
 from pyrogram.handlers.callback_query_handler import CallbackQueryHandler
 
+start_daily_reset()
+
+# Create DBs
+create_db()
 
 # Paths
 create_translations_path()
