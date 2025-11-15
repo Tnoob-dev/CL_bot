@@ -1,11 +1,19 @@
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 import gemini_srt_translator as gst
 import os
+import random
 
 class Translate():
     def __init__(self):
-        self.gemini_api_key: str = os.getenv("GEMINI_API_KEY")
-        self.gemini_api_key2: str = os.getenv("GEMINI_API_KEY2")
+        
+        api_keys = os.getenv("GEMINI_API_KEY").split(",")
+        
+        api_key1 = random.choice(api_keys)
+        
+        api_key2 = random.choice(api_keys)
+        
+        self.gemini_api_key: str = api_key1
+        self.gemini_api_key2: str = api_key2
         
     def language_keyboard():
         keyboard = InlineKeyboardMarkup(
