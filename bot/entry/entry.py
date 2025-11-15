@@ -2,6 +2,7 @@ from pyrogram.client import Client
 from pathlib import Path
 import dotenv as dt
 import os
+import tgcrypto
 
 env_path = Path.cwd() / Path("bot") / Path("core") / ".env"
 

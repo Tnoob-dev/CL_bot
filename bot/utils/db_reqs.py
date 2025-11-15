@@ -3,6 +3,7 @@ from sqlmodel import Session, select
 from typing import List, Tuple
 import threading
 import time
+import os
 
 def insert(query: Game) -> None: # No estoy pa retornar el str del print xd
     try:
@@ -76,15 +77,18 @@ def update_user_value(id: int):
         session.rollback()
         raise Exception(f"Error al actualizar al usuario {id}, error -> {e}")
 
-
 def reset_all_users_tries():
+    admins: List[str] = os.getenv("ADMINS").split(",")
     try:
         with Session(users_engine) as session:
             statement = select(User)
             users = session.exec(statement).all()
             
             for user in users:
-                user.rest_tries = 5
+                if str(user.id) in admins:
+                    user.rest_tries = 10000
+                else:
+                    user.rest_tries = 5
                 session.add(user)
             
             session.commit()
@@ -97,7 +101,7 @@ def reset_all_users_tries():
 def start_daily_reset():
     def reset_loop():
         while True:
-            time.sleep(86400)  # 24 horas en segundos
+            time.sleep(86400)
             reset_all_users_tries()
     
     thread = threading.Thread(target=reset_loop, daemon=True)

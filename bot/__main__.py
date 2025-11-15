@@ -3,7 +3,7 @@ from commands.Hello import hello
 from commands.Collection import start_collection, end_collection, collect_messages
 from commands.Order import get_orders
 from commands.Translations import translate_srt
-from commands.Watch import watch
+from commands.Misc import watch
 from queries.queries import query_manager
 from utils.create_paths import create_translations_path, create_download_path
 from utils.db_reqs import start_daily_reset
