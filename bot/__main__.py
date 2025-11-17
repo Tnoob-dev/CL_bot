@@ -11,6 +11,7 @@ from db.create_cine_db import create_db
 from pyrogram.handlers.message_handler import MessageHandler
 from pyrogram.handlers.callback_query_handler import CallbackQueryHandler
 
+# Daily reset for 5 tries of srt translation quota
 start_daily_reset()
 
 # Create DBs
