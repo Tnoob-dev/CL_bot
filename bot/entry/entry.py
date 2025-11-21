@@ -4,6 +4,10 @@ import dotenv as dt
 import os
 import tgcrypto
 
+#######################
+# BOT INITIALIZATION  #
+#######################
+
 env_path = Path.cwd() / Path("bot") / Path("core") / ".env"
 
 

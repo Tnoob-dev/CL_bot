@@ -5,6 +5,7 @@ from typing import List
 from pathlib import Path
 import os
 
+# check if a user is admin
 def check_administration(message: Message) -> bool:
     admins: List[str] = os.getenv("ADMINS").split(",")
     
@@ -13,6 +14,7 @@ def check_administration(message: Message) -> bool:
     
     return True
 
+# check if a user is in the channel
 async def check_user_in_channel(client: Client, message: Message) -> bool:
     
     if not message.from_user:

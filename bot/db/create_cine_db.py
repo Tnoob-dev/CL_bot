@@ -2,11 +2,13 @@ from sqlmodel import SQLModel, Field, create_engine, Column, JSON
 from typing import Optional, List
 import os
 
+# Movies database (the name is game cuz this is the same code used in games library)
 class Game(SQLModel, table = True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(default=None)
     file_ids: List[int] = Field(sa_column=Column(JSON))
-    
+
+# User database for translations
 class User(SQLModel, table = True):
     id: Optional[int] = Field(default=None, primary_key=True)
     username: str = Field(default=None)

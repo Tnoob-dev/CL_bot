@@ -3,9 +3,12 @@ import gemini_srt_translator as gst
 import os
 import random
 
+
+# Translate object
 class Translate():
     def __init__(self):
         
+        # Gemini api keys, this will be a list of str, cuz in the environment we will have a lot of api keys, separated by commas
         api_keys = os.getenv("GEMINI_API_KEY").split(",")
         
         api_key1 = random.choice(api_keys)
@@ -14,7 +17,8 @@ class Translate():
         
         self.gemini_api_key: str = api_key1
         self.gemini_api_key2: str = api_key2
-        
+    
+    # show language queries
     def language_keyboard():
         keyboard = InlineKeyboardMarkup(
             [
@@ -25,7 +29,8 @@ class Translate():
             ]
         )
         return keyboard
-        
+    
+    # translate srt    
     async def srt_translate(self, target_lang: str, input_file: str, output_file: str):
         gst.gemini_api_key = self.gemini_api_key
         gst.gemini_api_key2 = self.gemini_api_key2

@@ -1,19 +1,21 @@
 from db.create_cine_db import cine_engine, users_engine, Game, User
 from sqlmodel import Session, select
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 import threading
 import time
 import os
 
-def insert(query: Game) -> None: # No estoy pa retornar el str del print xd
+# insert movie to db
+def insert(query: Game) -> Dict[str, str]:
     try:
         with Session(cine_engine) as session:
             session.add(query)
             session.commit()
-        print("Juego annadido")
+        return {"message": "Juego annadido"}
     except Exception as e:
         raise Exception(f"Error al annadir a la db -> {e}")
 
+# get movie from db
 def get_game(name: str) -> List[int]:
     try:
         with Session(cine_engine) as session:
@@ -28,6 +30,7 @@ def get_game(name: str) -> List[int]:
 
 #################################################################
 
+# get user from db
 def get_user(id: int) -> Tuple[bool, User] | Tuple[bool, None]:
     try:
         with Session(users_engine) as session:
@@ -43,7 +46,7 @@ def get_user(id: int) -> Tuple[bool, User] | Tuple[bool, None]:
     except Exception as e:
         raise Exception(f"Error al obtener desde la db -> {e}")
     
-
+# insert user from db
 def insert_user(query: User) -> None:
     try:
         r = get_user(query.id)
@@ -60,6 +63,7 @@ def insert_user(query: User) -> None:
     except Exception as e:
         raise Exception(f"Error al annadir a la db -> {e}")
     
+# update user translations value, from 5, until 0
 def update_user_value(id: int):
     try:
         with Session(users_engine) as session:
@@ -77,6 +81,7 @@ def update_user_value(id: int):
         session.rollback()
         raise Exception(f"Error al actualizar al usuario {id}, error -> {e}")
 
+# after 24 hours, reset every user translations to 5
 def reset_all_users_tries():
     admins: List[str] = os.getenv("ADMINS").split(",")
     try:

@@ -1,5 +1,10 @@
 from pathlib import Path
 
+##################
+# PATH CREATIONS #
+##################
+
+# bot/translations
 def create_translations_path() -> bool:
     path = Path.cwd() / Path("bot") / Path("translations")
     
@@ -8,6 +13,7 @@ def create_translations_path() -> bool:
     
     return True
 
+# bot/translations/downloads
 def create_download_path() -> bool:    
     path = Path.cwd() / Path("bot") / Path("translations") / Path("downloads")
     
@@ -16,6 +22,7 @@ def create_download_path() -> bool:
         
     return True
 
+# bot/translations/downloads/{user_id}
 def create_user_path(path: str, user_id: int) -> bool:
     
     user_path = path / Path(str(user_id))
@@ -25,6 +32,7 @@ def create_user_path(path: str, user_id: int) -> bool:
     
     return True
 
+# bot/translations/output/{user_id}
 def create_output_path(user_id) -> bool:
     output_path = Path.cwd() / Path("bot") / Path("translations") / Path("output")
     
