@@ -28,18 +28,23 @@ async def massive_collection(client: Client, message: Message):
             
             await message.reply("Modo masivo activado, envie /end para determinar por temporadas, y envie /end_massive para terminar el modo masivo")
 
+
 # end_massive command, to end the complete task
 @bot.on_message(command("end_massive") & private)
 async def end_massive(client: Client, message: Message):
-    user_id = message.from_user.id
-    links = state[str(user_id)]["links"] # get links from the user state dict
-    unlinked_urls = '\n'.join(links) # put one down another
-    
-    await message.reply(f"Aqui tiene todos los enlaces:\n{unlinked_urls}")
-    await message.reply_document(document=Path.cwd() / Path("bot") / Path("core") / "cine.db")
-    
-    # delete user from memory
-    del state[str(user_id)] 
+    if check_administration(message):
+        user_id = message.from_user.id
+        links = state[str(user_id)]["links"] # get links from the user state dict
+        unlinked_urls = '\n'.join(links) # put one down another
+        
+        await message.reply(f"Aqui tiene todos los enlaces:\n{unlinked_urls}")
+        await message.reply_document(document=Path.cwd() / Path("bot") / Path("core") / "cine.db")
+        
+        # delete user from memory
+        del state[str(user_id)] 
+    else:
+        await message.reply("No tiene permisos para utilizar este comando")
+        
 
 # add command, for start adding messages id to state var
 @bot.on_message(command("add") & private)
