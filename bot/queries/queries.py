@@ -5,7 +5,7 @@ from utils.db_reqs import get_user, update_user_value
 from pyrogram.client import Client
 from pyrogram.types import CallbackQuery
 from utils.functions import check_administration
-from utils.translate import Translate
+from utils.users_translate import Translate
 from pathlib import Path
 import os
 
@@ -16,7 +16,6 @@ async def query_manager(client: Client, query: CallbackQuery):
 
     # get user id, username, and check if user is in db
     user_id = query.from_user.id
-    username = query.from_user.username
     user_founded = get_user(user_id)
     
     # query for orders
@@ -55,8 +54,10 @@ async def query_manager(client: Client, query: CallbackQuery):
                     
                     # Translation...
                     try:
-                        await translator.srt_translate(target_lang, str(input_srt), str(output_srt))
-                    
+                        if check_administration(query):
+                            await translator.ai_srt_translate(target_lang, str(input_srt), str(output_srt))
+                        else:
+                            await translator.google_srt_translate(target_lang, str(input_srt), user_id, str(output_srt))
                         await m.delete()
                         update_user_value(user_id)
                     except Exception as e:

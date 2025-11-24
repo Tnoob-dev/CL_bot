@@ -1,10 +1,11 @@
 from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors import UserNotParticipant, FloodWait
-from typing import List
+from typing import List, Dict
 from pathlib import Path
 import os
 import asyncio
+import json
 
 # check if a user is admin
 def check_administration(message: Message) -> bool:
@@ -58,3 +59,12 @@ async def forward_messages(client: Client, messages: List[int]):
             except FloodWait as f: # if exists flood sleep bot the time estimated
                 
                 await asyncio.sleep(f.value)
+                
+def save_to_json(subtitles: List[Dict[str, int | str]], user_id: int, output_file: str):
+    try:
+        
+        with open(f"./bot/translations/downloads/{user_id}/{output_file}", 'w', encoding='utf-8') as f:
+            json.dump(subtitles, f, ensure_ascii=False, indent=2)
+            
+    except Exception as error:
+        print(f"Error guardando el json -> {error}")

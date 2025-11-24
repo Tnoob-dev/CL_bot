@@ -1,6 +1,6 @@
 from entry.entry import bot
 from utils.functions import check_user_in_channel
-from utils.translate import Translate
+from utils.users_translate import Translate
 from utils.create_paths import create_user_path, create_output_path
 from utils.db_reqs import insert_user, get_user
 from db.create_cine_db import User
