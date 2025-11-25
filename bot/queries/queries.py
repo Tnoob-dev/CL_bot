@@ -54,10 +54,8 @@ async def query_manager(client: Client, query: CallbackQuery):
                     
                     # Translation...
                     try:
-                        if check_administration(query):
-                            await translator.ai_srt_translate(target_lang, str(input_srt), str(output_srt))
-                        else:
-                            await translator.google_srt_translate(target_lang, str(input_srt), user_id, str(output_srt))
+                        await translator.ai_srt_translate(target_lang, str(input_srt), str(output_srt))
+                    
                         await m.delete()
                         update_user_value(user_id)
                     except Exception as e:
