@@ -2,6 +2,7 @@ annotated-types==0.7.0
 anyio==4.11.0
 cachetools==6.2.1
 certifi==2025.10.5
+chardet==5.2.0
 charset-normalizer==3.4.4
 click==8.3.1
 dotenv==0.9.9
@@ -24,6 +25,7 @@ pydantic==2.11.3
 pydantic-core==2.33.1
 pyrogram @ git+https://github.com/KurimuzonAkuma/pyrogram@df881ee8cf2fc794f5907bd6a5dbb929f71de594
 pysocks==1.7.1
+pysrt==1.1.2
 python-dotenv==1.1.0
 requests==2.32.5
 rsa==4.9.1
@@ -31,6 +33,7 @@ sniffio==1.3.1
 sqlalchemy==2.0.40
 sqlmodel==0.0.24
 srt==3.5.3
+subtranslate==0.2
 tenacity==9.1.2
 tgcrypto-pyrofork==1.2.8
 translate==3.8.0
