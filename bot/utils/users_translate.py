@@ -1,5 +1,4 @@
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from subtitle import subtrans
 import gemini_srt_translator as gst
 import os
 import random
