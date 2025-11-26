@@ -22,23 +22,50 @@ async def massive_collection(client: Client, message: Message):
             state[str(user_id)] = {
                 "collecting": True,
                 "massive_mode": True,
+                "is_movie": True if len(message.command) >= 2 and message.command[-1] == "-m" else False,
+                "post": None,
                 "messages": [],
                 "links": []
             }
             
-            await message.reply("Modo masivo activado, envie /end para determinar por temporadas, y envie /end_massive para terminar el modo masivo")
+        if state[str(user_id)]["is_movie"]:
+            print(state[str(user_id)])
+            await message.reply_photo(photo="./assets/post_example.jpg",
+                                      caption="Modo masivo activado con las siguientes caracteristicas:\n\n```Caracteristicas\n- Modo Coleccion activado\n- Modo Pelicula: Si```\n\nDebe subir las cosas en el siguiente orden: Post -> archivos, mire la foto de ejemplo")
+        else:
+            await message.reply_photo(photo="./assets/post_example.jpg",
+                                      caption="Modo masivo activado con las siguientes caracteristicas:\n\n```Caracteristicas\n- Modo Coleccion activado\n- Modo Pelicula: No```\n\nDebe subir las cosas en el siguiente orden: Post -> archivos, mire la foto de ejemplo")
 
 
 # end_massive command, to end the complete task
 @bot.on_message(command("end_massive") & private)
 async def end_massive(client: Client, message: Message):
+    
     if check_administration(message):
-        user_id = message.from_user.id
-        links = state[str(user_id)]["links"] # get links from the user state dict
-        unlinked_urls = '\n'.join(links) # put one down another
         
-        await message.reply(f"Aqui tiene todos los enlaces:\n{unlinked_urls}")
-        await message.reply_document(document=Path.cwd() / Path("bot") / Path("core") / "cine.db")
+        user_id = message.from_user.id
+        
+        season_counter = 1
+        
+        links = state[str(user_id)]["links"] # get links from the user state dict
+        # unlinked_urls = '\n'.join(links) # put one down another
+        formed_seasons = []
+        
+        for i in range(len(links)):
+            formed_seasons.append((f"Temporada {season_counter}", links[i]))
+            season_counter += 1
+        
+        #######################
+        ##### IMPLEMENTAR #####
+        #######################    
+        await client.forward_messages(
+            chat_id=user_id,
+            from_chat_id=user_id,
+            message_ids=state[str(user_id)]["post"],
+        )
+        
+        # await message.reply(f"Aqui tiene todos los enlaces:\n{unlinked_urls}")
+        # await message.reply_document(document=Path.cwd() / Path("bot") / Path("core") / "cine.db")
         
         # delete user from memory
         del state[str(user_id)] 
@@ -78,6 +105,10 @@ async def end_collection(client: Client, message: Message):
             else:
                 if state[str(user_id)]["massive_mode"]:
                     messages: List[int] = state[str(user_id)]["messages"]
+                    
+                    if state[str(user_id)]["post"] is None:
+                        state[str(user_id)]["post"] = messages[0]
+                    
                     
                     await forward_messages(client, messages) # forward messages to backup channel
                     
