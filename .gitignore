@@ -220,6 +220,8 @@ __marimo__/
 *.session
 *session-journal
 
-tranlations/*
+tranlations/
 
 *.srt
+
+posts/

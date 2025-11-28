@@ -4,10 +4,11 @@ from commands.Translations import return_filename
 from utils.db_reqs import get_user, update_user_value
 from pyrogram.client import Client
 from pyrogram.types import CallbackQuery
-from utils.functions import check_administration
+from utils.functions import check_administration, check_existence
 from utils.users_translate import Translate
 from pathlib import Path
 import os
+import json
 
 # callback query for query actions
 

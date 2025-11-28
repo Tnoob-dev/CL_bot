@@ -16,15 +16,13 @@ import os
 @bot.on_message(command("start", prefixes=["/"]) & private & text)
 async def hello(client: Client, message: Message):
     
-    # at this point we will take 3 vars, user_id, username, and user_founded, that will return a Tuple[bool, class] data type if founds the user via user_id,
-    # else this will return a Tuple[bool, None]
-    user_id = message.from_user.id
-    username = message.from_user.username
-    user_founded = get_user(user_id)
-    
     # this was to evade troubles, if message.command is None, we will do nothing
-    if message.command is not None:
-        
+    if message.command is not None and message.command[0] == "start":
+        # at this point we will take 3 vars, user_id, username, and user_founded, that will return a Tuple[bool, class] data type if founds the user via user_id,
+        # else this will return a Tuple[bool, None]
+        user_id = message.from_user.id
+        username = message.from_user.username
+        user_founded = get_user(user_id)
         try:
             # see if the command is higher than 2, Ex: /start=randomIDtoGetThings, message.command returns in that case ["start", "randomIDtoGetThings"]
             if len(message.command) >= 2:

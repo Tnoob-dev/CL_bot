@@ -93,7 +93,7 @@ def reset_all_users_tries():
                 if str(user.id) in admins:
                     user.rest_tries = 10000
                 else:
-                    user.rest_tries = 5
+                    user.rest_tries = 10
                 session.add(user)
             
             session.commit()
