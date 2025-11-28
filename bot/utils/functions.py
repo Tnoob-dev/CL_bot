@@ -7,6 +7,10 @@ import os
 import asyncio
 import json
 
+# check if a path or file exists
+def check_existence(path: Path):
+    return False if not path.exists() else True
+
 # check if a user is admin
 def check_administration(message: Message) -> bool:
     admins: List[str] = os.getenv("ADMINS").split(",")
