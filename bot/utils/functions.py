@@ -1,5 +1,5 @@
 from pyrogram.client import Client
-from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 from pyrogram.errors import UserNotParticipant, FloodWait
 from typing import List, Dict
 from pathlib import Path
@@ -72,3 +72,19 @@ def save_to_json(subtitles: List[Dict[str, int | str]], user_id: int, output_fil
             
     except Exception as error:
         print(f"Error guardando el json -> {error}")
+        
+def clear_path(path: str) -> None:
+    
+    if os.path.exists(path):
+        files = os.listdir(path)
+        
+        if len(files) > 0:
+            for file in files:
+                os.remove(path + file)
+
+def get_clicked_button_text(query: CallbackQuery):
+    key = query.data
+    
+    for markup in query.message.reply_markup.inline_keyboard:
+        if markup[0].callback_data == key:
+            return markup[0].text

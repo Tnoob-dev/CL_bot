@@ -4,11 +4,12 @@ from commands.Translations import return_filename
 from utils.db_reqs import get_user, update_user_value
 from pyrogram.client import Client
 from pyrogram.types import CallbackQuery
-from utils.functions import check_administration, check_existence
+from utils.functions import check_administration, get_clicked_button_text
 from utils.users_translate import Translate
+from utils.search_subts import download_subs
+from utils.create_paths import create_subtitles_dl_path
 from pathlib import Path
 import os
-import json
 
 # callback query for query actions
 
@@ -28,7 +29,30 @@ async def query_manager(client: Client, query: CallbackQuery):
                 await query.message.delete()
         else:
             await query.answer(text="🤨", show_alert=True)
-    else:
+    elif query.data.startswith("sub_"):
+        try:
+            if user_founded[0]:
+                await query.message.delete()
+                
+                create_subtitles_dl_path(query.from_user.id)
+                
+                file_name = get_clicked_button_text(query=query)
+                
+                m = await query.message.reply(f"🔽Descargando __{file_name.replace("🔡", "")}__.srt😏🔽")
+                
+                srt_file_original = download_subs(query.data.split("sub_")[1])
+                srt_file_renamed = f"./bot/subts/{user_id}/{file_name.replace("🔡", "")}.srt"
+                
+                os.rename(srt_file_original, srt_file_renamed)
+                
+                await query.message.reply_document(srt_file_renamed)
+                
+                await m.edit(f"**🔼Subtitulo enviado, asegurese de que sea el correcto✅.\nGracias por usar nuestro bot.🦾🤖\nSiga disfrutando de @{os.getenv("CINEMA_ID")}🎟**")
+                
+                os.remove(srt_file_renamed)
+        except Exception as error:
+            await query.message.reply(error)
+    elif query.data.startswith("tr_"):
         # query for translations
         if user_founded[0]:
             # print(user_founded)
@@ -51,7 +75,7 @@ async def query_manager(client: Client, query: CallbackQuery):
                     # delete actual callback query message, and start processing
                     await query.message.delete()
                     
-                    m = await query.message.reply(f"👨‍🔧Traduciendo ||__{return_filename().split("/")[-1]}__||, espere por favor, en cuanto termine tendra su subtitulo subido, mientras tanto, disfrute de nuestro canal 😉")
+                    m = await query.message.reply(f"👨‍🔧Traduciendo ||__{return_filename().split("/")[-1]}__||, espere por favor, en cuanto termine tendra su subtitulo subido, mientras tanto, disfrute d {os.getenv("CINEMA_ID")}😉")
                     
                     # Translation...
                     try:

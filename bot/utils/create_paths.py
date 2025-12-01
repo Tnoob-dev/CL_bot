@@ -33,8 +33,19 @@ def create_user_path(path: str, user_id: int) -> bool:
     return True
 
 # bot/translations/output/{user_id}
-def create_output_path(user_id) -> bool:
+def create_output_path(user_id: int) -> bool:
     output_path = Path.cwd() / Path("bot") / Path("translations") / Path("output")
+    
+    if not output_path.exists():
+        output_path.mkdir()
+    
+    create_user_path(output_path, user_id)
+    
+    return True
+
+# bot/subts/{user_id}
+def create_subtitles_dl_path(user_id: int):
+    output_path = Path.cwd() / Path("bot") / Path("subts")
     
     if not output_path.exists():
         output_path.mkdir()
