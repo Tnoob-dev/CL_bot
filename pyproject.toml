@@ -20,6 +20,7 @@ dependencies = [
     "httpx==0.28.1",
     "idna==3.11",
     "json-repair==0.51.0",
+    "opensubtitlescom>=0.1.5",
     "packaging==25.0",
     "pyaes==1.6.1",
     "pyasn1==0.6.1",
