@@ -8,6 +8,7 @@ from commands.Order import get_orders
 from commands.Translations import translate_srt
 from commands.Misc import watch
 from commands.Posts import create_posts
+from commands.Subtitles import search_subtitles
 
 # QUERY FUNCTIONS
 from queries.queries import query_manager
@@ -16,7 +17,7 @@ from queries.queries import query_manager
 from utils.create_paths import create_translations_path, create_download_path
 from utils.db_reqs import start_daily_reset
 from db.create_cine_db import create_db
-
+from utils.functions import clear_path
 # PYRO
 from pyrogram.handlers.message_handler import MessageHandler
 from pyrogram.handlers.callback_query_handler import CallbackQueryHandler
@@ -31,6 +32,9 @@ create_db()
 create_translations_path()
 create_download_path()
 
+# Clear folder
+clear_path("./posts/")
+
 # Commands
 bot.add_handler(MessageHandler(hello))
 bot.add_handler(MessageHandler(start_collection))
@@ -40,6 +44,7 @@ bot.add_handler(MessageHandler(get_orders))
 bot.add_handler(MessageHandler(translate_srt))
 bot.add_handler(MessageHandler(watch))
 bot.add_handler(MessageHandler(create_posts))
+bot.add_handler(MessageHandler(search_subtitles))
 
 # Queries
 bot.add_handler(CallbackQueryHandler(query_manager))
