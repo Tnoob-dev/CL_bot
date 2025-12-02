@@ -28,7 +28,10 @@ async def translate_srt(client: Client, message: Message):
         # if user_founded returns None, means user is not in db, so we add it
         if not user_founded:
             await message.reply("Al parecer usted no habia entrado a la DB, ya se encuentra dentro, disfrute")
-            user = User(id=message.from_user.id, username=message.from_user.username)
+            
+            username = message.from_user.username if message.from_user.username is not None else ""
+            
+            user = User(id=message.from_user.id, username=username)
             insert_user(user)
         
         # this will return None if the user doesnt reply to a file message

@@ -51,7 +51,7 @@ def insert_user(query: User) -> None:
     try:
         r = get_user(query.id)
         
-        print(r)
+        # print(r)
         
         if not r[0]:
             with Session(users_engine) as session:
