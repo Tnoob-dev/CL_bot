@@ -5,6 +5,11 @@ from pyrogram.filters import command, private
 from utils.functions import check_administration, check_existence
 from pathlib import Path
 from ast import literal_eval
+import os
+import logging
+
+# Logger 
+logger = logging.getLogger(__name__)
 
 
 @bot.on_message(command("post", prefixes=["/"]) & private)
@@ -27,7 +32,7 @@ async def create_posts(client: Client, message: Message):
             await m.edit("Post Enviado")
             
             await client.send_photo(
-                chat_id="CL_LibraryBK",
+                chat_id=os.getenv("CINEMA_ID"),
                 photo=pic,
                 caption=description,
                 reply_markup=InlineKeyboardMarkup(

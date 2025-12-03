@@ -6,6 +6,10 @@ from db.create_cine_db import User
 from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.filters import command, private
+import logging
+
+# Logger 
+logger = logging.getLogger(__name__)
 
 
 @bot.on_message(command("srt", prefixes=["/"]) & private)

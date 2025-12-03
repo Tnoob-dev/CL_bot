@@ -9,9 +9,13 @@ from pyrogram.errors.exceptions.bad_request_400 import PeerIdInvalid
 from pathlib import Path
 from typing import List
 import os
+import logging
 
 # state for saving messages of files and other data
 state = {}
+
+# Logger 
+logger = logging.getLogger(__name__)
 
 # massive command, to add a lot of files, in only one command, instead of multiple /add commands
 @bot.on_message(command("massive") & private)

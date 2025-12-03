@@ -1,6 +1,9 @@
 # BOT CLIENT
 from entry.entry import bot
 
+# LOGGING
+import logging
+
 # COMMAND FUNCTIONS
 from commands.Hello import hello
 from commands.Collection import start_collection, end_collection, collect_messages
@@ -18,9 +21,19 @@ from utils.create_paths import create_translations_path, create_download_path
 from utils.db_reqs import start_daily_reset
 from db.create_cine_db import create_db
 from utils.functions import clear_path
+
 # PYRO
 from pyrogram.handlers.message_handler import MessageHandler
 from pyrogram.handlers.callback_query_handler import CallbackQueryHandler
+
+# Logging config
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
+logger = logging.getLogger(__name__)
 
 # Daily reset for 5 tries of srt translation quota
 start_daily_reset()
@@ -50,7 +63,7 @@ bot.add_handler(MessageHandler(search_subtitles))
 bot.add_handler(CallbackQueryHandler(query_manager))
 
 if __name__ == "__main__":
-    print("starting bot")
+    logger.info("Starting Bot")
     bot.start()
-    print("bot started")
+    logger.info("Bot Started")
     bot.loop.run_forever()

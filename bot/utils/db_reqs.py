@@ -4,6 +4,10 @@ from typing import List, Tuple, Dict
 import threading
 import time
 import os
+import logging
+
+# Logger 
+logger = logging.getLogger(__name__)
 
 # insert movie to db
 def insert(query: Game) -> Dict[str, str]:
@@ -13,7 +17,7 @@ def insert(query: Game) -> Dict[str, str]:
             session.commit()
         return {"message": "Juego annadido"}
     except Exception as e:
-        raise Exception(f"Error al annadir a la db -> {e}")
+        logger.error(f"Error al annadir a la db -> {e}")
 
 # get movie from db
 def get_game(name: str) -> List[int]:
@@ -25,7 +29,7 @@ def get_game(name: str) -> List[int]:
             return result.file_ids
 
     except Exception as e:
-        raise Exception(f"Error al obtener desde la db -> {e}")
+        logger.error(f"Error al obtener desde la db -> {e}")
 
 
 #################################################################
@@ -44,14 +48,14 @@ def get_user(id: int) -> Tuple[bool, User] | Tuple[bool, None]:
             else:
                 return (False, None)
     except Exception as e:
-        raise Exception(f"Error al obtener desde la db -> {e}")
+        logger.error(f"Error al obtener desde la db -> {e}")
     
 # insert user from db
 def insert_user(query: User) -> None:
     try:
         r = get_user(query.id)
         
-        # print(r)
+        # logger.info(r)
         
         if not r[0]:
             with Session(users_engine) as session:
@@ -61,7 +65,7 @@ def insert_user(query: User) -> None:
         else:
             return False, "El usuario ya se encuentra en la db"
     except Exception as e:
-        raise Exception(f"Error al annadir a la db -> {e}")
+        logger.error(f"Error al annadir a la db -> {e}")
     
 # update user translations value, from 5, until 0
 def update_user_value(id: int):
@@ -75,11 +79,11 @@ def update_user_value(id: int):
             session.add(user)
             session.commit()
             session.refresh(user)
-        print(f"al usuario {user.username} le quedan {user.rest_tries} intentos")
+        logger.info(f"al usuario {user.username} le quedan {user.rest_tries} intentos")
             
     except Exception as e:
         session.rollback()
-        raise Exception(f"Error al actualizar al usuario {id}, error -> {e}")
+        logger.error(f"Error al actualizar al usuario {id}, error -> {e}")
 
 # after 24 hours, reset every user translations to 5
 def reset_all_users_tries():
@@ -97,10 +101,10 @@ def reset_all_users_tries():
                 session.add(user)
             
             session.commit()
-        print(f"Se han restablecido los intentos de {len(users)} usuarios")
+        logger.info(f"Se han restablecido los intentos de {len(users)} usuarios")
     except Exception as e:
         session.rollback()
-        raise Exception(f"Error al restablecer intentos de usuarios -> {e}")
+        logger.error(f"Error al restablecer intentos de usuarios -> {e}")
 
 
 def start_daily_reset():
@@ -111,4 +115,4 @@ def start_daily_reset():
     
     thread = threading.Thread(target=reset_loop, daemon=True)
     thread.start()
-    print("Sistema de reseteo diario iniciado")
+    logger.info("Sistema de reseteo diario iniciado")

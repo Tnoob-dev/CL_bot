@@ -1,6 +1,10 @@
 from opensubtitlescom import OpenSubtitles, OpenSubtitlesException
 import random
 import os
+import logging
+
+# Logger 
+logger = logging.getLogger(__name__)
 
 def subs(query: str):
     
@@ -29,4 +33,4 @@ def download_subs(file_id: str):
         file = op.download_and_save(file_id)
         return file
     except OpenSubtitlesException as error:
-        raise OpenSubtitlesException(f"Error -> {error}")
+        logger.error(f"Error -> {error}")

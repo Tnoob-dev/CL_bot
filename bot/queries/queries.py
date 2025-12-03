@@ -10,6 +10,10 @@ from utils.search_subts import download_subs
 from utils.create_paths import create_subtitles_dl_path
 from pathlib import Path
 import os
+import logging
+
+# Logger 
+logger = logging.getLogger(__name__)
 
 # callback query for query actions
 
@@ -51,11 +55,12 @@ async def query_manager(client: Client, query: CallbackQuery):
                 
                 os.remove(srt_file_renamed)
         except Exception as error:
+            logger.error(f"Error al descargar el subtitulo -> {error}")
             await query.message.reply(error)
     elif query.data.startswith("tr_"):
         # query for translations
         if user_founded[0]:
-            # print(user_founded)
+            # logger.info(user_founded)
             try:
                 # each user has 5 translations available, except the admins, so we check that user trnaslations is >= 1
                 if user_founded[1].rest_tries >= 1:
@@ -105,5 +110,5 @@ async def query_manager(client: Client, query: CallbackQuery):
                 else:
                     # this is in case user doesn't have more than 1 translation available
                     await query.message.reply("Ya se termino sus traducciones, vuelva mañana por favor")
-            except Exception as e:
-                raise Exception(f"Error -> {e}")
+            except Exception as error:
+                logger.error(f"Error durante las traducciones -> {error}")

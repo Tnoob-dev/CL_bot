@@ -2,7 +2,11 @@ from pyrogram.client import Client
 from pathlib import Path
 import dotenv as dt
 import os
+import logging
 import tgcrypto
+
+# Logger 
+logger = logging.getLogger(__name__)
 
 #######################
 # BOT INITIALIZATION  #

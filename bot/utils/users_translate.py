@@ -2,7 +2,10 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 import gemini_srt_translator as gst
 import os
 import random
+import logging
 
+# Logger 
+logger = logging.getLogger(__name__)
 
 # Translate object
 class Translate():

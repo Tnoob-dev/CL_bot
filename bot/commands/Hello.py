@@ -11,6 +11,10 @@ from typing import List
 from pathlib import Path
 import asyncio
 import os
+import logging
+
+# Logger 
+logger = logging.getLogger(__name__)
 
 # command start, maybe can we think that is something trivial, but is not
 @bot.on_message(command("start", prefixes=["/"]) & private & text)
@@ -67,9 +71,9 @@ async def hello(client: Client, message: Message):
                     await message.reply(f"Hola {message.from_user.mention}, Busca la pelicula en el canal o grupo y toca el enlace para obtenerlo aqui")
             
             if not user_founded[0]: # if the user is not in db, add it
-                print(f"Insertando usuario {username} ({user_id}) a la db")
+                logger.info(f"Insertando usuario {username} ({user_id}) a la db")
                 user = User(id=user_id, username=username)
                 insert_user(user)
-                print(f"Usuario {username} añadido a la db")
+                logger.info(f"Usuario {username} añadido a la db")
         except (TypeError, ValueError) as e:
-            print(e)
+            logger.error(e)

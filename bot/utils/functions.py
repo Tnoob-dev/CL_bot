@@ -6,6 +6,10 @@ from pathlib import Path
 import os
 import asyncio
 import json
+import logging
+
+# Logger 
+logger = logging.getLogger(__name__)
 
 # check if a path or file exists
 def check_existence(path: Path):
@@ -44,7 +48,7 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
                             ))
         return False
     except Exception as e:
-        print(f"Error inesperado en check_user_in_channel: {e}")
+        logger.error(f"Error inesperado en check_user_in_channel: {e}")
         return False
 
 async def forward_messages(client: Client, messages: List[int]):
@@ -71,7 +75,7 @@ def save_to_json(subtitles: List[Dict[str, int | str]], user_id: int, output_fil
             json.dump(subtitles, f, ensure_ascii=False, indent=2)
             
     except Exception as error:
-        print(f"Error guardando el json -> {error}")
+        logger.error(f"Error guardando el json -> {error}")
         
 def clear_path(path: str) -> None:
     

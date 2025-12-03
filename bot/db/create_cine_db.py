@@ -1,6 +1,10 @@
 from sqlmodel import SQLModel, Field, create_engine, Column, JSON
 from typing import Optional, List
 import os
+import logging
+
+# Logger 
+logger = logging.getLogger(__name__)
 
 # Movies database (the name is game cuz this is the same code used in games library)
 class Game(SQLModel, table = True):
@@ -24,4 +28,4 @@ def create_db():
     if not os.path.exists("./bot/core/users.db"):
         User.__table__.create(users_engine)
         
-    print("Todas las db han sido creadas")
+    logger.info("Todas las db han sido creadas")

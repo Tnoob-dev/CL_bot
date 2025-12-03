@@ -8,6 +8,10 @@ from pyrogram.filters import command, private
 from pyrogram.client import Client
 from pyrogram.types import Message
 from pathlib import Path
+import logging
+
+# Logger 
+logger = logging.getLogger(__name__)
 
 @bot.on_message(command("tr", prefixes=["/"]) & private)
 async def translate_srt(client: Client, message: Message):
