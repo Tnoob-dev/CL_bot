@@ -2,6 +2,7 @@ from entry.entry import bot
 from utils.search_subts import subs
 from utils.db_reqs import get_user, insert_user
 from utils.functions import check_user_in_channel
+from opensubtitlescom import OpenSubtitlesException
 from db.create_cine_db import User
 from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
@@ -46,5 +47,6 @@ async def search_subtitles(client: Client, message: Message):
                     await message.reply("No se ha encontrado nada, asegurese de que haya escrito bien el nombre.")
             else:
                 await message.reply("❌Debe enviar el comando y luego el nombre de la serie/pelicula, junto a la temporada y/o episodio.❓Ejemplos:\n\n/srt Breaking Bad Season 1\n/srt Breaking Bad S01E01\n/srt Breaking Bad Temporada 2 Episodio 3")
-    except Exception as error:
+    except OpenSubtitlesException as error:
+        logger.error(error)
         await message.reply(error)
