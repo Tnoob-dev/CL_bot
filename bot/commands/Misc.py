@@ -2,7 +2,7 @@ from entry.entry import bot
 from pyrogram.client import Client
 from pyrogram.types import Message
 from pyrogram.filters import command, private, text, photo
-from pyrogram.errors import FloodWait
+from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated, PeerIdInvalid
 from utils.functions import check_administration
 from utils.db_reqs import get_user
 import asyncio
@@ -16,63 +16,44 @@ msg_state = {}
 @bot.on_message(command("amsg") & private)
 async def send_admin_message(client: Client, message: Message):
     
-    if check_administration(message):
-        
-        user_id = message.from_user.id
-        
-        if not str(user_id) in msg_state:
-            msg_state[str(user_id)] = {
-                "admin_mode": True,
-                "message": None}
+    try:
+        # if check_administration(message):
             
-        await message.reply("Envie el mensaje")
-        
-@bot.on_message(command("send", prefixes=["/"]) & private)
-async def send_message(client: Client, message: Message):
-    try:
+        #     user_id = message.from_user.id
+            
+        #     if not str(user_id) in msg_state:
+        #         msg_state[str(user_id)] = {
+        #             "admin_mode": True,
+        #             "message": None}
+                
+        #     await message.reply("Envie el mensaje")
         
         if check_administration(message):
-            user_id = message.from_user.id
-            if str(user_id) in msg_state:
-                users = get_user(all_the_users=True)
-                
-                for user in users:
-                    success = False # Flag
-                    while not success:
-                        try:
-                            await client.copy_message(user.id, message.chat.id, msg_state[str(user_id)]["message"])
-                            success = True
-                        except FloodWait as f:
-                            asyncio.sleep(f.value)
-
-                await message.reply(f"Se le envio el mensaje a {len(users)} usuarios")
-                
-                del msg_state[str(user_id)]
-            else:
-                await message.reply("No has entrado en modo administrador para enviar mensajes")
+            users = get_user(all_the_users=True)
+            quantity_users = len(users)
+            
+            for user in users:
+                success = False # Flag
+                while not success:
+                    try:
+                        await client.copy_message(user.id, message.chat.id, message.reply_to_message.id)
+                        success = True
+                    except FloodWait as f:
+                        asyncio.sleep(f.value)
+                    except (UserIsBlocked, InputUserDeactivated, PeerIdInvalid) as e:
+                        logger.info(f"No se puede enviar a {user.id}: {e}")
+                        quantity_users -= 1
+                        success = True
+                        
+            await message.reply(f"Se le envio el mensaje a {quantity_users} usuarios")
+    
     except Exception as error:
         logger.error(error)
-
-@bot.on_message(command("cancel", prefixes=["/"]) & private)
-async def cancel_action(client: Client, message: Message):
-    try:
-        if check_administration(message):
-            user_id = message.from_user.id
-            if str(user_id) in msg_state:
-                del msg_state[str(user_id)]
-                await message.reply("Accion cancelada")
-            else:
-                await message.reply("No se encuentra actualmente en modo administrador")
-    except Exception as error:
-        logger.error(error)
+            
+# @bot.on_message(command("send", prefixes=["/"]) & private)
+# async def send_message(client: Client, message: Message):
+#     try:
         
-@bot.on_message(private & text | photo)
-async def message_to_users(client: Client, message: Message):
-    try:
-        if message.from_user.id is not None:
-            if check_administration(message):
-                user_id = message.from_user.id
-                if str(user_id) in msg_state:
-                    msg_state[str(user_id)]["message"] = message.id
-    except AttributeError as error:
-        logger.error(error)
+        
+#     except Exception as error:
+#         logger.error(error)
