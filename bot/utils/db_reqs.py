@@ -35,18 +35,24 @@ def get_game(name: str) -> List[int]:
 #################################################################
 
 # get user from db
-def get_user(id: int) -> Tuple[bool, User] | Tuple[bool, None]:
+def get_user(id: int = None, all_the_users: bool = False) -> Tuple[bool, User] | Tuple[bool, None]:
     try:
         with Session(users_engine) as session:
-            statement = select(User).where(User.id == id)
-            result = session.exec(statement)
-            
-            user = result.first()   
-                     
-            if user is not None:
-                return (True, user)
+            if id is not None and all_the_users:
+                statement = select(User).where(User.id == id)
+                result = session.exec(statement)
+                
+                user = result.first()   
+                        
+                if user is not None:
+                    return (True, user)
+                else:
+                    return (False, None)
             else:
-                return (False, None)
+                statement = select(User)
+                users = session.exec(statement).all()
+                
+                return users
     except Exception as e:
         logger.error(f"Error al obtener desde la db -> {e}")
     

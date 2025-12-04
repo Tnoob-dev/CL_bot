@@ -9,7 +9,7 @@ from commands.Hello import hello
 from commands.Collection import start_collection, end_collection, collect_messages
 from commands.Order import get_orders
 from commands.Translations import translate_srt
-from commands.Misc import watch
+from commands.Misc import send_admin_message
 from commands.Posts import create_posts
 from commands.Subtitles import search_subtitles
 
@@ -55,7 +55,7 @@ bot.add_handler(MessageHandler(collect_messages))
 bot.add_handler(MessageHandler(end_collection))
 bot.add_handler(MessageHandler(get_orders))
 bot.add_handler(MessageHandler(translate_srt))
-bot.add_handler(MessageHandler(watch))
+bot.add_handler(MessageHandler(send_admin_message))
 bot.add_handler(MessageHandler(create_posts))
 bot.add_handler(MessageHandler(search_subtitles))
 

@@ -51,7 +51,7 @@ async def end_massive(client: Client, message: Message):
             formed_seasons.append((f"Temporada {season_counter}", links[i]))
             season_counter += 1
         
-        await message.reply(f"Aqui tiene todos los enlaces:\n```python\n{formed_seasons}```")
+        await message.reply(f"```python\n{formed_seasons}```")
         await message.reply_document(document=Path.cwd() / Path("bot") / Path("core") / "cine.db")
         
         # delete user from memory
