@@ -134,8 +134,11 @@ async def end_collection(client: Client, message: Message):
 @bot.on_message(private & document | video | photo)
 async def collect_messages(client: Client, message: Message):
     # check user is admin
-    if message.from_user.id is not None:
-        if check_administration(message):
-            user_id = message.from_user.id
-            if str(user_id) in state: # if user id is in state, means its in collection mode                
-                state[str(user_id)]["messages"].append(message.id) # just append to that schema
+    try:
+        if message.from_user.id is not None:
+            if check_administration(message):
+                user_id = message.from_user.id
+                if str(user_id) in state: # if user id is in state, means its in collection mode                
+                    state[str(user_id)]["messages"].append(message.id) # just append to that schema
+    except AttributeError as error:
+        logger.error(error)

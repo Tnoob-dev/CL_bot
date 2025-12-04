@@ -23,7 +23,8 @@ async def search_subtitles(client: Client, message: Message):
         else:
             if not user_founded:
                 await message.reply("Al parecer usted no habia entrado a la DB, ya se encuentra dentro, disfrute")
-                user = User(id=message.from_user.id, username=message.from_user.username)
+                username = message.from_user.username if message.from_user.username is not None else ""
+                user = User(id=message.from_user.id, username=username)
                 insert_user(user)
                 
             if len(message.command) >= 2:
