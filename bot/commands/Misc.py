@@ -43,6 +43,19 @@ async def send_message(client: Client, message: Message):
     except Exception as error:
         logger.error(error)
 
+@bot.on_message(command("cancel", prefixes=["/"]) & private)
+async def cancel_action(client: Client, message: Message):
+    try:
+        if check_administration(message):
+            user_id = message.from_user.id
+            if str(user_id) in msg_state:
+                del msg_state[str(user_id)]
+                await message.reply("Accion cancelada")
+            else:
+                await message.reply("No se encuentra actualmente en modo administrador")
+    except Exception as error:
+        logger.error(error)
+        
 @bot.on_message(private & text | photo)
 async def message_to_users(client: Client, message: Message):
     try:
