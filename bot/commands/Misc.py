@@ -2,8 +2,10 @@ from entry.entry import bot
 from pyrogram.client import Client
 from pyrogram.types import Message
 from pyrogram.filters import command, private, text, photo
+from pyrogram.errors import FloodWait
 from utils.functions import check_administration
 from utils.db_reqs import get_user
+import asyncio
 import logging
 
 # Logger 
@@ -35,8 +37,16 @@ async def send_message(client: Client, message: Message):
                 users = get_user(all_the_users=True)
                 
                 for user in users:
-                    await client.copy_message(user.id, message.chat.id, msg_state[str(user_id)]["message"])
-            
+                    success = False # Flag
+                    while not success:
+                        try:
+                            await client.copy_message(user.id, message.chat.id, msg_state[str(user_id)]["message"])
+                            success = True
+                        except FloodWait as f:
+                            asyncio.sleep(f.value)
+
+                await message.reply(f"Se le envio el mensaje a {len(users)} usuarios")
+                
                 del msg_state[str(user_id)]
             else:
                 await message.reply("No has entrado en modo administrador para enviar mensajes")
