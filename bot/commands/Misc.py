@@ -33,18 +33,19 @@ async def send_admin_message(client: Client, message: Message):
             quantity_users = len(users)
             
             for user in users:
-                success = False # Flag
-                while not success:
-                    try:
-                        await client.copy_message(user.id, message.chat.id, message.reply_to_message.id)
-                        success = True
-                    except FloodWait as f:
-                        asyncio.sleep(f.value)
-                    except (UserIsBlocked, InputUserDeactivated, PeerIdInvalid) as e:
-                        logger.info(f"No se puede enviar a {user.id}: {e}")
-                        quantity_users -= 1
-                        success = True
-                        
+                if user.id != 8161420181:
+                    success = False # Flag
+                    while not success:
+                        try:
+                            await client.copy_message(user.id, message.chat.id, message.reply_to_message.id)
+                            success = True
+                        except FloodWait as f:
+                            asyncio.sleep(f.value)
+                        except (UserIsBlocked, InputUserDeactivated, PeerIdInvalid) as e:
+                            logger.info(f"No se puede enviar a {user.id}: {e}")
+                            quantity_users -= 1
+                            success = True
+                            
             await message.reply(f"Se le envio el mensaje a {quantity_users} usuarios")
     
     except Exception as error:
