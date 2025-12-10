@@ -13,20 +13,10 @@ logger = logging.getLogger(__name__)
 
 msg_state = {}
 
-@bot.on_message(command("amsg") & private)
+@bot.on_message(command("advise") & private)
 async def send_admin_message(client: Client, message: Message):
     
     try:
-        # if check_administration(message):
-            
-        #     user_id = message.from_user.id
-            
-        #     if not str(user_id) in msg_state:
-        #         msg_state[str(user_id)] = {
-        #             "admin_mode": True,
-        #             "message": None}
-                
-        #     await message.reply("Envie el mensaje")
         
         if check_administration(message):
             users = get_user(all_the_users=True)
@@ -50,11 +40,3 @@ async def send_admin_message(client: Client, message: Message):
     
     except Exception as error:
         logger.error(error)
-            
-# @bot.on_message(command("send", prefixes=["/"]) & private)
-# async def send_message(client: Client, message: Message):
-#     try:
-        
-        
-#     except Exception as error:
-#         logger.error(error)
