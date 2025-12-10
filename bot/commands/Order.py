@@ -1,6 +1,6 @@
 from entry.entry import bot
 from pyrogram.client import Client
-from pyrogram.filters import command, group
+from pyrogram.filters import command, group, photo
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 import logging
 
@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # just the order logic for when the user asks for a movie or a tv series
-@bot.on_message(command("cine", prefixes=["#"]) & group)
+@bot.on_message(command("cine", prefixes=["#"]) & group & photo)
 async def get_orders(client: Client, message: Message):
     
     # make mes global to return it

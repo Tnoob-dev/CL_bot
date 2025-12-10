@@ -6,6 +6,7 @@ import logging
 
 # COMMAND FUNCTIONS
 from commands.Hello import hello
+from commands.Help import help_command
 from commands.Collection import start_collection, end_collection, collect_messages
 from commands.Order import get_orders
 from commands.Translations import translate_srt
@@ -58,9 +59,11 @@ bot.add_handler(MessageHandler(translate_srt))
 bot.add_handler(MessageHandler(send_admin_message))
 bot.add_handler(MessageHandler(create_posts))
 bot.add_handler(MessageHandler(search_subtitles))
+bot.add_handler(MessageHandler(help_command))
 
 # Queries
 bot.add_handler(CallbackQueryHandler(query_manager))
+
 
 if __name__ == "__main__":
     logger.info("Starting Bot")
