@@ -42,9 +42,9 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
         await message.reply("Para usar este bot, primero debes unirte a nuestros canales.", 
                             reply_markup=InlineKeyboardMarkup(
                                 [
-                                    [InlineKeyboardButton("🎬Cinema Library🎬", url="https://t.me/CL_LibraryBK")],
-                                    [InlineKeyboardButton("🌐Equinox🌐", url="https://t.me/TechConnectivityC")],
-                                    [InlineKeyboardButton("♻️Intentar de nuevo", url=f"https://t.me/{os.getenv("SENDER_BOT")}?{'='.join(message.command)}")]
+                                    [InlineKeyboardButton("🎬Cinema Library🎬", url=f"https://t.me/{os.getenv("CINEMA_ID")}")],
+                                    [InlineKeyboardButton("👥Grupo👥", url=f"https://t.me/{os.getenv("GROUP_ID")}")],
+                                    [InlineKeyboardButton("♻️Intentar de nuevo", url=f"https://t.me/{os.getenv("SENDER_BOT")}?{'='.join(message.command) if len(message.command) == 2 else "start"}")]
                                 ]
                             ))
         return False
