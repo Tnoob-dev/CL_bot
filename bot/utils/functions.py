@@ -43,7 +43,7 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
                             reply_markup=InlineKeyboardMarkup(
                                 [
                                     [InlineKeyboardButton("🎬Cinema Library🎬", url=f"https://t.me/{os.getenv("CINEMA_ID")}")],
-                                    [InlineKeyboardButton("👥Grupo👥", url=f"https://t.me/{os.getenv("GROUP_ID")}")],
+                                    [InlineKeyboardButton("🇯🇵Anime Library🇯🇵", url=f"https://t.me/{os.getenv("ANIME_ID")}")],
                                     [InlineKeyboardButton("♻️Intentar de nuevo", url=f"https://t.me/{os.getenv("SENDER_BOT")}?{'='.join(message.command) if len(message.command) == 2 else "start"}")]
                                 ]
                             ))
