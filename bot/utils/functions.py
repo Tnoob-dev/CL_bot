@@ -32,7 +32,7 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
     
     try:
         await client.get_chat_member(chat_id=os.getenv("CINEMA_ID"), user_id=message.from_user.id)
-        await client.get_chat_member(chat_id=os.getenv("GROUP_ID"), user_id=message.from_user.id)
+        await client.get_chat_member(chat_id=os.getenv("ANIME_ID"), user_id=message.from_user.id)
         # await client.get_chat_member(chat_id=os.getenv("GAME_LIBRARY_ID"), user_id=message.from_user.id)
         # await client.get_chat_member(chat_id=os.getenv("EQUINOX_ID"), user_id=message.from_user.id)
         
