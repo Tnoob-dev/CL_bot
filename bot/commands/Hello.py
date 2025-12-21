@@ -50,7 +50,7 @@ async def hello(client: Client, message: Message):
                             if message.command[1].startswith("new_"):
                                 await client.copy_message(message.chat.id, os.getenv("SENDER_BOT"), id) # send files from the private chat of the bot
                             else:
-                                await client.copy_message(message.chat.id, os.getenv("CHANNEL_ID"), id) # send files from the backup channel
+                                await client.copy_message(message.chat.id, int(os.getenv("CHANNEL_ID")), id) # send files from the backup channel
                             
                             success = True # success becomes True to pass next file
                         
