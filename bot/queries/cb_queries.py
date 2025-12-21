@@ -1,5 +1,4 @@
 from entry.entry import bot
-from commands.Order import return_mesID
 from commands.Translations import return_filename
 from utils.db_reqs import get_user, update_user_value
 from pyrogram.client import Client
@@ -25,12 +24,19 @@ async def query_manager(client: Client, query: CallbackQuery):
     user_founded = get_user(user_id)
     
     # query for orders
-    if query.data == 'order_ready':
+    if query.data.startswith('order_ready'):
+        splitted_query_data = query.data.split("_")
         if check_administration(query):
+            if "pm" in splitted_query_data:
+                await client.send_message(
+                    chat_id=int(splitted_query_data[-1]),
+                    text="Su pedido ha sido completado"
+                )
+            else:    
                 await client.send_message(chat_id="chat1080p", 
                                         text="Su pedido ha sido completado",
-                                        reply_to_message_id=return_mesID())
-                await query.message.delete()
+                                        reply_to_message_id=int(splitted_query_data[-1]))
+            await query.message.delete()
         else:
             await query.answer(text="🤨", show_alert=True)
     elif query.data.startswith("sub_"):

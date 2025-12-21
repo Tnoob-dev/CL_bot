@@ -7,15 +7,16 @@ import logging
 # COMMAND FUNCTIONS
 from commands.Hello import hello
 from commands.Help import help_command
-from commands.Collection import start_collection, end_collection, collect_messages
+from commands.Collection import end_collection, collect_messages
 from commands.Order import get_orders
 from commands.Translations import translate_srt
 from commands.Misc import send_admin_message
 from commands.Posts import create_posts
 from commands.Subtitles import search_subtitles
+from commands.SearchPosts import search_posts
 
 # QUERY FUNCTIONS
-from queries.queries import query_manager
+from queries.cb_queries import query_manager
 
 # MAIN FUNCTIONS
 from utils.create_paths import create_translations_path, create_download_path
@@ -26,6 +27,7 @@ from utils.functions import clear_path
 # PYRO
 from pyrogram.handlers.message_handler import MessageHandler
 from pyrogram.handlers.callback_query_handler import CallbackQueryHandler
+from pyrogram.handlers.inline_query_handler import InlineQueryHandler
 
 # Logging config
 logging.basicConfig(
@@ -51,7 +53,6 @@ clear_path("./posts/")
 
 # Commands
 bot.add_handler(MessageHandler(hello))
-bot.add_handler(MessageHandler(start_collection))
 bot.add_handler(MessageHandler(collect_messages))
 bot.add_handler(MessageHandler(end_collection))
 bot.add_handler(MessageHandler(get_orders))
@@ -60,6 +61,7 @@ bot.add_handler(MessageHandler(send_admin_message))
 bot.add_handler(MessageHandler(create_posts))
 bot.add_handler(MessageHandler(search_subtitles))
 bot.add_handler(MessageHandler(help_command))
+bot.add_handler(MessageHandler(search_posts))
 
 # Queries
 bot.add_handler(CallbackQueryHandler(query_manager))
