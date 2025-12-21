@@ -18,10 +18,6 @@ async def create_posts(client: Client, message: Message):
     
     if check_administration(message):
         
-        posts_path = Path.cwd() / Path("posts")
-        if not check_existence(posts_path):
-            posts_path.mkdir()
-        
         post = message.reply_to_message.photo.file_id
         if post is not None:
             m = await message.reply("Descargando imagen, creando post y enviando...")

@@ -59,7 +59,7 @@ async def massive_collection(client: Client, message: Message):
 
     await message.reply(
         "Modo masivo activado con las siguientes caracteristicas:\n\n"
-        "``````"
+        "```OwO\nModo collecion: activado\nSi lees esto eres gay```"
     )
 
 
@@ -93,24 +93,7 @@ async def end_massive(client: Client, message: Message):
     # delete user from memory
     del state[str(user_id)]
 
-
-# add command, for start adding messages id to state var
-@bot.on_message(command("add") & private)
-async def start_collection(client: Client, message: Message):
-    # check if user is admin
-    if not check_administration(message):
-        await message.reply("No tiene permisos para utilizar este comando")
-        return
-
-    user_id = message.from_user.id
-    if str(user_id) not in state:
-        init_user_state(user_id, massive_mode=False)
-        await message.reply("Esperando mensajes...\nAl terminar envie /end para crear el post")
-    else:
-        await message.reply("Usted ya se encuentra actualmente coleccionando archivos")
-
-
-# end command, finish command add, and forward all the messages to the backup channel
+# end command, forward all the messages to the backup channel
 @bot.on_message(command("end") & private)
 async def end_collection(client: Client, message: Message):
     try:
@@ -161,9 +144,9 @@ async def end_collection(client: Client, message: Message):
             f"Error -> **{e}**\n\nEste error tal vez es porque despues de inicializar el bot "
             "no puso algun mensaje random en el canal de backup"
         )
-    except Exception as error:
-        logger.error(error)
-        await message.reply("Ha ocurrido un error inesperado, revise los logs del bot")
+    # except Exception as error:
+    #     logger.error(error)
+    #     await message.reply("Ha ocurrido un error inesperado, revise los logs del bot")
 
 
 # without commands, append messages id to user state message schema

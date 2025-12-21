@@ -66,3 +66,11 @@ def create_subtitles_dl_path(user_id: int):
     
     logger.info(f"Carpeta de busqueda de subtitulos para el usuario {user_id} creada")
     return True
+
+# custpom path
+def create_custom_path(path: str):
+    custom_path = Path(path)
+    if not custom_path.exists():
+        custom_path.mkdir()
+        
+    logger.info(f"Carpeta custom {path} creada")

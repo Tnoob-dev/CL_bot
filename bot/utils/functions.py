@@ -3,10 +3,16 @@ from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, 
 from pyrogram.errors import UserNotParticipant, FloodWait
 from typing import List, Dict
 from pathlib import Path
+from yarl import URL
+from .create_paths import create_custom_path
 import os
 import asyncio
 import json
 import logging
+import requests
+import random
+from google import genai
+
 
 # Logger 
 logger = logging.getLogger(__name__)
@@ -62,7 +68,7 @@ async def forward_messages(client: Client, messages: List[int]):
             try:
                 
                 # forwarding
-                await client.copy_message(chat_id=os.getenv("CHANNEL_ID"), from_chat_id=os.getenv("SENDER_BOT"), message_id=message_id)
+                await client.copy_message(chat_id=int(os.getenv("CHANNEL_ID")), from_chat_id=os.getenv("SENDER_BOT"), message_id=message_id)
                 success = True # change flag to True and go for the next file
                 
             except FloodWait as f: # if exists flood sleep bot the time estimated
@@ -93,3 +99,46 @@ def get_clicked_button_text(query: CallbackQuery):
     for markup in query.message.reply_markup.inline_keyboard:
         if markup[0].callback_data == key:
             return markup[0].text
+        
+def download_image(url: URL | str):
+    create_custom_path("./images_downloaded")
+    response = requests.get(url, stream=True)
+    
+    full_path = f"./images_downloaded/imagen.{url.split(".")[-1]}"
+    
+    with open(full_path, "wb") as file:
+        for chunk in response.iter_content():
+            file.write(chunk)
+            
+    return full_path
+
+async def translate_synopsis(input_text: str):
+    
+    api_keys = os.getenv("GEMINI_API_KEY").split(",")
+        
+    single_api_key = random.choice(api_keys)
+    
+    prompt = f"""
+Por favor, traduce la siguiente sinopsis de película o serie del inglés al español. Sigue estas instrucciones al pie de la letra:
+
+1.  **Traducción Fiel:** Traduce el texto de manera precisa, conservando el significado original, el tono (dramático, cómico, suspense) y todos los detalles de la trama.
+2.  **Sin Adiciones:** No añadas información que no esté en el texto original (como nombres de actores, director, año de estreno, críticas o tu opinión).
+3.  **Sin Omisiones:** No omitas frases, personajes o elementos clave de la trama.
+4.  **Estilo Natural:** El español debe sonar natural y fluido, como el texto de una sinopsis profesional. Usa términos comunes para el género (ej: "thriller de suspense", "comedia dramática").
+5.  **Nombres Propios:** No traduzcas títulos de películas/series o nombres de personajes, a menos que ya exista una traducción oficial ampliamente conocida (ej: "Frozen" -> "Frozen: Una aventura congelada"). Los nombres de lugares o instituciones sí se traducen.
+6.  **Formato:** Devuelve **solo** la traducción limpia, sin prefacios como "Aquí tienes la traducción:" ni comentarios finales.
+
+**Texto a traducir:**
+{input_text}
+"""
+
+    try:
+        async with genai.Client(api_key=single_api_key).aio as client:
+            response = await client.models.generate_content(
+                model="gemini-2.5-flash-preview-09-2025",
+                contents={"text": prompt}
+            )
+            
+            return response.text
+    except Exception as e:
+        logger.error(f"Error: {e}")
