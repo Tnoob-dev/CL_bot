@@ -38,7 +38,7 @@ def get_game(name: str) -> List[int]:
 def get_user(id: int = None, all_the_users: bool = False) -> Tuple[bool, User] | Tuple[bool, None]:
     try:
         with Session(users_engine) as session:
-            if id is not None and all_the_users:
+            if id is not None and not all_the_users:
                 statement = select(User).where(User.id == id)
                 result = session.exec(statement)
                 
