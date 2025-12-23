@@ -12,7 +12,7 @@ import os
 
 logger = logging.getLogger(__name__)
 
-@bot.on_message(command("search") & private | group & text)
+@bot.on_message(command("info") & private | group & text)
 async def search_posts(client: Client, message: Message):
     
     if message.from_user is not None:

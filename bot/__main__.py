@@ -14,6 +14,7 @@ from commands.Misc import send_admin_message
 from commands.Posts import create_posts
 from commands.Subtitles import search_subtitles
 from commands.SearchPosts import search_posts
+from commands.SavePosts import save_post
 
 # QUERY FUNCTIONS
 from queries.cb_queries import query_manager
@@ -27,7 +28,6 @@ from utils.functions import clear_path
 # PYRO
 from pyrogram.handlers.message_handler import MessageHandler
 from pyrogram.handlers.callback_query_handler import CallbackQueryHandler
-from pyrogram.handlers.inline_query_handler import InlineQueryHandler
 
 # Logging config
 logging.basicConfig(
@@ -62,10 +62,10 @@ bot.add_handler(MessageHandler(create_posts))
 bot.add_handler(MessageHandler(search_subtitles))
 bot.add_handler(MessageHandler(help_command))
 bot.add_handler(MessageHandler(search_posts))
+bot.add_handler(MessageHandler(save_post))
 
 # Queries
 bot.add_handler(CallbackQueryHandler(query_manager))
-
 
 if __name__ == "__main__":
     logger.info("Starting Bot")
