@@ -1,5 +1,4 @@
 from sqlmodel import SQLModel, Field, create_engine, Column, JSON
-from psycopg2.errors import DuplicateTable
 from typing import Optional, List
 import os
 import logging
