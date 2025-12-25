@@ -1,5 +1,6 @@
-from db.create_cine_db import cine_engine, users_engine, Game, User
+from db.create_cine_db import cine_engine, users_engine, posts_engine, Game, User, Post
 from sqlmodel import Session, select
+from sqlalchemy import func
 from typing import List, Tuple, Dict
 import threading
 import time
@@ -17,6 +18,7 @@ def insert(query: Game) -> Dict[str, str]:
             session.commit()
         return {"message": "Juego annadido"}
     except Exception as e:
+        session.rollback()
         logger.error(f"Error al annadir a la db -> {e}")
 
 # get movie from db
@@ -122,3 +124,35 @@ def start_daily_reset():
     thread = threading.Thread(target=reset_loop, daemon=True)
     thread.start()
     logger.info("Sistema de reseteo diario iniciado")
+    
+def get_post_by_name(name: str):
+    try:
+        with Session(posts_engine) as session:
+            
+            pattern = f"%{name}%"
+            statement = select(Post).where(Post.movie_name.ilike(pattern))
+            results = session.exec(statement).all()
+            
+            return [
+                {
+                    "name": res.movie_name, 
+                    "link": res.link
+                } 
+                for res in results
+                ]
+    except Exception as e:
+        logger.error(e)
+        return []
+    
+def insert_post(query: Post) -> Dict[str, str]:
+    try:
+        with Session(posts_engine) as session:
+            session.add(query)
+            session.commit()
+        return {"message": "Post added"}
+    except Exception as e:
+        session.rollback()
+        logger.error(e)
+        
+def delete_post(id: int):
+    pass

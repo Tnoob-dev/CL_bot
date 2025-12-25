@@ -13,8 +13,8 @@ from commands.Translations import translate_srt
 from commands.Misc import send_admin_message
 from commands.Posts import create_posts
 from commands.Subtitles import search_subtitles
+from commands.InfoPosts import info_posts
 from commands.SearchPosts import search_posts
-from commands.SavePosts import save_post
 
 # QUERY FUNCTIONS
 from queries.cb_queries import query_manager
@@ -48,9 +48,6 @@ create_db()
 create_translations_path()
 create_download_path()
 
-# Clear folder
-clear_path("./posts/")
-
 # Commands
 bot.add_handler(MessageHandler(hello))
 bot.add_handler(MessageHandler(collect_messages))
@@ -61,8 +58,8 @@ bot.add_handler(MessageHandler(send_admin_message))
 bot.add_handler(MessageHandler(create_posts))
 bot.add_handler(MessageHandler(search_subtitles))
 bot.add_handler(MessageHandler(help_command))
+bot.add_handler(MessageHandler(info_posts))
 bot.add_handler(MessageHandler(search_posts))
-bot.add_handler(MessageHandler(save_post))
 
 # Queries
 bot.add_handler(CallbackQueryHandler(query_manager))

@@ -5,13 +5,13 @@ from typing import List, Dict
 from pathlib import Path
 from yarl import URL
 from .create_paths import create_custom_path
+from google import genai
 import os
 import asyncio
 import json
 import logging
 import requests
 import random
-from google import genai
 
 
 # Logger 
@@ -142,3 +142,64 @@ Por favor, traduce la siguiente sinopsis de película o serie del inglés al esp
             return response.text
     except Exception as e:
         logger.error(f"Error: {e}")
+
+async def translate_title(title: str):
+    
+    api_keys = os.getenv("GEMINI_API_KEY").split(",")
+        
+    single_api_key = random.choice(api_keys)
+    
+    prompt = f"""
+Actúa como un traductor especializado en localización cinematográfica. Tu tarea es traducir o adaptar al español **SOLO** el título principal que te proporcione, aplicando esta jerarquía de reglas de manera estricta:
+
+1.  **Prioridad Máxima: Título Oficial en Español.**
+    *   Si existe un título oficial de distribución en español ampliamente conocido y verificado (ej: "The Shawshank Redemption" -> "Cadena Perpetua", "Frozen" -> "Frozen: Una aventura congelada"), **DEBES usarlo**. No propongas alternativas.
+
+2.  **Traducción Literal o Adaptada (Solo si no aplica la regla 1).**
+    *   Si NO hay un título oficial conocido, decide:
+        *   **Traducir literalmente** si es claro y funciona en español (ej: "The Social Network" -> "La red social").
+        *   **Adaptar** si una traducción literal suena mal o no tiene sentido. Busca un equivalente natural que capture la esencia (ej: "The Hangover" -> "¿Qué pasó ayer?").
+
+3.  **Conservar el Original (Casos excepcionales).**
+    *   **NO traduzcas** y conserva el título original en inglés (o en su idioma) si:
+        *   Es un nombre propio (de personaje, lugar, marca: "Saw", "Shrek", "Gotham").
+        *   Es una palabra inventada o sin traducción directa ("Inception", "Se7en").
+        *   El título ya es una palabra internacionalmente reconocida o un lema ("Avatar", "Matrix", "The Avengers").
+        *   El título **YA está en español** (ej: "Coco", "Roma", "El laberinto del fauno"). Déjalo exactamente igual.
+
+**Formato de Respuesta:**
+*   Devuelve **únicamente** el título resultante (ya sea traducido, adaptado o el original), sin comillas, sin explicaciones, sin listas de opciones.
+*   No añadas "La película" o "La serie".
+*   Si el título original contiene un artículo en inglés ("The", "A"), omítelo en la traducción a menos que sea gramaticalmente esencial en español (ej: "The Godfather" -> "El Padrino").
+
+**Título a procesar:**
+{title}
+"""
+
+    try:
+        async with genai.Client(api_key=single_api_key).aio as client:
+            response = await client.models.generate_content(
+                model="gemini-2.5-flash-preview-09-2025",
+                contents={"text": prompt}
+            )
+            
+            return response.text
+    except Exception as e:
+        logger.error(f"Error: {e}")
+
+def clean_name(text: str):
+    
+    splitted_text = text.split("\n")
+    title = splitted_text[0]
+    special_chars = ["🎬", "🎭"]
+    
+    
+    if special_chars[0] in title:
+        title = title.replace(special_chars[0], "")
+        return title.strip()
+    
+    elif special_chars[1] in title:
+        title = title.replace(special_chars[1], "")
+        return title.strip()
+    
+    return title

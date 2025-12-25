@@ -17,7 +17,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # command start, maybe can we think that is something trivial, but is not
-@bot.on_message(command("start", prefixes=["/"]) & private & text)
+@bot.on_message(command("start", prefixes=["/"]) & private)
 async def hello(client: Client, message: Message):
     
     # check if user is not in all required channels, in case he doesn't, return and do nothing, else, keep with the 
@@ -70,7 +70,7 @@ async def hello(client: Client, message: Message):
                 else: # in case isn't admin, reply with funny sticker and hello message
 
                     await message.reply_sticker(Path.cwd() / Path("assets") / Path("dancer.tgs"))
-                    await message.reply(f"Hola {message.from_user.mention}, gracias por usar nuestro bot, nos complace tenerte como usuario, para tener una guia mas detallada de como funciona el bot, utiliza el comando /help.\n\nNos encantaria conocerte, asi que por que no entras al nuestro chat del canal: @chat1080p, donde tambien...shhh...spoiler: ||Podras pedir esa serie o peli que llevas dias buscando|| (Que no se te olvide poner #cine <nombre> y una foto para nosotros saber cual es).")
+                    await message.reply(f"Hola {message.from_user.mention}, gracias por usar nuestro bot, nos complace tenerte como usuario, para tener una guia mas detallada de como funciona el bot, utiliza el comando /help.\n\nNos encantaria conocerte, asi que por que no entras a nuestro chat del canal: @chat1080p, donde tambien...shhh...spoiler: ||Podras pedir esa serie o peli que llevas dias buscando|| (Que no se te olvide poner #cine <nombre> y una foto para nosotros saber cual es).")
             
             if not user_founded[0]: # if the user is not in db, add it
                 logger.info(f"Insertando usuario {username} ({user_id}) a la db")
