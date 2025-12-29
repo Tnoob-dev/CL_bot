@@ -16,15 +16,12 @@ import logging
 # Logger 
 logger = logging.getLogger(__name__)
 
-# command start, maybe can we think that is something trivial, but is not
 @bot.on_message(command("start", prefixes=["/"]) & private)
 async def hello(client: Client, message: Message):
     
-    # check if user is not in all required channels, in case he doesn't, return and do nothing, else, keep with the 
     if not await check_user_in_channel(client, message):
         return
     
-    # this was to evade troubles, if message.command is None, we will do nothing
     if message.command is not None and message.command[0] == "start":
         # at this point we will take 3 vars, user_id, username, and user_founded, that will return a Tuple[bool, class] data type if founds the user via user_id,
         # else this will return a Tuple[bool, None]
@@ -32,43 +29,36 @@ async def hello(client: Client, message: Message):
         username = message.from_user.username if message.from_user.username is not None else ""
         user_founded = get_user(user_id)
         try:
-            # see if the command is higher than 2, Ex: /start=randomIDtoGetThings, message.command returns in that case ["start", "randomIDtoGetThings"]
             if len(message.command) >= 2:
-                
             
-                # get file_ids of the files, based on the function get_game
                 file_ids: List[int] = get_game(message.command[1])
                 
-                # iterate through file ids list
                 for id in file_ids:
                     
                     success = False # Flag
                     while not success:
                         
                         try:
-                            # if the second argument of message.command ("randomIDtoGetThings") starts with new_ (Ex: "new_randomIDtoGetThings")
+                            # second argument of message.command ("randomIDtoGetThings") starts with new_ (Ex: "new_randomIDtoGetThings")
                             if message.command[1].startswith("new_"):
                                 await client.copy_message(message.chat.id, os.getenv("SENDER_BOT"), id) # send files from the private chat of the bot
                             else:
                                 await client.copy_message(message.chat.id, int(os.getenv("CHANNEL_ID")), id) # send files from the backup channel
                             
-                            success = True # success becomes True to pass next file
+                            success = True # success becomes True to reach next file
                         
                         except FloodWait as f:
                             await asyncio.sleep(f.value)
                 
-                # send finished sticker
                 await message.reply_sticker(Path.cwd() / Path("assets") / Path("finished.webp"))
         
             else: # and this else, its in case that we only send /start, without arguments
                 
-                # check if user is admin
                 if check_administration(message):
 
                     await message.reply(f"Hola Administrador: {message.from_user.first_name}")
 
-                else: # in case isn't admin, reply with funny sticker and hello message
-
+                else:
                     await message.reply_sticker(Path.cwd() / Path("assets") / Path("dancer.tgs"))
                     await message.reply(f"Hola {message.from_user.mention}, gracias por usar nuestro bot, nos complace tenerte como usuario, para tener una guia mas detallada de como funciona el bot, utiliza el comando /help.\n\nNos encantaria conocerte, asi que por que no entras a nuestro chat del canal: @chat1080p, donde tambien...shhh...spoiler: ||Podras pedir esa serie o peli que llevas dias buscando|| (Que no se te olvide poner #cine <nombre> y una foto para nosotros saber cual es).")
             

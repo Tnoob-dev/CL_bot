@@ -7,7 +7,6 @@ import logging
 # Logger 
 logger = logging.getLogger(__name__)
 
-# Translate object
 class Translate():
     def __init__(self):
         
@@ -21,7 +20,6 @@ class Translate():
         self.gemini_api_key: str = api_key1
         self.gemini_api_key2: str = api_key2
     
-    # show language queries
     def language_keyboard():
         keyboard = InlineKeyboardMarkup(
             [
@@ -33,7 +31,6 @@ class Translate():
         )
         return keyboard
     
-    # translate srt via ai
     async def ai_srt_translate(self, target_lang: str, input_file: str, output_file: str):
         gst.gemini_api_key = self.gemini_api_key
         gst.gemini_api_key2 = self.gemini_api_key2

@@ -125,6 +125,8 @@ def start_daily_reset():
     thread.start()
     logger.info("Sistema de reseteo diario iniciado")
     
+#################################################################
+
 def get_post_by_name(name: str):
     try:
         with Session(posts_engine) as session:

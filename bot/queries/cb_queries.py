@@ -15,11 +15,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 # callback query for query actions
-
 @bot.on_callback_query()
 async def query_manager(client: Client, query: CallbackQuery):
 
-    # get user id, username, and check if user is in db
     user_id = query.from_user.id
     user_founded = get_user(user_id)
     
@@ -39,6 +37,7 @@ async def query_manager(client: Client, query: CallbackQuery):
             await query.message.delete()
         else:
             await query.answer(text="🤨", show_alert=True)
+    # query for subtitle search
     elif query.data.startswith("sub_"):
         try:
             if user_founded[0]:
@@ -66,11 +65,9 @@ async def query_manager(client: Client, query: CallbackQuery):
     elif query.data.startswith("tr_"):
         # query for translations
         if user_founded[0]:
-            # logger.info(user_founded)
             try:
-                # each user has 5 translations available, except the admins, so we check that user trnaslations is >= 1
+                # each user has 5 translations available, except the admins
                 if user_founded[1].rest_tries >= 1:
-                    # translations path
                     main_path = Path.cwd() / Path("bot") / Path("translations")
                     # get target language
                     target_lang = query.data.split("_")[1]
@@ -80,15 +77,12 @@ async def query_manager(client: Client, query: CallbackQuery):
                     input_srt =  main_path / Path("downloads") / Path(str(user_id)) / Path(return_filename())
                     output_srt = main_path / Path("output") / Path(str(user_id)) / Path(f"{target_lang.upper()}_{return_filename()}")
                     
-                    # initialize Translate object
                     translator = Translate()
                     
-                    # delete actual callback query message, and start processing
                     await query.message.delete()
                     
                     m = await query.message.reply(f"👨‍🔧Traduciendo ||__{return_filename().split("/")[-1]}__||, espere por favor, en cuanto termine tendra su subtitulo subido, mientras tanto, disfrute d {os.getenv("CINEMA_ID")}😉")
                     
-                    # Translation...
                     try:
                         await translator.ai_srt_translate(target_lang, str(input_srt), str(output_srt))
                     
@@ -97,7 +91,6 @@ async def query_manager(client: Client, query: CallbackQuery):
                     except Exception as e:
                         await query.message.reply(e)
                     
-                    # final message
                     await query.message.reply_document(str(output_srt), caption=f"✅Archivo traducido✅\nPara el usuario {query.from_user.mention} ({query.from_user.id})")
                     
                     # all the files in download and output paths
@@ -113,8 +106,8 @@ async def query_manager(client: Client, query: CallbackQuery):
                     os.rmdir(main_path / Path("downloads") / Path(str(user_id)))
                     os.rmdir(main_path / Path("output") / Path(str(user_id)))
                     await query.message.reply(f"Le quedan disponibles {user_founded[1].rest_tries - 1} traducciones")
+                
                 else:
-                    # this is in case user doesn't have more than 1 translation available
                     await query.message.reply("Ya se termino sus traducciones, vuelva mañana por favor")
             except Exception as error:
                 logger.error(f"Error durante las traducciones -> {error}")

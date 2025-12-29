@@ -6,13 +6,13 @@ import logging
 # Logger 
 logger = logging.getLogger(__name__)
 
-# Movies database (the name is game cuz this is the same code used in games library)
+# Movies database (the name is game cuz this is the same code used in games library first version bot)
 class Game(SQLModel, table = True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(default=None)
     file_ids: List[int] = Field(sa_column=Column(JSON))
 
-# User database for translations
+# Users database
 class User(SQLModel, table = True):
     id: Optional[int] = Field(default=None, primary_key=True)
     username: str = Field(default=None)

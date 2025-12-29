@@ -1,8 +1,7 @@
 from entry.entry import bot
-from utils.functions import check_user_in_channel, download_image, translate_synopsis, translate_title
-from utils.db_reqs import get_user, insert_user
+from utils.functions import check_administration, download_image, translate_synopsis, translate_title
+from utils.db_reqs import get_user
 from utils.movie_search import get_results
-from db.create_cine_db import User
 from pyrogram.client import Client
 from pyrogram.types import Message
 from pyrogram.errors.exceptions import WebpageMediaEmpty
@@ -12,23 +11,11 @@ import os
 
 logger = logging.getLogger(__name__)
 
-@bot.on_message(command("info") & private | group & text)
+@bot.on_message(command("info") & (private | group) & text)
 async def info_posts(client: Client, message: Message):
-    
-    if message.from_user is not None:
-        user_founded = get_user(message.from_user.id)[0]
-    
+        
     try:
-        if not await check_user_in_channel(client, message):
-            return
-        
-        if not user_founded:
-            await message.reply("Al parecer usted no habia entrado a la DB, ya se encuentra dentro, disfrute")
-            username = message.from_user.username if message.from_user.username is not None else ""
-            user = User(id=message.from_user.id, username=username)
-            insert_user(user)
-        
-        if message.command is not None:
+        if check_administration(message) and message.command is not None:
             if len(message.command) >= 2:
                 m = await message.reply("Buscando contenido audiovisual🔎🎬")
                 movie = message.command
@@ -57,19 +44,19 @@ async def info_posts(client: Client, message: Message):
                         image = info.get("primaryImage")
                         
                         if kind == "movie":                        
-                            template += f"🎬 {title} | {title_translated} 🎬\n"
+                            template += f"🎬 {title} | {title_translated if title_translated is not None else title} 🎬\n"
                             template += f"🗓 Año: {year}\n"
                             template += f"⭐️Rating: {rating['aggregateRating'] if rating is not None else '-'}\n"
                             template += f"⏱️ Duración: {duration} minutos\n"
                             template += f"📚 Género: {genres}\n"
-                            template += f"📌 Sinopsis: {synopsis}\n"
+                            template += f"📌 Sinopsis: {synopsis if synopsis is not None else plot}\n"
                         else:
-                            template += f"🎭 {title} | {title_translated} 🎭\n"
+                            template += f"🎭 {title} | {title_translated if title_translated is not None else title} 🎭\n"
                             template += f"🗓 Año: {year}\n"
                             template += f"⭐️Rating: {rating["aggregateRating"]}\n"
                             template += f"⏱️ Duración: {duration} minutos por episodio\n"
                             template += f"🎨 Géneros: {genres}\n"
-                            template += f"📖 Sinopsis: {synopsis}\n"
+                            template += f"📖 Sinopsis: {synopsis if synopsis is not None else plot}\n"
                             
                         if image:
                             try:
@@ -85,6 +72,6 @@ async def info_posts(client: Client, message: Message):
                     await message.reply("Estos fueron los resultados que encontre☝️")
                 else:
                     await message.reply("Nada encontrado")
-                            
+                                
     except (AttributeError, Exception) as e:
         logger.error(e)

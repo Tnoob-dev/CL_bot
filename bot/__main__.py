@@ -10,7 +10,7 @@ from commands.Help import help_command
 from commands.Collection import end_collection, collect_messages
 from commands.Order import get_orders
 from commands.Translations import translate_srt
-from commands.Misc import send_admin_message
+from commands.Misc import send_admin_message, count_users
 from commands.Posts import create_posts
 from commands.Subtitles import search_subtitles
 from commands.InfoPosts import info_posts
@@ -53,8 +53,9 @@ bot.add_handler(MessageHandler(hello))
 bot.add_handler(MessageHandler(collect_messages))
 bot.add_handler(MessageHandler(end_collection))
 bot.add_handler(MessageHandler(get_orders))
-bot.add_handler(MessageHandler(translate_srt))
+# bot.add_handler(MessageHandler(translate_srt))
 bot.add_handler(MessageHandler(send_admin_message))
+bot.add_handler(MessageHandler(count_users))
 bot.add_handler(MessageHandler(create_posts))
 bot.add_handler(MessageHandler(search_subtitles))
 bot.add_handler(MessageHandler(help_command))
