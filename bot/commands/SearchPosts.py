@@ -3,14 +3,14 @@ from utils.functions import check_user_in_channel
 from utils.db_reqs import get_post_by_name
 from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
-from pyrogram.filters import command, private
+from pyrogram.filters import command, private, group
 import logging
 import os
 
 # Logger
 logger = logging.getLogger(__name__)
 
-@bot.on_message(command("search", prefixes=["/"]) & private)
+@bot.on_message(command("search", prefixes=["/"]) & (private | group))
 async def search_posts(client: Client, message: Message):
     
     if not await check_user_in_channel(client, message):

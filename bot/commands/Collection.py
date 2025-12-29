@@ -25,7 +25,7 @@ def init_user_state(user_id: int, massive_mode: bool = False) -> None:
         "collecting": True,
         "massive_mode": massive_mode,
         "messages": [],
-        "links": [],  # siempre presente, aunque no se use en modo normal
+        "links": []
     }
 
 
@@ -46,7 +46,6 @@ def register_movie(messages: List[int]) -> str:
     return build_season_link(last_id)
 
 
-# massive command, to add a lot of files, in only one command, instead of multiple /add commands
 @bot.on_message(command("massive") & private)
 async def massive_collection(client: Client, message: Message):
     if not check_administration(message):
@@ -89,8 +88,7 @@ async def end_massive(client: Client, message: Message):
     await message.reply_document(
         document=Path.cwd() / Path("bot") / Path("core") / "cine.db"
     )
-
-    # delete user from memory
+    
     del state[str(user_id)]
 
 # end command, forward all the messages to the backup channel
@@ -112,7 +110,6 @@ async def end_collection(client: Client, message: Message):
 
         if not messages:
             await message.reply("No ha enviado ningun archivo en esta coleccion")
-            # si quieres, puedes limpiar el estado aquí
             del state[str(user_id)]
             return
 
@@ -144,16 +141,11 @@ async def end_collection(client: Client, message: Message):
             f"Error -> **{e}**\n\nEste error tal vez es porque despues de inicializar el bot "
             "no puso algun mensaje random en el canal de backup"
         )
-    # except Exception as error:
-    #     logger.error(error)
-    #     await message.reply("Ha ocurrido un error inesperado, revise los logs del bot")
-
 
 # without commands, append messages id to user state message schema
 # this will only wait for a document, video or photo
 @bot.on_message(private & (document | video | photo))
 async def collect_messages(client: Client, message: Message):
-    # check user is admin
     try:
         if message.from_user and message.from_user.id is not None:
             if check_administration(message):

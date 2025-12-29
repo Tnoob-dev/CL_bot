@@ -38,7 +38,7 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
     
     try:
         await client.get_chat_member(chat_id=os.getenv("CINEMA_ID"), user_id=message.from_user.id)
-        await client.get_chat_member(chat_id=os.getenv("ANIME_ID"), user_id=message.from_user.id)
+        # await client.get_chat_member(chat_id=os.getenv("ANIME_ID"), user_id=message.from_user.id)
         # await client.get_chat_member(chat_id=os.getenv("GAME_LIBRARY_ID"), user_id=message.from_user.id)
         # await client.get_chat_member(chat_id=os.getenv("EQUINOX_ID"), user_id=message.from_user.id)
         
@@ -48,9 +48,7 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
         await message.reply("Para usar este bot, primero debes unirte a nuestros canales.", 
                             reply_markup=InlineKeyboardMarkup(
                                 [
-                                    [InlineKeyboardButton("🎬Cinema Library🎬", url=f"https://t.me/{os.getenv("CINEMA_ID")}")],
-                                    [InlineKeyboardButton("🇯🇵Anime Library🇯🇵", url=f"https://t.me/{os.getenv("ANIME_ID")}")],
-                                    [InlineKeyboardButton("♻️Intentar de nuevo", url=f"https://t.me/{os.getenv("SENDER_BOT")}?{'='.join(message.command) if len(message.command) == 2 else "start"}")]
+                                    [InlineKeyboardButton("🎬Cinema Library🎬", url=f"https://t.me/{os.getenv("CINEMA_ID")}")]
                                 ]
                             ))
         return False
