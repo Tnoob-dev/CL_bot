@@ -56,3 +56,11 @@ dependencies = [
     "websockets==15.0.1",
     "yarl==1.22.0",
 ]
+
+[tool.basedpyright]
+typeCheckingMode = "off"
+reportUnusedImport = "none"
+reportUnusedVariable = "none"
+reportMissingImports = "none"
+reportGeneralTypeIssues = "none"
+reportOptionalMemberAccess = "none"

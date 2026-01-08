@@ -1,0 +1,4 @@
+{
+  "include": ["bot"],
+  "exclude": [".venv", "__pycache__", ".git"]
+}
