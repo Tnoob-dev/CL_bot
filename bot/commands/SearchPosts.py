@@ -5,7 +5,6 @@ from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.filters import command, private, group
 import logging
-import os
 
 # Logger
 logger = logging.getLogger(__name__)

@@ -57,7 +57,6 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
         return False
 
 async def forward_messages(client: Client, messages: List[int]):
-    # for loop into messaages to send all the file to backup channel
     for message_id in messages:
         success = False # Flag: if True, means file sent to backup channel succesfully
         

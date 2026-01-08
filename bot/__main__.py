@@ -1,33 +1,33 @@
 # BOT CLIENT
 from entry.entry import bot
-
 # LOGGING
 import logging
+
+from commands.Collection import collect_messages, end_collection
 
 # COMMAND FUNCTIONS
 from commands.Hello import hello
 from commands.Help import help_command
-from commands.Collection import end_collection, collect_messages
-from commands.Order import get_orders
-from commands.Translations import translate_srt
-from commands.Misc import send_admin_message, count_users
-from commands.Posts import create_posts
-from commands.Subtitles import search_subtitles
 from commands.InfoPosts import info_posts
+from commands.Misc import count_users, send_admin_message, send_db
+from commands.Order import get_orders
+# from commands.Translations import translate_srt
+from commands.Posts import create_posts
 from commands.SearchPosts import search_posts
-
-# QUERY FUNCTIONS
-from queries.cb_queries import query_manager
+from commands.Subtitles import search_subtitles
 
 # MAIN FUNCTIONS
-from utils.create_paths import create_translations_path, create_download_path
-from utils.db_reqs import start_daily_reset
 from db.create_cine_db import create_db
-from utils.functions import clear_path
+from utils.create_paths import create_download_path, create_translations_path
+from utils.db_reqs import start_daily_reset
+
 
 # PYRO
 from pyrogram.handlers.message_handler import MessageHandler
 from pyrogram.handlers.callback_query_handler import CallbackQueryHandler
+
+# QUERY FUNCTIONS
+from queries.cb_queries import query_manager
 
 # Logging config
 logging.basicConfig(
@@ -61,12 +61,11 @@ bot.add_handler(MessageHandler(search_subtitles))
 bot.add_handler(MessageHandler(help_command))
 bot.add_handler(MessageHandler(info_posts))
 bot.add_handler(MessageHandler(search_posts))
+bot.add_handler(MessageHandler(send_db))
 
 # Queries
 bot.add_handler(CallbackQueryHandler(query_manager))
 
 if __name__ == "__main__":
-    logger.info("Starting Bot")
-    bot.start()
-    logger.info("Bot Started")
-    bot.loop.run_forever()
+    logger.info("Bot started")
+    bot.run()
