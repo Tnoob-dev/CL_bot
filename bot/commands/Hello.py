@@ -2,7 +2,7 @@ from entry.entry import bot
 from utils.functions import check_administration, check_user_in_channel
 from utils.db_reqs import get_game
 from utils.db_reqs import insert_user, get_user
-from db.create_cine_db import User
+from db.create_cine_db import Users
 from pyrogram.client import Client
 from pyrogram.filters import command, private
 from pyrogram.types import Message
@@ -64,7 +64,7 @@ async def hello(client: Client, message: Message):
 
             if not user_founded[0]: # if the user is not in db, add it
                 logger.info(f"Insertando usuario {username} ({user_id}) a la db")
-                user = User(id=user_id, username=username)
+                user = Users(id=user_id, username=username, rest_tries=10, is_admin=False, premium_user=False)
                 insert_user(user)
                 logger.info(f"Usuario {username} añadido a la db")
         except (TypeError, ValueError) as e:

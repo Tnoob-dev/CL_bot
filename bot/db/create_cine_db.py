@@ -13,10 +13,13 @@ class Game(SQLModel, table = True):
     file_ids: List[int] = Field(sa_column=Column(JSON))
 
 # Users database
-class User(SQLModel, table = True):
+class Users(SQLModel, table = True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    username: str = Field(default=None)
+    username: Optional[str] = Field(default=None)
     rest_tries: int = Field(default=5)
+    is_admin: bool = Field(default=False)
+    premium_user: bool = Field(default=False)
+    int_downloaded: int = Field(default=0)
     
 # Posts database to save and show posts when user or admin needs it
 class Post(SQLModel, table = True):
@@ -25,15 +28,15 @@ class Post(SQLModel, table = True):
     link: str = Field(default=None)
 
 cine_engine = create_engine("sqlite:///./bot/core/cine.db")
-users_engine = create_engine("sqlite:///./bot/core/users.db")
+# users_engine = create_engine("sqlite:///./bot/core/users.db")
+users_engine = create_engine(os.getenv("USER_DB"))
 posts_engine = create_engine(os.getenv("POSTGRE_DB_URL"))
 
 def create_db():
     if not os.path.exists("./bot/core/cine.db"):
         Game.__table__.create(cine_engine)
-        
-    if not os.path.exists("./bot/core/users.db"):
-        User.__table__.create(users_engine)
+    
+    Users.__table__.create(users_engine, checkfirst=True)
     
     Post.__table__.create(posts_engine, checkfirst=True)
     logger.info("Todas las db han sido creadas")

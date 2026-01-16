@@ -48,12 +48,3 @@ async def count_users(client: Client, message: Message):
 
     users = get_user(all_the_users=True)
     await client.send_message(message.chat.id, f"Actualmente tengo registrados a {len(users)} usuarios")
-
-@bot.on_message(command("send_db", prefixes=["/"]) & (private))
-async def send_db(client: Client, message: Message):
-
-    if check_administration(message):
-
-        db_path = "./bot/core/users.db"
-
-        await message.reply_document(db_path)

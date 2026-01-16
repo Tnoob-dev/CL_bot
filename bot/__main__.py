@@ -3,13 +3,12 @@ from entry.entry import bot
 # LOGGING
 import logging
 
-from commands.Collection import collect_messages, end_collection
-
 # COMMAND FUNCTIONS
 from commands.Hello import hello
 from commands.Help import help_command
+from commands.Collection import collect_messages, end_collection
 from commands.InfoPosts import info_posts
-from commands.Misc import count_users, send_admin_message, send_db
+from commands.Misc import count_users, send_admin_message
 from commands.Order import get_orders
 # from commands.Translations import translate_srt
 from commands.Posts import create_posts
@@ -20,7 +19,6 @@ from commands.Subtitles import search_subtitles
 from db.create_cine_db import create_db
 from utils.create_paths import create_download_path, create_translations_path
 from utils.db_reqs import start_daily_reset
-
 
 # PYRO
 from pyrogram.handlers.message_handler import MessageHandler
@@ -61,7 +59,6 @@ bot.add_handler(MessageHandler(search_subtitles))
 bot.add_handler(MessageHandler(help_command))
 bot.add_handler(MessageHandler(info_posts))
 bot.add_handler(MessageHandler(search_posts))
-bot.add_handler(MessageHandler(send_db))
 
 # Queries
 bot.add_handler(CallbackQueryHandler(query_manager))
