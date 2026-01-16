@@ -3,7 +3,7 @@ from utils.functions import check_user_in_channel
 from utils.users_translate import Translate
 from utils.create_paths import create_user_path, create_output_path
 from utils.db_reqs import insert_user, get_user
-from db.create_cine_db import User
+from db.create_cine_db import Users
 from pyrogram.filters import command, private
 from pyrogram.client import Client
 from pyrogram.types import Message
@@ -33,7 +33,7 @@ async def translate_srt(client: Client, message: Message):
             
             username = message.from_user.username if message.from_user.username is not None else ""
             
-            user = User(id=message.from_user.id, username=username)
+            user = Users(id=message.from_user.id, username=username)
             insert_user(user)
         
         if message.reply_to_message is not None:

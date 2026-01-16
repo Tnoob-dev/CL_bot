@@ -3,7 +3,7 @@ from utils.search_subts import subs
 from utils.db_reqs import get_user, insert_user
 from utils.functions import check_user_in_channel
 from opensubtitlescom import OpenSubtitlesException
-from db.create_cine_db import User
+from db.create_cine_db import Users
 from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.filters import command, private
@@ -25,7 +25,7 @@ async def search_subtitles(client: Client, message: Message):
         if not user_founded:
             await message.reply("Al parecer usted no habia entrado a la DB, ya se encuentra dentro, disfrute")
             username = message.from_user.username if message.from_user.username is not None else ""
-            user = User(id=message.from_user.id, username=username)
+            user = Users(id=message.from_user.id, username=username)
             insert_user(user)
             
         if len(message.command) >= 2:

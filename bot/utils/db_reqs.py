@@ -1,4 +1,4 @@
-from db.create_cine_db import cine_engine, users_engine, posts_engine, Game, User, Post
+from db.create_cine_db import cine_engine, users_engine, posts_engine, Game, Users, Post
 from sqlmodel import Session, select
 from sqlalchemy import func
 from typing import List, Tuple, Dict
@@ -37,11 +37,11 @@ def get_game(name: str) -> List[int]:
 #################################################################
 
 # get user from db
-def get_user(id: int = None, all_the_users: bool = False) -> Tuple[bool, User] | Tuple[bool, None]:
+def get_user(id: int = None, all_the_users: bool = False) -> Tuple[bool, Users] | Tuple[bool, None]:
     try:
         with Session(users_engine) as session:
             if id is not None and not all_the_users:
-                statement = select(User).where(User.id == id)
+                statement = select(Users).where(Users.id == id)
                 result = session.exec(statement)
                 
                 user = result.first()   
@@ -51,7 +51,7 @@ def get_user(id: int = None, all_the_users: bool = False) -> Tuple[bool, User] |
                 else:
                     return (False, None)
             else:
-                statement = select(User)
+                statement = select(Users)
                 users = session.exec(statement).all()
                 
                 return users
@@ -59,7 +59,7 @@ def get_user(id: int = None, all_the_users: bool = False) -> Tuple[bool, User] |
         logger.error(f"Error al obtener desde la db -> {e}")
     
 # insert user from db
-def insert_user(query: User) -> None:
+def insert_user(query: Users) -> None:
     try:
         r = get_user(query.id)
         
@@ -79,7 +79,7 @@ def insert_user(query: User) -> None:
 def update_user_value(id: int):
     try:
         with Session(users_engine) as session:
-            statement = select(User).where(User.id == id)
+            statement = select(Users).where(Users.id == id)
             user = session.exec(statement).one()
             
             user.rest_tries -= 1
@@ -98,7 +98,7 @@ def reset_all_users_tries():
     admins: List[str] = os.getenv("ADMINS").split(",")
     try:
         with Session(users_engine) as session:
-            statement = select(User)
+            statement = select(Users)
             users = session.exec(statement).all()
             
             for user in users:
