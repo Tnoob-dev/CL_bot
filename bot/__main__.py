@@ -8,10 +8,10 @@ from commands.Hello import hello
 from commands.Help import help_command
 from commands.Collection import collect_messages, end_collection
 from commands.InfoPosts import info_posts
-from commands.Misc import count_users, send_admin_message
+from commands.Misc import count_users, send_admin_message, ascend_to_admin, get_top10
 from commands.Order import get_orders
 # from commands.Translations import translate_srt
-from commands.Posts import create_posts
+from commands.Posts import create_posts, remove_posts
 from commands.SearchPosts import search_posts
 from commands.Subtitles import search_subtitles
 
@@ -54,9 +54,12 @@ bot.add_handler(MessageHandler(get_orders))
 # bot.add_handler(MessageHandler(translate_srt))
 bot.add_handler(MessageHandler(send_admin_message))
 bot.add_handler(MessageHandler(count_users))
-bot.add_handler(MessageHandler(create_posts))
+bot.add_handler(MessageHandler(ascend_to_admin))
+bot.add_handler(MessageHandler(get_top10))
 bot.add_handler(MessageHandler(search_subtitles))
 bot.add_handler(MessageHandler(help_command))
+bot.add_handler(MessageHandler(create_posts))
+bot.add_handler(MessageHandler(remove_posts))
 bot.add_handler(MessageHandler(info_posts))
 bot.add_handler(MessageHandler(search_posts))
 

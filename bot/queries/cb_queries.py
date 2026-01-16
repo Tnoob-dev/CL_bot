@@ -1,6 +1,6 @@
 from entry.entry import bot
 from commands.Translations import return_filename
-from utils.db_reqs import get_user, update_user_value
+from utils.db_reqs import get_user, update_user_value, delete_post
 from pyrogram.client import Client
 from pyrogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from utils.functions import check_administration, get_clicked_button_text
@@ -20,6 +20,8 @@ async def query_manager(client: Client, query: CallbackQuery):
 
     user_id = query.from_user.id
     user_founded = get_user(user_id)
+    clibrary = os.getenv("CINEMA_ID")
+    group_chat = os.getenv("GROUP_ID")
     
     # query for orders
     if query.data.startswith('order_ready'):
@@ -31,12 +33,13 @@ async def query_manager(client: Client, query: CallbackQuery):
                     text="Su pedido ha sido completado"
                 )
             else:    
-                await client.send_message(chat_id="chat1080p", 
+                await client.send_message(chat_id=group_chat, 
                                         text="Su pedido ha sido completado",
                                         reply_to_message_id=int(splitted_query_data[-1]))
             await query.message.delete()
         else:
             await query.answer(text="🤨", show_alert=True)
+            
     # query for subtitle search
     elif query.data.startswith("sub_"):
         try:
@@ -56,12 +59,13 @@ async def query_manager(client: Client, query: CallbackQuery):
                 
                 await query.message.reply_document(srt_file_renamed)
                 
-                await m.edit(f"**🔼Subtitulo enviado, asegurese de que sea el correcto✅.\nGracias por usar nuestro bot.🦾🤖\nSiga disfrutando de @{os.getenv("CINEMA_ID")}🎟**")
+                await m.edit(f"**🔼Subtitulo enviado, asegurese de que sea el correcto✅.\nGracias por usar nuestro bot.🦾🤖\nSiga disfrutando de @{clibrary}🎟**")
                 
                 os.remove(srt_file_renamed)
         except Exception as error:
             logger.error(f"Error al descargar el subtitulo -> {error}")
             await query.message.reply(error)
+            
     elif query.data.startswith("tr_"):
         # query for translations
         if user_founded[0]:
@@ -81,7 +85,7 @@ async def query_manager(client: Client, query: CallbackQuery):
                     
                     await query.message.delete()
                     
-                    m = await query.message.reply(f"👨‍🔧Traduciendo ||__{return_filename().split("/")[-1]}__||, espere por favor, en cuanto termine tendra su subtitulo subido, mientras tanto, disfrute d {os.getenv("CINEMA_ID")}😉")
+                    m = await query.message.reply(f"👨‍🔧Traduciendo ||__{return_filename().split("/")[-1]}__||, espere por favor, en cuanto termine tendra su subtitulo subido, mientras tanto, disfrute d {clibrary}😉")
                     
                     try:
                         await translator.ai_srt_translate(target_lang, str(input_srt), str(output_srt))
@@ -111,6 +115,7 @@ async def query_manager(client: Client, query: CallbackQuery):
                     await query.message.reply("Ya se termino sus traducciones, vuelva mañana por favor")
             except Exception as error:
                 logger.error(f"Error durante las traducciones -> {error}")
+                
     elif query.data.startswith("order_not_found_"):
         try:
             message_replied_id = query.message.reply_to_message_id
@@ -133,7 +138,7 @@ async def query_manager(client: Client, query: CallbackQuery):
                     f"🎟Nueva solicitud:\n\n"
                     f"**Pedido**: __{user_message}__\n"
                     f"**Usuario**: {query.from_user.mention} (__{user_id_cb}__)\n"
-                    f"**Link**: https://t.me/{os.getenv("CINEMA_ID")}/{message_replied_id}"
+                    f"**Link**: https://t.me/{group_chat}/{message_replied_id}"
                 ),
                 reply_markup=InlineKeyboardMarkup(
                     [
@@ -145,6 +150,7 @@ async def query_manager(client: Client, query: CallbackQuery):
         except Exception as e:
             logger.error(f"Error en order_not_found -> {e}")
             await query.answer("Ocurrió un error al reenviar tu orden.", show_alert=True)
+            
     elif query.data.startswith("pm_order_not_found_"):
         try:
             splitted_query_data = query.data.split("_")
@@ -177,5 +183,16 @@ async def query_manager(client: Client, query: CallbackQuery):
         except Exception as e:
             logger.error(f"Error en pm_order_not_found -> {e}")
             await query.answer("Ocurrió un error al reenviar tu orden.", show_alert=True)
+            
+    elif query.data.startswith("remove_"):
+        data = query.data.split("_")
+        try:
+            delete_post(data[-1])
+            await query.message.edit("Post eliminado del canal y BD")
+            await client.delete_messages(chat_id=clibrary,
+                                         message_ids=int(data[-1]))
+        except Exception as e:
+            await query.message.reply(e)
+            
     elif query.data == "close":
         await query.message.delete()
