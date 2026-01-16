@@ -5,6 +5,7 @@ from typing import List, Dict
 from pathlib import Path
 from yarl import URL
 from .create_paths import create_custom_path
+from .db_reqs import get_user
 from google import genai
 import os
 import asyncio
@@ -23,11 +24,14 @@ def check_existence(path: Path):
 
 # check if a user is admin
 def check_administration(message: Message) -> bool:
-    admins: List[str] = os.getenv("ADMINS").split(",")
     
-    if str(message.from_user.id) not in admins:
+    user_id = message.from_user.id
+    
+    _, user = get_user(user_id, all_the_users=False)
+    
+    if not user.is_admin:
         return False
-    
+
     return True
 
 # check if a user is in the channel

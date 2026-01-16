@@ -3,7 +3,7 @@ from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.filters import command, private
 from utils.functions import check_administration, clean_name
-from utils.db_reqs import insert_post
+from utils.db_reqs import insert_post, delete_post
 from db.create_cine_db import Post
 from ast import literal_eval
 import os
@@ -40,7 +40,12 @@ async def create_posts(client: Client, message: Message):
                 )
             )
 
-            await m.edit("Post Enviado")
+            await m.edit(f"⏩Post Enviado\n🆔ID: {sent.id}",
+                         reply_markup=InlineKeyboardMarkup(
+                             [
+                                 [InlineKeyboardButton("Eliminar del canal y la BD", callback_data=f"remove_{sent.id}")]
+                             ]
+                         ))
             os.remove(pic)
 
             sent_id = sent.id
@@ -58,3 +63,23 @@ async def create_posts(client: Client, message: Message):
     except Exception as e:
         logger.error(e)
         await message.reply(f"Ha ocurrido un error: {e}")
+
+
+@bot.on_message(command("delpost", prefixes=["/"]) & private)
+async def remove_posts(client: Client, message: Message):
+    
+    user_command = message.command
+    clibrary = os.getenv("CINEMA_ID")
+
+    if check_administration(message):
+        if len(user_command) >= 2:
+            
+            boolean, msg = delete_post(int(user_command[-1]))
+            
+            if not boolean:
+                await message.reply(f"❌{msg}❌")
+            else:
+                await client.delete_messages(chat_id=clibrary, 
+                                            message_ids=int(user_command[-1]))
+                
+                await message.reply("✅Post eliminado de la base de datos y el canal✅")
