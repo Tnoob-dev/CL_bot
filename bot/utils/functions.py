@@ -101,7 +101,7 @@ def get_clicked_button_text(query: CallbackQuery):
         if markup[0].callback_data == key:
             return markup[0].text
         
-def download_image(url: URL | str):
+async def download_image(url: URL | str):
     create_custom_path("./images_downloaded")
     response = requests.get(url, stream=True)
     

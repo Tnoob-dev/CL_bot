@@ -3,7 +3,7 @@ from typing import Optional, List
 import os
 import logging
 
-# Logger 
+# Logger
 logger = logging.getLogger(__name__)
 
 # Movies database (the name is game cuz this is the same code used in games library first version bot)
@@ -20,7 +20,7 @@ class Users(SQLModel, table = True):
     is_admin: bool = Field(default=False)
     premium_user: bool = Field(default=False)
     int_downloaded: int = Field(default=0)
-    
+
 # Posts database to save and show posts when user or admin needs it
 class Post(SQLModel, table = True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -35,8 +35,8 @@ posts_engine = create_engine(os.getenv("POSTGRE_DB_URL"))
 def create_db():
     if not os.path.exists("./bot/core/cine.db"):
         Game.__table__.create(cine_engine)
-    
+
     Users.__table__.create(users_engine, checkfirst=True)
-    
+
     Post.__table__.create(posts_engine, checkfirst=True)
     logger.info("Todas las db han sido creadas")
