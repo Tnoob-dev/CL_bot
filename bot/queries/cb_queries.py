@@ -1,6 +1,6 @@
 from entry.entry import bot
 # from commands.Translations import return_filename
-from utils.db_reqs import get_user, update_user_value, delete_post
+from utils.db_reqs import get_user, delete_post
 from pyrogram.client import Client
 from pyrogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from utils.functions import check_administration, get_clicked_button_text
@@ -151,38 +151,38 @@ async def query_manager(client: Client, query: CallbackQuery):
             logger.error(f"Error en order_not_found -> {e}")
             await query.answer("Ocurrió un error al reenviar tu orden.", show_alert=True)
             
-    elif query.data.startswith("pm_order_not_found_"):
-        try:
-            splitted_query_data = query.data.split("_")
-            user_message = splitted_query_data[-1]
-            user_id_cb = int(splitted_query_data[-2])
+    # elif query.data.startswith("pm_order_not_found_"):
+    #     try:
+    #         splitted_query_data = query.data.split("_")
+    #         user_message = splitted_query_data[-1]
+    #         user_id_cb = int(splitted_query_data[-2])
             
-            await query.message.delete()
+    #         await query.message.delete()
             
-            await query.message.reply(
-                "✅Orden Reenviada a los administradores✅",
-                reply_markup=InlineKeyboardMarkup(
-                    [
-                        [InlineKeyboardButton("🎬Canal de pedidos🎬", url="https://t.me/CinemaOrders")]
-                    ]))
+    #         await query.message.reply(
+    #             "✅Orden Reenviada a los administradores✅",
+    #             reply_markup=InlineKeyboardMarkup(
+    #                 [
+    #                     [InlineKeyboardButton("🎬Canal de pedidos🎬", url="https://t.me/CinemaOrders")]
+    #                 ]))
             
-            await client.send_message(
-                chat_id="CinemaOrders",
-                text=(
-                    f"🎟Nueva solicitud:\n\n"
-                    f"**Pedido**: __{user_message}__\n"
-                    f"**Usuario**: {query.from_user.mention} (__{user_id_cb}__)\n"
-                    "**Link**: DM"
-                ),
-                reply_markup=InlineKeyboardMarkup(
-                    [
-                        [InlineKeyboardButton("🫡Orden Lista🫡", callback_data=f"order_ready_pm_{user_id_cb}")]
-                    ]
-                ))
+    #         await client.send_message(
+    #             chat_id="CinemaOrders",
+    #             text=(
+    #                 f"🎟Nueva solicitud:\n\n"
+    #                 f"**Pedido**: __{user_message}__\n"
+    #                 f"**Usuario**: {query.from_user.mention} (__{user_id_cb}__)\n"
+    #                 "**Link**: DM"
+    #             ),
+    #             reply_markup=InlineKeyboardMarkup(
+    #                 [
+    #                     [InlineKeyboardButton("🫡Orden Lista🫡", callback_data=f"order_ready_pm_{user_id_cb}")]
+    #                 ]
+    #             ))
             
-        except Exception as e:
-            logger.error(f"Error en pm_order_not_found -> {e}")
-            await query.answer("Ocurrió un error al reenviar tu orden.", show_alert=True)
+    #     except Exception as e:
+    #         logger.error(f"Error en pm_order_not_found -> {e}")
+    #         await query.answer("Ocurrió un error al reenviar tu orden.", show_alert=True)
             
     elif query.data.startswith("remove_"):
         data = query.data.split("_")
