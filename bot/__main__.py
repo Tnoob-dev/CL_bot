@@ -7,7 +7,6 @@ import logging
 from commands.Hello import hello
 from commands.Help import help_command
 from commands.Collection import collect_messages, end_collection
-from commands.Contributions import contrib, contrib_end
 from commands.InfoPosts import info_posts
 from commands.Misc import count_users, send_admin_message, ascend_to_admin, get_top10
 from commands.Order import get_orders
@@ -15,6 +14,7 @@ from commands.Order import get_orders
 from commands.Posts import create_posts, remove_posts
 from commands.SearchPosts import search_posts
 from commands.Subtitles import search_subtitles
+from commands.Donations import donations
 
 # MAIN FUNCTIONS
 from db.create_cine_db import create_db
@@ -51,8 +51,6 @@ create_download_path()
 bot.add_handler(MessageHandler(hello))
 bot.add_handler(MessageHandler(collect_messages))
 bot.add_handler(MessageHandler(end_collection))
-bot.add_handler(MessageHandler(contrib))
-bot.add_handler(MessageHandler(contrib_end))
 bot.add_handler(MessageHandler(get_orders))
 # bot.add_handler(MessageHandler(translate_srt))
 bot.add_handler(MessageHandler(send_admin_message))
@@ -65,6 +63,7 @@ bot.add_handler(MessageHandler(create_posts))
 bot.add_handler(MessageHandler(remove_posts))
 bot.add_handler(MessageHandler(info_posts))
 bot.add_handler(MessageHandler(search_posts))
+bot.add_handler(MessageHandler(donations))
 
 # Queries
 bot.add_handler(CallbackQueryHandler(query_manager))
