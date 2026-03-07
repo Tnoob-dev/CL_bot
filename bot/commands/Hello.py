@@ -69,6 +69,7 @@ Cada aporte ayuda a mantener el canal activo y mejorar la calidad del contenido.
 🔗 Usa el comando /donate
 
 ¡Gracias por ser parte de esta comunidad! 🙌"""
+                await message.reply(donation_message)
                 # add 1 more download to user total downloads
                 update_user_downloads(user_id)
 
