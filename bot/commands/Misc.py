@@ -23,9 +23,10 @@ async def send_admin_message(client: Client, message: Message):
             await message.reply("Enviando mensaje a usuarios")
             blocked_users = 0
             
-            not_send = [1891819663, 8161420181, 715727671]
+            # TitiLM10, Nyan, bot, moskitosantana
+            not_send = [957370219, 1891819663, 8161420181, 715727671]
             
-            for user in users: # bot id
+            for user in users:
                 if user.id not in not_send:
                     success = False # Flag
                     while not success:

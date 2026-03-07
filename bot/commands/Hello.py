@@ -58,7 +58,17 @@ async def hello(client: Client, message: Message):
                             await asyncio.sleep(f.value)
 
                 await message.reply_sticker(Path.cwd() / Path("assets") / Path("finished.webp"))
-                
+                donation_message = """
+💖 ¿Te gusta el contenido del canal?
+
+Si este espacio te aporta valor y quieres apoyar el trabajo del administrador, 
+puedes hacer una donación voluntaria. 
+
+Cada aporte ayuda a mantener el canal activo y mejorar la calidad del contenido.
+
+🔗 Usa el comando /donate
+
+¡Gracias por ser parte de esta comunidad! 🙌"""
                 # add 1 more download to user total downloads
                 update_user_downloads(user_id)
 

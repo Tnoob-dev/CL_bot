@@ -61,7 +61,7 @@ async def info_posts(client: Client, message: Message):
                             try:
                                 await message.reply_photo(image["url"], caption=template)
                             except WebpageMediaEmpty:
-                                path = download_image(image["url"])
+                                path = await download_image(image["url"])
                                 await message.reply_document(path, caption=template)
                                 os.remove(path)
                         else:
