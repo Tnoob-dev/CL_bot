@@ -1,6 +1,5 @@
 from db.create_cine_db import cine_engine, users_engine, posts_engine, Game, Users, Post
 from sqlmodel import Session, select
-from sqlalchemy.exc import NoResultFound
 from typing import List, Tuple, Dict, Optional
 import threading
 import time

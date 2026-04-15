@@ -1,8 +1,7 @@
 from entry.entry import bot
 from pyrogram.client import Client
-from pyrogram.filters import command, private, group, photo, text
+from pyrogram.filters import command, private, group, photo
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
-from utils.functions import check_user_in_channel
 from utils.db_reqs import get_post_by_name
 import logging
 
