@@ -1,4 +1,3 @@
-from utils.functions import check_administration
 from utils.db_reqs import get_user, update_user_admin
 from entry.entry import bot
 from pyrogram.client import Client

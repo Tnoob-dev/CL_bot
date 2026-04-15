@@ -19,8 +19,11 @@ Claro! ✨
 
 /start - Inicia el bot u obtiene los archivos que solicito por el canal
 /help - Muestra esta ayuda
-/tr - Respondiendo a un subtitulo puede traducirlo a Ingles o Español
 /srt <-nombre-> - Obtiene el subtitulo de lo que busco, ejemplo: /srt Breaking Bad
+/count - Ver cantidad de usuarios registrados en el bot
+/search <-palabra-> - Buscar Pelicula o Serie
+/top10 - Obtener un top 10 con los usuarios que mas descargan
+/donate mostrar informacion para donar a la administracion
 
 #Grupo 👥
 
