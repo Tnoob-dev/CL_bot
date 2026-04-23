@@ -39,7 +39,7 @@ async def search_posts(client: Client, message: Message):
                     [
                         InlineKeyboardButton(
                             text="❌Cerrar❌",
-                            callback_data="close"
+                            callback_data=f"close_{message.from_user.id}"
                         )
                     ]
                 ]

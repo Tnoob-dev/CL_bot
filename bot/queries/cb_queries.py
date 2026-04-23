@@ -194,5 +194,11 @@ async def query_manager(client: Client, query: CallbackQuery):
         except Exception as e:
             await query.message.reply(e)
             
-    elif query.data == "close":
-        await query.message.delete()
+    elif query.data.startswith("close_"):
+
+        data = query.data.split("_")
+
+        if int(data[1]) == query.from_user.id:
+            await query.message.delete()
+        else:
+            await query.answer("Esta no es tu busqueda :|", show_alert=True)
