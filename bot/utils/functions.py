@@ -54,7 +54,7 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
                             reply_markup=InlineKeyboardMarkup(
                                 [
                                     [InlineKeyboardButton("🎬Cinema Library🎬", url=f"https://t.me/{os.getenv("CINEMA_ID")}")],
-                                    [InlineKeyboardButton("DI$ORDER", url=os.getenv("GUEST_LINK"))]
+                                    [InlineKeyboardButton("🚀 Refugio Gamer - PC GAMES", url=os.getenv("GUEST_LINK"))]
                                 ]
                             ))
         return False
