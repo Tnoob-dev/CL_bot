@@ -24,9 +24,11 @@ from utils.db_reqs import start_daily_reset
 # PYRO
 from pyrogram.handlers.message_handler import MessageHandler
 from pyrogram.handlers.callback_query_handler import CallbackQueryHandler
+from pyrogram.handlers.inline_query_handler import InlineQueryHandler
 
 # QUERY FUNCTIONS
 from queries.cb_queries import query_manager
+from queries.inline_queries import inline_answer
 
 # Logging config
 logging.basicConfig(
@@ -67,6 +69,7 @@ bot.add_handler(MessageHandler(donations))
 
 # Queries
 bot.add_handler(CallbackQueryHandler(query_manager))
+bot.add_handler(InlineQueryHandler(inline_answer))
 
 if __name__ == "__main__":
     logger.info("Bot started")
