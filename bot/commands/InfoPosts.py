@@ -1,8 +1,8 @@
 from entry.entry import bot
-from utils.functions import check_administration, download_image, translate_synopsis, translate_title
+from utils.functions import check_administration
 from utils.movie_search import get_results
 from pyrogram.client import Client
-from pyrogram.types import Message
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.errors.exceptions import WebpageMediaEmpty
 from pyrogram.filters import command, private, group, text
 import logging
@@ -28,47 +28,17 @@ async def info_posts(client: Client, message: Message):
 
                 if len(results) >= 1:
                     await m.delete()
-                    for info in results:
-                        kind = "movie" if info["type"].lower() == "movie" or info["type"].lower() == "tvmovie" else "serie"
 
-                        title = info.get("primaryTitle")
-                        title_translated = await translate_title(title)
-                        year = info.get("startYear")
-                        rating = info.get("rating")
-                        time_in_seconds = info.get("runtimeSeconds")
-                        duration = int(time_in_seconds / 60) if time_in_seconds is not None else "-"
-                        genres = ', '.join(info.get("genres"))
-                        plot = info.get("plot")
-                        synopsis = await translate_synopsis(plot) if plot is not None else ""
-                        image = info.get("primaryImage")
+                    await message.reply("Se han encontrado los siguientes 5 resultados⬇️",
+                                        reply_markup=InlineKeyboardMarkup(
+                                            [
+                                                [InlineKeyboardButton(
+                                                    text=f"{info.get("primaryTitle")} - {info.get("startYear")}", 
+                                                    callback_data=f"info_{info.get("id")}")]
 
-                        if kind == "movie":
-                            template += f"🎬 {title} | {title_translated if title_translated is not None else title} 🎬\n"
-                            template += f"🗓 Año: {year}\n"
-                            template += f"⭐️Rating: {rating['aggregateRating'] if rating is not None else '-'}\n"
-                            template += f"⏱️ Duración: {duration} minutos\n"
-                            template += f"📚 Género: {genres}\n"
-                            template += f"📌 Sinopsis: {synopsis if synopsis is not None else plot}\n"
-                        else:
-                            template += f"🎭 {title} | {title_translated if title_translated is not None else title} 🎭\n"
-                            template += f"🗓 Año: {year}\n"
-                            template += f"⭐️Rating: {rating["aggregateRating"]}\n"
-                            template += f"⏱️ Duración: {duration} minutos por episodio\n"
-                            template += f"🎨 Géneros: {genres}\n"
-                            template += f"📖 Sinopsis: {synopsis if synopsis is not None else plot}\n"
-
-                        if image:
-                            try:
-                                await message.reply_photo(image["url"], caption=template)
-                            except WebpageMediaEmpty:
-                                path = await download_image(image["url"])
-                                await message.reply_document(path, caption=template)
-                                os.remove(path)
-                        else:
-                            await message.reply(template)
-
-                        template = ""
-                    await message.reply("Estos fueron los resultados que encontre☝️")
+                                                for info in results
+                                            ]
+                                        ))
                 else:
                     await message.reply("Nada encontrado")
 

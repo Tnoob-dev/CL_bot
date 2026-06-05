@@ -108,38 +108,6 @@ def update_user_downloads(id: int) -> None:
     except Exception as e:
         session.rollback()
         logger.error(f"Error al actualizar al usuario {id}, error -> {e}")
-        
-# after 24 hours, reset every user translations to 5
-def reset_all_users_tries():
-    admins: List[str] = os.getenv("ADMINS").split(",")
-    try:
-        with Session(users_engine) as session:
-            statement = select(Users)
-            users = session.exec(statement).all()
-            
-            for user in users:
-                if str(user.id) in admins:
-                    user.rest_tries = 10000
-                else:
-                    user.rest_tries = 10
-                session.add(user)
-            
-            session.commit()
-        logger.info(f"Se han restablecido los intentos de {len(users)} usuarios")
-    except Exception as e:
-        session.rollback()
-        logger.error(f"Error al restablecer intentos de usuarios -> {e}")
-
-
-def start_daily_reset():
-    def reset_loop():
-        while True:
-            time.sleep(86400)
-            reset_all_users_tries()
-    
-    thread = threading.Thread(target=reset_loop, daemon=True)
-    thread.start()
-    logger.info("Sistema de reseteo diario iniciado")
     
 def update_user_admin(id: int) -> Tuple[bool, str]:
     

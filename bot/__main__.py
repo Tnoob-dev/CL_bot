@@ -18,8 +18,6 @@ from commands.Donations import donations
 
 # MAIN FUNCTIONS
 from db.create_cine_db import create_db
-from utils.create_paths import create_download_path, create_translations_path
-from utils.db_reqs import start_daily_reset
 
 # PYRO
 from pyrogram.handlers.message_handler import MessageHandler
@@ -39,15 +37,8 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# Daily reset for 5 tries of srt translation quota
-start_daily_reset()
-
 # Create DBs
 create_db()
-
-# Paths
-create_translations_path()
-create_download_path()
 
 # Commands
 bot.add_handler(MessageHandler(hello))
