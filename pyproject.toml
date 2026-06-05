@@ -18,7 +18,6 @@ dependencies = [
     "deep-translator>=1.11.4",
     "dotenv==0.9.9",
     "frozenlist==1.8.0",
-    "gemini-srt-translator==2.1.5",
     "google-auth==2.43.0",
     "greenlet==3.2.0",
     "groq>=1.1.1",
