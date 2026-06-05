@@ -3,17 +3,15 @@ from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, 
 from pyrogram.errors import UserNotParticipant, FloodWait
 from typing import List, Dict
 from pathlib import Path
-from yarl import URL
-from .create_paths import create_custom_path
 from .db_reqs import get_user
-from google import genai
+from groq import AsyncGroq
+from deep_translator import GoogleTranslator
 import os
 import asyncio
 import json
 import logging
-import requests
-import random
-
+import aiohttp
+import time
 
 # Logger 
 logger = logging.getLogger(__name__)
@@ -43,9 +41,7 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
     try:
         await client.get_chat_member(chat_id=os.getenv("CINEMA_ID"), user_id=message.from_user.id)
         await client.get_chat_member(chat_id=os.getenv("GUEST_ID"), user_id=message.from_user.id)
-        # await client.get_chat_member(chat_id=os.getenv("ANIME_ID"), user_id=message.from_user.id)
         # await client.get_chat_member(chat_id=os.getenv("GAME_LIBRARY_ID"), user_id=message.from_user.id)
-        # await client.get_chat_member(chat_id=os.getenv("EQUINOX_ID"), user_id=message.from_user.id)
         
         return True
     except UserNotParticipant:
@@ -103,23 +99,21 @@ def get_clicked_button_text(query: CallbackQuery):
         if markup[0].callback_data == key:
             return markup[0].text
         
-async def download_image(url: URL | str):
-    create_custom_path("./images_downloaded")
-    response = requests.get(url, stream=True)
-    
-    full_path = f"./images_downloaded/imagen.{url.split(".")[-1]}"
-    
-    with open(full_path, "wb") as file:
-        for chunk in response.iter_content():
-            file.write(chunk)
-            
+async def download_image(url: str):
+    os.makedirs("./images_downloaded", exist_ok=True)
+    ext = str(url).split(".")[-1].split("?")[0]
+    full_path = f"./images_downloaded/imagen.{ext}"
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            response.raise_for_status()
+            with open(full_path, "wb") as file:
+                async for chunk in response.content:
+                    file.write(chunk)
     return full_path
 
 async def translate_synopsis(input_text: str):
-    
-    api_keys = os.getenv("GEMINI_API_KEY").split(",")
-        
-    single_api_key = random.choice(api_keys)
+    client = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
     
     prompt = f"""
 Por favor, traduce la siguiente sinopsis de película o serie del inglés al español. Sigue estas instrucciones al pie de la letra:
@@ -136,21 +130,18 @@ Por favor, traduce la siguiente sinopsis de película o serie del inglés al esp
 """
 
     try:
-        async with genai.Client(api_key=single_api_key).aio as client:
-            response = await client.models.generate_content(
-                model="gemini-2.5-flash-preview-09-2025",
-                contents={"text": prompt}
-            )
-            
-            return response.text
+        response = await client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.1,
+            max_tokens=1000
+        )
+        return response.choices[0].message.content
     except Exception as e:
         logger.error(f"Error: {e}")
 
 async def translate_title(title: str):
-    
-    api_keys = os.getenv("GEMINI_API_KEY").split(",")
-        
-    single_api_key = random.choice(api_keys)
+    client = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
     
     prompt = f"""
 Actúa como un traductor especializado en localización cinematográfica. Tu tarea es traducir o adaptar al español **SOLO** el título principal que te proporcione, aplicando esta jerarquía de reglas de manera estricta:
@@ -180,15 +171,27 @@ Actúa como un traductor especializado en localización cinematográfica. Tu tar
 """
 
     try:
-        async with genai.Client(api_key=single_api_key).aio as client:
-            response = await client.models.generate_content(
-                model="gemini-2.5-flash-preview-09-2025",
-                contents={"text": prompt}
-            )
-            
-            return response.text
+        response = await client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.1,
+            max_tokens=150
+        )
+        return response.choices[0].message.content
     except Exception as e:
         logger.error(f"Error: {e}")
+
+def translate_words(words: List[str], target_lang: str = "es") -> List[str]:
+    translator = GoogleTranslator(source="auto", target=target_lang)
+
+    results = []
+
+    for word in words:
+        tr_word = translator.translate(word)
+        time.sleep(.5)
+        results.append(tr_word)
+
+    return results
 
 def clean_name(text: str):
     

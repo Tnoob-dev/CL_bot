@@ -1,13 +1,13 @@
 from entry.entry import bot
-# from commands.Translations import return_filename
 from utils.db_reqs import get_user, delete_post
 from pyrogram.client import Client
 from pyrogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
-from utils.functions import check_administration, get_clicked_button_text
-from utils.users_translate import Translate
+from pyrogram.errors import WebpageMediaEmpty
+from utils.functions import check_administration, get_clicked_button_text, download_image, translate_synopsis, translate_title, translate_words
 from utils.search_subts import download_subs
 from utils.create_paths import create_subtitles_dl_path
-from pathlib import Path
+from utils.movie_search import get_info_by_id
+# from pathlib import Path
 import os
 import logging
 
@@ -65,56 +65,6 @@ async def query_manager(client: Client, query: CallbackQuery):
         except Exception as error:
             logger.error(f"Error al descargar el subtitulo -> {error}")
             await query.message.reply(error)
-            
-    # elif query.data.startswith("tr_"):
-    #     # query for translations
-    #     if user_founded[0]:
-    #         try:
-    #             # each user has 5 translations available, except the admins
-    #             if user_founded[1].rest_tries >= 1:
-    #                 main_path = Path.cwd() / Path("bot") / Path("translations")
-    #                 # get target language
-    #                 target_lang = query.data.split("_")[1]
-                    
-    #                 # input srt file: return_filename() -> name of the .srt file
-    #                 # output srt file: will be ES_ || EN_ + return_filename()
-    #                 input_srt =  main_path / Path("downloads") / Path(str(user_id)) / Path(return_filename())
-    #                 output_srt = main_path / Path("output") / Path(str(user_id)) / Path(f"{target_lang.upper()}_{return_filename()}")
-                    
-    #                 translator = Translate()
-                    
-    #                 await query.message.delete()
-                    
-    #                 m = await query.message.reply(f"👨‍🔧Traduciendo ||__{return_filename().split("/")[-1]}__||, espere por favor, en cuanto termine tendra su subtitulo subido, mientras tanto, disfrute d {clibrary}😉")
-                    
-    #                 try:
-    #                     await translator.ai_srt_translate(target_lang, str(input_srt), str(output_srt))
-                    
-    #                     await m.delete()
-    #                     update_user_value(user_id)
-    #                 except Exception as e:
-    #                     await query.message.reply(e)
-                    
-    #                 await query.message.reply_document(str(output_srt), caption=f"✅Archivo traducido✅\nPara el usuario {query.from_user.mention} ({query.from_user.id})")
-                    
-    #                 # all the files in download and output paths
-    #                 download_files = os.listdir(main_path / Path("downloads") / Path(str(user_id)))
-    #                 output_files = os.listdir(main_path / Path("output") / Path(str(user_id)))
-                    
-    #                 # remove them
-    #                 for dl,ot in zip(download_files, output_files):
-    #                     os.remove(main_path / Path("downloads") / Path(str(user_id)) / dl)
-    #                     os.remove(main_path / Path("output") / Path(str(user_id)) / ot)
-                    
-    #                 # and finally remove the user dirs
-    #                 os.rmdir(main_path / Path("downloads") / Path(str(user_id)))
-    #                 os.rmdir(main_path / Path("output") / Path(str(user_id)))
-    #                 await query.message.reply(f"Le quedan disponibles {user_founded[1].rest_tries - 1} traducciones")
-                
-    #             else:
-    #                 await query.message.reply("Ya se termino sus traducciones, vuelva mañana por favor")
-    #         except Exception as error:
-    #             logger.error(f"Error durante las traducciones -> {error}")
                 
     elif query.data.startswith("order_not_found_"):
         try:
@@ -151,39 +101,6 @@ async def query_manager(client: Client, query: CallbackQuery):
             logger.error(f"Error en order_not_found -> {e}")
             await query.answer("Ocurrió un error al reenviar tu orden.", show_alert=True)
             
-    # elif query.data.startswith("pm_order_not_found_"):
-    #     try:
-    #         splitted_query_data = query.data.split("_")
-    #         user_message = splitted_query_data[-1]
-    #         user_id_cb = int(splitted_query_data[-2])
-            
-    #         await query.message.delete()
-            
-    #         await query.message.reply(
-    #             "✅Orden Reenviada a los administradores✅",
-    #             reply_markup=InlineKeyboardMarkup(
-    #                 [
-    #                     [InlineKeyboardButton("🎬Canal de pedidos🎬", url="https://t.me/CinemaOrders")]
-    #                 ]))
-            
-    #         await client.send_message(
-    #             chat_id="CinemaOrders",
-    #             text=(
-    #                 f"🎟Nueva solicitud:\n\n"
-    #                 f"**Pedido**: __{user_message}__\n"
-    #                 f"**Usuario**: {query.from_user.mention} (__{user_id_cb}__)\n"
-    #                 "**Link**: DM"
-    #             ),
-    #             reply_markup=InlineKeyboardMarkup(
-    #                 [
-    #                     [InlineKeyboardButton("🫡Orden Lista🫡", callback_data=f"order_ready_pm_{user_id_cb}")]
-    #                 ]
-    #             ))
-            
-    #     except Exception as e:
-    #         logger.error(f"Error en pm_order_not_found -> {e}")
-    #         await query.answer("Ocurrió un error al reenviar tu orden.", show_alert=True)
-            
     elif query.data.startswith("remove_"):
         data = query.data.split("_")
         try:
@@ -200,5 +117,53 @@ async def query_manager(client: Client, query: CallbackQuery):
 
         if int(data[1]) == query.from_user.id:
             await query.message.delete()
+
         else:
             await query.answer("Esta no es tu busqueda :|", show_alert=True)
+    elif query.data.startswith("info_"):
+        
+        data = query.data.split("_")
+        template = ""
+
+        movie = await get_info_by_id(data[1])
+
+        kind = "movie" if movie["type"].lower() == "movie" or movie["type"].lower() == "tvmovie" else "serie"
+
+        title = movie.get("primaryTitle")
+        title_translated = await translate_title(title)
+        year = movie.get("startYear")
+        rating = movie.get("rating")
+        time_in_seconds = movie.get("runtimeSeconds")
+        duration = int(time_in_seconds / 60) if time_in_seconds is not None else "-"
+        genres = ', '.join(translate_words(words=movie.get("genres"))) if movie.get("genres") is not None else movie.get("genres")
+        plot = movie.get("plot")
+        synopsis = await translate_synopsis(plot) if plot is not None else ""
+        image = movie.get("primaryImage")
+
+        if kind == "movie":
+            template += f"🎬 {title} | {title_translated if title_translated is not None else title} 🎬\n"
+            template += f"🗓 Año: {year}\n"
+            template += f"⭐️Rating: {rating['aggregateRating'] if rating is not None else '-'}\n"
+            template += f"⏱️ Duración: {duration} minutos\n"
+            template += f"📚 Género: {genres}\n"
+            template += f"📌 Sinopsis: {synopsis if synopsis is not None else plot}\n"
+        else:
+            template += f"🎭 {title} | {title_translated if title_translated is not None else title} 🎭\n"
+            template += f"🗓 Año: {year}\n"
+            template += f"⭐️Rating: {rating["aggregateRating"]}\n"
+            template += f"⏱️ Duración: {duration} minutos por episodio\n"
+            template += f"🎨 Géneros: {genres}\n"
+            template += f"📖 Sinopsis: {synopsis if synopsis is not None else plot}\n"
+
+        if image:
+            try:
+                await query.message.reply_photo(image["url"], caption=template)
+            except WebpageMediaEmpty:
+                await query.answer("No se puede subir como imagen, subiendo como archivo")
+                path = await download_image(image["url"])
+                await query.message.reply_document(path, caption=template)
+                os.remove(path)
+        else:
+            await query.message.reply(template)
+
+        template = ""

@@ -26,3 +26,18 @@ async def get_results(query: str):
         return results
     except (ClientError, ClientConnectionError, ConnectionTimeoutError, HttpBadRequest) as error:
         logger.error(error)
+
+
+async def get_info_by_id(movieId: str):
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"{os.getenv("IMDB_API_URL")}/titles/{movieId}") as response:
+                movie = await response.json()
+
+                if not movie.get("id"):
+                    return None
+                
+                return movie
+
+    except (ClientError, ClientConnectionError, ConnectionTimeoutError, HttpBadRequest) as error:
+        logger.error(error)
