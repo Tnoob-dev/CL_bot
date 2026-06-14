@@ -3,7 +3,7 @@ from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.filters import command, private
 from utils.functions import check_administration, clean_name
-from utils.db_reqs import insert_post, delete_post
+from utils.db_reqs import insert_post, delete_post, get_post_by_id
 from db.create_cine_db import Post
 from ast import literal_eval
 import os
@@ -74,12 +74,20 @@ async def remove_posts(client: Client, message: Message):
     if check_administration(message):
         if len(user_command) >= 2:
             
-            boolean, msg = delete_post(int(user_command[-1]))
+            post_id = int(user_command[-1])
+            post = get_post_by_id(post_id)
+
+            boolean, msg = delete_post(post_id)
             
             if not boolean:
                 await message.reply(f"❌{msg}❌")
             else:
                 await client.delete_messages(chat_id=clibrary, 
-                                            message_ids=int(user_command[-1]))
+                                            message_ids=post_id)
                 
                 await message.reply("✅Post eliminado de la base de datos y el canal✅")
+                
+                await client.send_message(
+                    chat_id=int(os.getenv("OWNER_ID")),
+                    text=f"El administrador {message.from_user.mention} ha eliminado __{post.movie_name}__ de la db"
+                )

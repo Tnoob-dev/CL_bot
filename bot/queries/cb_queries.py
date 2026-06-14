@@ -65,7 +65,10 @@ async def query_manager(client: Client, query: CallbackQuery):
         except Exception as error:
             logger.error(f"Error al descargar el subtitulo -> {error}")
             await query.message.reply(error)
-                
+    
+    #  not confuse with order_404
+    # order_not_found its for when an order its not founded after the user asked and the bot searched for it
+    # order_404 its for when the admin can't found the order and the user needs to be notified
     elif query.data.startswith("order_not_found_"):
         try:
             message_replied_id = query.message.reply_to_message_id
@@ -79,11 +82,11 @@ async def query_manager(client: Client, query: CallbackQuery):
                 "✅Orden Reenviada a los administradores✅",
                 reply_markup=InlineKeyboardMarkup(
                     [
-                        [InlineKeyboardButton("🎬Canal de pedidos🎬", url="https://t.me/CinemaOrders")]
+                        [InlineKeyboardButton("🎬Canal de pedidos🎬", url=f"https://t.me/{os.getenv("ORDERS_ID")}")]
                     ]))
             
             await client.send_message(
-                chat_id="CinemaOrders",
+                chat_id=os.getenv("ORDERS_ID"),
                 text=(
                     f"🎟Nueva solicitud:\n\n"
                     f"**Pedido**: __{user_message}__\n"
@@ -100,7 +103,15 @@ async def query_manager(client: Client, query: CallbackQuery):
         except Exception as e:
             logger.error(f"Error en order_not_found -> {e}")
             await query.answer("Ocurrió un error al reenviar tu orden.", show_alert=True)
-            
+
+    elif query.data.startswith("order_404_"):
+        splitted_query_data = query.data.split("_")
+        msg_id = int(splitted_query_data[-1])
+
+        await client.send_message(chat_id=os.getenv("GROUP_ID"), reply_to_message_id=msg_id, text="Lo sentimos, no encontramos su pedido.")
+
+        await query.message.delete()
+
     elif query.data.startswith("remove_"):
         data = query.data.split("_")
         try:
