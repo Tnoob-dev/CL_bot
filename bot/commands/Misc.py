@@ -45,7 +45,7 @@ async def send_admin_message(client: Client, message: Message):
                             bots += 1
                             success = True
 
-            await message.reply(f"--Summary--:\n\n👥Total de usuarios registrados: {quantity_users}\n✅Cantidad de usuarios a los que se le envio el mensaje: {quantity_users - blocked_users}\n🚫Cantidad de usuarios que tienen bloqueado al bot: {blocked_users}")
+            await message.reply(f"--Summary--:\n\n👥Total de usuarios registrados: {quantity_users}\n✅Cantidad de usuarios a los que se le envio el mensaje: {quantity_users - blocked_users}\n🚫Cantidad de usuarios que tienen bloqueado al bot: {blocked_users}\n🤖Cantidad de Bots: {bots}")
         else:
             await message.reply("❌No tiene permisos para usar este comando❌")
 
