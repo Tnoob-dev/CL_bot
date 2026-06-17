@@ -3,7 +3,7 @@ from entry.entry import bot
 from pyrogram.client import Client
 from pyrogram.types import Message
 from pyrogram.filters import command, private, group
-from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated, PeerIdInvalid
+from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated, PeerIdInvalid, UserIsBot
 import asyncio
 import logging
 import os
@@ -21,11 +21,13 @@ async def send_admin_message(client: Client, message: Message):
             quantity_users = len(users)
             await message.reply("Enviando mensaje a usuarios")
             blocked_users = 0
+            bots = 0
             
             # TitiLM10, Nyan, bot, moskitosantana
             not_send = [957370219, 1891819663, 8161420181, 715727671]
             
             for user in users:
+
                 if user.id not in not_send:
                     success = False # Flag
                     while not success:
@@ -35,8 +37,12 @@ async def send_admin_message(client: Client, message: Message):
                         except FloodWait as f:
                             asyncio.sleep(f.value)
                         except (UserIsBlocked, InputUserDeactivated, PeerIdInvalid) as e:
-                            logger.info(f"No se puede enviar a {user.id}: {e}")
+                            logger.warning(f"No se puede enviar a {user.id}: {e}")
                             blocked_users += 1
+                            success = True
+                        except UserIsBot as e:
+                            logger.warning(f"No se puede enviar a {user.id} porque es un bot")
+                            bots += 1
                             success = True
 
             await message.reply(f"--Summary--:\n\n👥Total de usuarios registrados: {quantity_users}\n✅Cantidad de usuarios a los que se le envio el mensaje: {quantity_users - blocked_users}\n🚫Cantidad de usuarios que tienen bloqueado al bot: {blocked_users}")
