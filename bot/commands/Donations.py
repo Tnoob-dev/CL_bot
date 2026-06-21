@@ -19,7 +19,8 @@ aceptamos donaciones voluntarias.
 No es obligatorio, pero cada pequeño gesto ayuda a seguir creciendo.
 
 Para cubanos en la isla 🇨🇺:
-🎁 Tarjeta CUP: {os.getenv("CUP_CARD")}
+🎁 Tarjeta CUP METROPOLITANO: {os.getenv("CUP_CARD")}
+🎁 Tarjeta CUP BPA: {os.getenv("CUP_CARD2")}
 🎁 Saldo Movil: {os.getenv("MOBILE")}
 
 Para Residentes de otros Países 🌎:

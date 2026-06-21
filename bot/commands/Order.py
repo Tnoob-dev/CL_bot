@@ -1,6 +1,6 @@
 from entry.entry import bot
 from pyrogram.client import Client
-from pyrogram.filters import command, private, group, photo
+from pyrogram.filters import command, group, photo
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from utils.db_reqs import get_post_by_name
 import logging

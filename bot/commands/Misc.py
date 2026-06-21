@@ -32,7 +32,7 @@ async def send_admin_message(client: Client, message: Message):
                     success = False # Flag
                     while not success:
                         try:
-                            await client.copy_message(user.id, message.chat.id, message.reply_to_message.id)
+                            await client.forward_messages(user.id, message.chat.id, message.reply_to_message.id, hide_sender_name=False)
                             success = True
                         except FloodWait as f:
                             asyncio.sleep(f.value)
