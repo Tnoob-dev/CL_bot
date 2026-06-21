@@ -39,41 +39,19 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
         return False
     
     try:
-        cinema_member = await client.get_chat_member(
-            chat_id=os.getenv("CINEMA_ID"), 
-            user_id=message.from_user.id
-        )
-        guest_member = await client.get_chat_member(
-            chat_id=os.getenv("GUEST_ID"), 
-            user_id=message.from_user.id
-        )
+        await client.get_chat_member(chat_id=os.getenv("CINEMA_ID"), user_id=message.from_user.id)
+        await client.get_chat_member(chat_id=os.getenv("GUEST_ID"), user_id=message.from_user.id)
         
-        cinema_ok = cinema_member.status in ["member", "administrator", "creator"]
-        guest_ok = guest_member.status in ["member", "administrator", "creator"]
-        
-        if cinema_ok and guest_ok:
-            return True
-            
-            
-        await message.reply_sticker(Path.cwd() / "assets" / "tongue_out.tgs")
-        await message.reply(
-            "Para usar este bot, primero debes unirte a nuestros canales.", 
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🎬Cinema Library🎬", url=f"https://t.me/{os.getenv('CINEMA_ID')}")],
-                [InlineKeyboardButton("🖥WinZen", url=os.getenv("GUEST_LINK"))]
-            ])
-        )
-        return False
-        
+        return True
     except UserNotParticipant:
-        await message.reply_sticker(Path.cwd() / "assets" / "tongue_out.tgs")
-        await message.reply(
-            "Para usar este bot, primero debes unirte a nuestros canales.", 
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🎬Cinema Library🎬", url=f"https://t.me/{os.getenv('CINEMA_ID')}")],
-                [InlineKeyboardButton("🖥WinZen", url=os.getenv("GUEST_LINK"))]
-            ])
-        )
+        await message.reply_sticker(Path.cwd() / Path("assets") / Path("tongue_out.tgs"))
+        await message.reply("Para usar este bot, primero debes unirte a nuestros canales.", 
+                            reply_markup=InlineKeyboardMarkup(
+                                [
+                                    [InlineKeyboardButton("🎬Cinema Library🎬", url=f"https://t.me/{os.getenv("CINEMA_ID")}")],
+                                    [InlineKeyboardButton("🖥WinZen", url=os.getenv("GUEST_LINK"))]
+                                ]
+                            ))
         return False
     except Exception as e:
         logger.error(f"Error inesperado en check_user_in_channel: {e}")
