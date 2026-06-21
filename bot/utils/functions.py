@@ -40,9 +40,7 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
     
     try:
         await client.get_chat_member(chat_id=os.getenv("CINEMA_ID"), user_id=message.from_user.id)
-        a = await client.get_chat_member(chat_id=os.getenv("GUEST_ID"), user_id=message.from_user.id)
-        
-        print(a)
+        await client.get_chat_member(chat_id=os.getenv("GUEST_ID"), user_id=message.from_user.id)
 
         return True
     except UserNotParticipant:
