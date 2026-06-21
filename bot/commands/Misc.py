@@ -35,7 +35,7 @@ async def send_admin_message(client: Client, message: Message):
                             await client.forward_messages(user.id, message.chat.id, message.reply_to_message.id, hide_sender_name=False)
                             success = True
                         except FloodWait as f:
-                            asyncio.sleep(f.value)
+                            await asyncio.sleep(f.value)
                         except (UserIsBlocked, InputUserDeactivated, PeerIdInvalid) as e:
                             logger.warning(f"No se puede enviar a {user.id}: {e}")
                             blocked_users += 1
