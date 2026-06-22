@@ -1,11 +1,14 @@
 from entry.entry import bot
-from utils.functions import check_administration
+from utils.functions import check_administration, clean_name
 from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardMarkup
 from pyrogram.filters import command, private
 import os
 import logging
 
+
+# Logger
+logger = logging.getLogger(__name__)
 
 @bot.on_message(command("fusion", prefixes=["/"]) & private)
 async def fusion_posts(client: Client, message: Message):
@@ -33,6 +36,10 @@ async def fusion_posts(client: Client, message: Message):
             post1_info = message_info[0]
             post2_info = message_info[1]
 
+            # clean title name to see it in message
+
+            title = clean_name(post1_info.text.split("\n")[0])
+
             combined_keyboard = []
             combined_keyboard.extend(post1_info.reply_markup.inline_keyboard)
             combined_keyboard.extend(post2_info.reply_markup.inline_keyboard)
@@ -44,6 +51,14 @@ async def fusion_posts(client: Client, message: Message):
                     reply_markup=InlineKeyboardMarkup(combined_keyboard)
                 )
 
-                await message.reply("Post editado con el nuevo inline markup✅📝")
+                await client.delete_messages(
+                    chat_id=chat_id,
+                    message_ids=post2_id
+                )
+
+                await message.reply(f"Post #1 ||{title}|| editado con el nuevo inline markup✅📝\n\nPost #2 ha sido eliminado🗑")
+                
+                logger.info(f"Se ha editado el post de {title}")
+            
             except Exception as e:
-                await message.reply(e)
+                await message.reply(f"Error - {e}")
