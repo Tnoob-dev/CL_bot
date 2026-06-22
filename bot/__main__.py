@@ -10,12 +10,12 @@ from commands.Collection import collect_messages, end_collection
 from commands.InfoPosts import info_posts
 from commands.Misc import count_users, send_admin_message, ascend_to_admin, get_top10
 from commands.Order import get_orders
-# from commands.Translations import translate_srt
 from commands.Posts import create_posts, remove_posts
 from commands.SearchPosts import search_posts
 from commands.Subtitles import search_subtitles
 from commands.Donations import donations
 from commands.Publicity import publi_command
+from commands.Fusion import fusion_posts
 
 # MAIN FUNCTIONS
 from db.create_cine_db import create_db
@@ -46,7 +46,6 @@ bot.add_handler(MessageHandler(hello))
 bot.add_handler(MessageHandler(collect_messages))
 bot.add_handler(MessageHandler(end_collection))
 bot.add_handler(MessageHandler(get_orders))
-# bot.add_handler(MessageHandler(translate_srt))
 bot.add_handler(MessageHandler(send_admin_message))
 bot.add_handler(MessageHandler(count_users))
 bot.add_handler(MessageHandler(ascend_to_admin))
@@ -59,6 +58,7 @@ bot.add_handler(MessageHandler(info_posts))
 bot.add_handler(MessageHandler(search_posts))
 bot.add_handler(MessageHandler(donations))
 bot.add_handler(MessageHandler(publi_command))
+bot.add_handler(MessageHandler(fusion_posts))
 
 # Queries
 bot.add_handler(CallbackQueryHandler(query_manager))
