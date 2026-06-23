@@ -1,5 +1,6 @@
 from entry.entry import bot
-from utils.functions import check_administration, clean_name
+from utils.functions import check_administration
+from utils.db_reqs import delete_post
 from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardMarkup
 from pyrogram.filters import command, private
@@ -55,6 +56,7 @@ async def fusion_posts(client: Client, message: Message):
                     chat_id=chat_id,
                     message_ids=post2_id
                 )
+                delete_post(post2_id)
 
                 await message.reply(f"Post #1 ||{post1_id}|| editado con el nuevo inline markup✅📝\n\nPost #2 ha sido eliminado🗑")
                 
