@@ -36,10 +36,6 @@ async def fusion_posts(client: Client, message: Message):
             post1_info = message_info[0]
             post2_info = message_info[1]
 
-            # clean title name to see it in message
-
-            title = clean_name(post1_info.text.split("\n")[0])
-
             combined_keyboard = []
             combined_keyboard.extend(post1_info.reply_markup.inline_keyboard)
             combined_keyboard.extend(post2_info.reply_markup.inline_keyboard)
@@ -56,9 +52,9 @@ async def fusion_posts(client: Client, message: Message):
                     message_ids=post2_id
                 )
 
-                await message.reply(f"Post #1 ||{title}|| editado con el nuevo inline markup✅📝\n\nPost #2 ha sido eliminado🗑")
+                await message.reply(f"Post #1 ||{post1_id}|| editado con el nuevo inline markup✅📝\n\nPost #2 ha sido eliminado🗑")
                 
-                logger.info(f"Se ha editado el post de {title}")
+                logger.info(f"Se ha editado el post de {post1_id}")
             
             except Exception as e:
                 await message.reply(f"Error - {e}")
