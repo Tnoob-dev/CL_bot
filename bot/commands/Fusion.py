@@ -40,6 +40,10 @@ async def fusion_posts(client: Client, message: Message):
             combined_keyboard.extend(post1_info.reply_markup.inline_keyboard)
             combined_keyboard.extend(post2_info.reply_markup.inline_keyboard)
 
+            if combined_keyboard == post1_info.reply_markup.inline_keyboard:
+                await message.reply("Ya la nueva botonera es igual a la botonera original")
+                return
+
             try:
                 await client.edit_message_reply_markup(
                     chat_id=chat_id,
