@@ -40,7 +40,6 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
     
     try:
         await client.get_chat_member(chat_id=os.getenv("CINEMA_ID"), user_id=message.from_user.id)
-        await client.get_chat_member(chat_id=os.getenv("GUEST_ID"), user_id=message.from_user.id)
 
         return True
     except UserNotParticipant:
@@ -49,7 +48,6 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
                             reply_markup=InlineKeyboardMarkup(
                                 [
                                     [InlineKeyboardButton("🎬Cinema Library🎬", url=f"https://t.me/{os.getenv("CINEMA_ID")}")],
-                                    [InlineKeyboardButton(os.getenv("GUEST_NAME"), url=os.getenv("GUEST_LINK"))]
                                 ]
                             ))
         return False
