@@ -16,6 +16,7 @@ from commands.Subtitles import search_subtitles
 from commands.Donations import donations
 from commands.Publicity import publi_command
 from commands.Fusion import fusion_posts
+from commands.Edit import edit_posts
 
 # MAIN FUNCTIONS
 from db.create_cine_db import create_db
@@ -59,6 +60,7 @@ bot.add_handler(MessageHandler(search_posts))
 bot.add_handler(MessageHandler(donations))
 bot.add_handler(MessageHandler(publi_command))
 bot.add_handler(MessageHandler(fusion_posts))
+bot.add_handler(MessageHandler(edit_posts))
 
 # Queries
 bot.add_handler(CallbackQueryHandler(query_manager))
