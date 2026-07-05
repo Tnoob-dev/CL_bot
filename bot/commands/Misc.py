@@ -105,23 +105,3 @@ async def get_top10(client: Client, message: Message):
         template += f"{emoji}**{username}** - {downloads} Descargas\n"
     
     await message.reply(template)
-
-@bot.on_message(command("falt") & private)
-async def get_falt_content(client: Client, message: Message):
-    
-    await message.reply("⏳ Buscando contenido faltante en la base de datos...")
-    
-    with Session(cine_engine) as session:
-        statement = select(Game)
-        
-        results = session.exec(statement).all()
-        
-    content = "🎬 Contenido Faltante en la base de datos:\n\n"
-    for result in results:
-        xd = await client.get_messages(chat_id=message.chat.id, message_ids=result.file_ids)
-        
-        if xd is None:
-            print(f"El contenido {result.name} no se encuentra en la base de datos")
-            content += f" - {result.name}\n"
-    
-    await message.reply(content)
