@@ -40,7 +40,6 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
     
     try:
         await client.get_chat_member(chat_id=os.getenv("CINEMA_ID"), user_id=message.from_user.id)
-        await client.get_chat_member(chat_id=os.getenv("GUEST_ID"), user_id=message.from_user.id)
 
         return True
     except UserNotParticipant:
@@ -48,8 +47,7 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
         await message.reply("Para usar este bot, primero debes unirte a nuestros canales.", 
                             reply_markup=InlineKeyboardMarkup(
                                 [
-                                    [InlineKeyboardButton("🎬Cinema Library🎬", url=f"https://t.me/{os.getenv("CINEMA_ID")}")],
-                                    [InlineKeyboardButton(os.getenv("GUEST_NAME"), url=os.getenv("GUEST_LINK"))]
+                                    [InlineKeyboardButton("🎬Cinema Library🎬", url=f"https://t.me/{os.getenv("CINEMA_ID")}")]
                                 ]
                             ))
         return False
@@ -58,21 +56,26 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
         return False
 
 async def forward_messages(client: Client, messages: List[int]):
+    new_ids = []  
+
     for message_id in messages:
-        success = False # Flag: if True, means file sent to backup channel succesfully
-        
+        success = False  # Flag: if True, means file sent to backup channel succesfully
         # while loop...
         while not success:
             try:
-                
                 # forwarding
-                await client.copy_message(chat_id=int(os.getenv("CHANNEL_ID")), from_chat_id=os.getenv("SENDER_BOT"), message_id=message_id)
-                success = True # change flag to True and go for the next file
-                
-            except FloodWait as f: # if exists flood sleep bot the time estimated
-                
+                copied = await client.copy_message(
+                    chat_id=int(os.getenv("CHANNEL_ID")),
+                    from_chat_id=os.getenv("SENDER_BOT"),
+                    message_id=message_id
+                )
+                new_ids.append(copied.id)  
+                success = True  # change flag to True and go for the next file
+            except FloodWait as f:  # if exists flood sleep bot the time estimated
                 await asyncio.sleep(f.value)
-                
+    
+    return new_ids
+
 def save_to_json(subtitles: List[Dict[str, int | str]], user_id: int, output_file: str):
     try:
         

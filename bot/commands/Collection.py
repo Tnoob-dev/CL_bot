@@ -34,14 +34,14 @@ def get_user_state(user_id: int) -> dict | None:
 
 
 def build_season_link(last_message_id: int) -> str:
-    name = f"new_{last_message_id}"
+    name = f"chn_{last_message_id}"
     return f"https://t.me/{os.getenv('SENDER_BOT')}?start={name}"
 
 
 def register_movie(messages: List[int]) -> str:
     
     last_id = messages[-1]
-    name = f"new_{last_id}"
+    name = f"chn_{last_id}"
     insert(Game(name=name, file_ids=messages))
     return build_season_link(last_id)
 
@@ -114,7 +114,8 @@ async def end_collection(client: Client, message: Message):
             return
 
         # forward messages to backup channel
-        await forward_messages(client, messages)
+        ids_in_channel = await forward_messages(client, messages)
+        messages[:] = ids_in_channel
 
         if user_state.get("massive_mode"):
             link = register_movie(messages)
