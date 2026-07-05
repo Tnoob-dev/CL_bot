@@ -46,8 +46,6 @@ async def hello(client: Client, message: Message):
         return
 
     if message.command is not None and message.command[0] == "start":
-        # at this point we will take 3 vars, user_id, username, and user_founded, that will return a Tuple[bool, class] data type if founds the user via user_id,
-        # else this will return a Tuple[bool, None]
         try:
             if len(message.command) >= 2:
 
@@ -61,7 +59,7 @@ async def hello(client: Client, message: Message):
                         try:
                             # second argument of message.command ("randomIDtoGetThings") starts with new_ (Ex: "new_randomIDtoGetThings")
                             if message.command[1].startswith("new_"):
-                                await client.copy_message(message.chat.id, os.getenv("SENDER_BOT"), id) # send files from the private chat of the bot
+                                await client.copy_message(message.chat.id, os.getenv("SENDER_BOT"), id) # send files from the private chat of the bot                                
                             else:
                                 await client.copy_message(message.chat.id, int(os.getenv("CHANNEL_ID")), id) # send files from the backup channel
 
