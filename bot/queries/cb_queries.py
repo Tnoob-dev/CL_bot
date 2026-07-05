@@ -3,7 +3,7 @@ from utils.db_reqs import get_user, delete_post
 from pyrogram.client import Client
 from pyrogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors import WebpageMediaEmpty
-from utils.functions import check_administration, get_clicked_button_text, download_image, translate_synopsis, translate_title, translate_words
+from utils.functions import check_administration, get_clicked_button_text, download_image, translate_synopsis, translate_title, translate_words, get_message_info
 from utils.search_subts import download_subs
 from utils.create_paths import create_subtitles_dl_path
 from utils.movie_search import get_info_by_id
@@ -27,15 +27,10 @@ async def query_manager(client: Client, query: CallbackQuery):
     if query.data.startswith('order_ready'):
         splitted_query_data = query.data.split("_")
         if check_administration(query):
-            if "pm" in splitted_query_data:
-                await client.send_message(
-                    chat_id=int(splitted_query_data[-1]),
-                    text="Su pedido ha sido completado"
-                )
-            else:    
-                await client.send_message(chat_id=group_chat, 
-                                        text="Su pedido ha sido completado",
-                                        reply_to_message_id=int(splitted_query_data[-1]))
+            await client.send_message(chat_id=group_chat, 
+                                    text="Su pedido ha sido completado",
+                                    reply_to_message_id=int(splitted_query_data[-1]))
+            
             await query.message.delete()
         else:
             await query.answer(text="🤨", show_alert=True)
@@ -68,7 +63,7 @@ async def query_manager(client: Client, query: CallbackQuery):
     
     #  not confuse with order_404
     # order_not_found its for when an order its not founded after the user asked and the bot searched for it
-    # order_404 its for when the admin can't found the order and the user needs to be notified
+    # order_404 its for when the admin can't find the order and the user needs to be notified
     elif query.data.startswith("order_not_found_"):
         try:
             message_replied_id = query.message.reply_to_message_id
@@ -95,7 +90,10 @@ async def query_manager(client: Client, query: CallbackQuery):
                 ),
                 reply_markup=InlineKeyboardMarkup(
                     [
-                        [InlineKeyboardButton("🫡Orden Lista🫡", callback_data=f"order_ready_{message_replied_id}")]
+                        [
+                            InlineKeyboardButton("🫡Orden Lista🫡", callback_data=f"order_ready_{message_replied_id}"),
+                            InlineKeyboardButton("❌No encontrado❌", callback_data=f"order_404_{message_replied_id}")
+                        ]
                     ]
                 ))
 
@@ -105,12 +103,14 @@ async def query_manager(client: Client, query: CallbackQuery):
             await query.answer("Ocurrió un error al reenviar tu orden.", show_alert=True)
 
     elif query.data.startswith("order_404_"):
-        splitted_query_data = query.data.split("_")
-        msg_id = int(splitted_query_data[-1])
 
-        await client.send_message(chat_id=os.getenv("GROUP_ID"), reply_to_message_id=msg_id, text="Lo sentimos, no encontramos su pedido.")
+        if check_administration(query):
+            splitted_query_data = query.data.split("_")
+            msg_id = int(splitted_query_data[-1])
 
-        await query.message.delete()
+            await client.send_message(chat_id=os.getenv("GROUP_ID"), reply_to_message_id=msg_id, text="Lo sentimos, no encontramos su pedido.")
+
+            await query.message.delete()
 
     elif query.data.startswith("remove_"):
         data = query.data.split("_")
@@ -178,3 +178,13 @@ async def query_manager(client: Client, query: CallbackQuery):
             await query.message.reply(template)
 
         template = ""
+    
+    elif query.data.startswith("edit_"):
+        
+        message_info = await get_message_info(query.data.split("_")[-1])
+        
+        match query.data.split("_")[1]:
+            case "text":
+                print(message_info.text)
+            case "btns":
+                print("botones")

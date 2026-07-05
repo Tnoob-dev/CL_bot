@@ -206,3 +206,12 @@ def clean_name(text: str):
         return title.strip()
     
     return title
+
+async def get_message_info(client: Client, message_id: int | List[int]) -> Message | List[Message]:
+    
+    message_info = await client.get_messages(
+                    chat_id=os.getenv("CINEMA_ID"),
+                    message_ids=int(message_id)
+                )
+    
+    return message_info

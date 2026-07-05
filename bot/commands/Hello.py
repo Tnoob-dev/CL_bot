@@ -34,13 +34,13 @@ async def hello(client: Client, message: Message):
         user_id = message.from_user.id
         username = message.from_user.username if message.from_user.username is not None else None
     
-    user_founded = get_user(user_id)
+        user_founded = get_user(user_id)
     
-    if not user_founded[0]: # if the user is not in db, add it
-        logger.info(f"Insertando usuario {username} ({user_id}) a la db")
-        user = Users(id=user_id, username=username, rest_tries=10, is_admin=False, premium_user=False)
-        insert_user(user)
-        logger.info(f"Usuario {username} añadido a la db")
+        if not user_founded[0]: # if the user is not in db, add it
+            logger.info(f"Insertando usuario {username} ({user_id}) a la db")
+            user = Users(id=user_id, username=username, rest_tries=10, is_admin=False, premium_user=False)
+            insert_user(user)
+            logger.info(f"Usuario {username} añadido a la db")
 
     if not await check_user_in_channel(client, message):
         return
