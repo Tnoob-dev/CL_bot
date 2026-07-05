@@ -5,6 +5,8 @@ from pyrogram.filters import command, private
 from stream.config import StreamConfig
 from stream.file_properties import get_file_info, pack_file, get_short_hash
 
+########### ADD LOGGER ###########
+
 @bot.on_message(command("stream", prefixes=["/"]) & private)
 async def stream_handler(client: Client, message: Message):
     
