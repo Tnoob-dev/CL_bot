@@ -1,5 +1,5 @@
 from entry.entry import bot
-from utils.functions import check_administration
+from utils.functions import check_administration, get_message_info
 from utils.db_reqs import delete_post
 from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardMarkup
@@ -29,10 +29,7 @@ async def fusion_posts(client: Client, message: Message):
             
             chat_id = os.getenv("CINEMA_ID")
 
-            message_info = await client.get_messages(
-                chat_id=chat_id,
-                message_ids=[post1_id, post2_id]
-            )
+            message_info = await get_message_info([post1_id, post2_id])
 
             post1_info = message_info[0]
             post2_info = message_info[1]

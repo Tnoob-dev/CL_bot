@@ -3,6 +3,9 @@ from entry.entry import bot
 # LOGGING
 import logging
 
+# misc
+import asyncio
+
 # COMMAND FUNCTIONS
 from commands.Hello import hello
 from commands.Help import help_command
@@ -17,6 +20,7 @@ from commands.Donations import donations
 from commands.Publicity import publi_command
 from commands.Fusion import fusion_posts
 from commands.Edit import edit_posts
+from commands.Stream import stream_handler
 
 # MAIN FUNCTIONS
 from db.create_cine_db import create_db
@@ -29,6 +33,11 @@ from pyrogram.handlers.inline_query_handler import InlineQueryHandler
 # QUERY FUNCTIONS
 from queries.cb_queries import query_manager
 from queries.inline_queries import inline_answer
+
+# STREAM
+from stream.server import start_stream_server
+from stream.tunnel import start_cloudflare_tunnel
+from stream.config import StreamConfig
 
 # Logging config
 logging.basicConfig(
@@ -61,11 +70,38 @@ bot.add_handler(MessageHandler(donations))
 bot.add_handler(MessageHandler(publi_command))
 bot.add_handler(MessageHandler(fusion_posts))
 bot.add_handler(MessageHandler(edit_posts))
+bot.add_handler(MessageHandler(stream_handler))
 
 # Queries
 bot.add_handler(CallbackQueryHandler(query_manager))
 bot.add_handler(InlineQueryHandler(inline_answer))
 
-if __name__ == "__main__":
+async def main():
+    # Primero configura el tunnel si es necesario
+    if "localhost" in StreamConfig.URL or "127.0.0.1" in StreamConfig.URL:
+        logger.info("Starting Cloudflare tunnel...")
+        tunnel_url, _ = start_cloudflare_tunnel(StreamConfig.PORT)
+        if tunnel_url:
+            StreamConfig.update_url(tunnel_url)
+            logger.info(f"URL updated: {StreamConfig.URL}")
+        else:
+            logger.info("Could not start tunnel, using local URL")
+
+    # Luego inicia el stream server
+    await start_stream_server(bot)
+    logger.info(f"Stream server active at: {StreamConfig.URL}")
+
+    # Finalmente inicia el bot
+    await bot.start()
     logger.info("Bot started")
-    bot.run()
+
+    await asyncio.Event().wait()
+
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    try:
+        loop.run_until_complete(main())
+    except KeyboardInterrupt:
+        logger.info("Bot apagado por el usuario.")
+    finally:
+        loop.close()

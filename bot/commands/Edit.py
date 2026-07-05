@@ -1,5 +1,5 @@
 from entry.entry import bot
-from utils.functions import check_administration
+from utils.functions import check_administration, get_message_info
 from pyrogram.filters import command, private
 from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
@@ -18,10 +18,7 @@ async def edit_posts(client: Client, message: Message):
         try:
             if len(message.command) == 2:
                 
-                message_info = await client.get_messages(
-                    chat_id=os.getenv("CINEMA_ID"),
-                    message_ids=int(message.command[-1])
-                )
+                message_info = await get_message_info(int(message.command[-1]))
 
                 await message.reply("Que deseas editar?",
                                     reply_markup=InlineKeyboardMarkup([
@@ -34,3 +31,4 @@ async def edit_posts(client: Client, message: Message):
         
         except ValueError:
             await message.reply("El id no es un numero")
+            

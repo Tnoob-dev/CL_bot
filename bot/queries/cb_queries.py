@@ -3,7 +3,7 @@ from utils.db_reqs import get_user, delete_post
 from pyrogram.client import Client
 from pyrogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors import WebpageMediaEmpty
-from utils.functions import check_administration, get_clicked_button_text, download_image, translate_synopsis, translate_title, translate_words
+from utils.functions import check_administration, get_clicked_button_text, download_image, translate_synopsis, translate_title, translate_words, get_message_info
 from utils.search_subts import download_subs
 from utils.create_paths import create_subtitles_dl_path
 from utils.movie_search import get_info_by_id
@@ -180,9 +180,11 @@ async def query_manager(client: Client, query: CallbackQuery):
         template = ""
     
     elif query.data.startswith("edit_"):
-
-        match query.data.split[1]:
+        
+        message_info = await get_message_info(query.data.split("_")[-1])
+        
+        match query.data.split("_")[1]:
             case "text":
-                print("texto")
+                print(message_info.text)
             case "btns":
                 print("botones")
