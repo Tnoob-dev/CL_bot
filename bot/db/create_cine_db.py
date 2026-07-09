@@ -14,7 +14,7 @@ class Game(SQLModel, table = True):
 
 # Users database
 class Users(SQLModel, table = True):
-    id: Optional[BigInteger] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(sa_type=BigInteger, default=None, primary_key=True)
     username: Optional[str] = Field(default=None)
     rest_tries: int = Field(default=5)
     is_admin: bool = Field(default=False)
