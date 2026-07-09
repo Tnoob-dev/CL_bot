@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field, create_engine, Column, JSON, BIGINT
+from sqlmodel import SQLModel, Field, create_engine, Column, JSON, BigInteger
 from typing import Optional, List
 import os
 import logging
@@ -14,7 +14,7 @@ class Game(SQLModel, table = True):
 
 # Users database
 class Users(SQLModel, table = True):
-    id: Optional[BIGINT] = Field(default=None, primary_key=True)
+    id: Optional[BigInteger] = Field(default=None, primary_key=True)
     username: Optional[str] = Field(default=None)
     rest_tries: int = Field(default=5)
     is_admin: bool = Field(default=False)
