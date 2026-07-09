@@ -6,6 +6,8 @@ from pathlib import Path
 from .db_reqs import get_user
 from groq import AsyncGroq
 from deep_translator import GoogleTranslator
+from stream.config import StreamConfig
+from stream.file_properties import get_file_info, pack_file, get_short_hash
 import os
 import asyncio
 import json
@@ -220,3 +222,37 @@ async def get_message_info(client: Client, message_id: int | List[int]) -> Messa
                 )
     
     return message_info
+
+async def delete_after_delay(client: Client, chat_id: int, message_id: int, delay: int = 180):
+
+    try:
+        await asyncio.sleep(delay)
+        await client.delete_messages(chat_id, message_id)
+        logger.info(f"Mensaje {message_id} eliminado del chat {chat_id} tras {delay}s")
+    except Exception as e:
+        logger.error(f"No se pudo eliminar el mensaje {message_id} en el chat {chat_id}: {e}")
+
+
+async def generate_stream_link(target_message: Message) -> List[List[InlineKeyboardButton]]:
+    file_info = get_file_info(target_message)
+    
+    full_hash = pack_file(
+        file_info.file_name,
+        file_info.file_size,
+        file_info.mime_type,
+        file_info.message_id
+    )
+    
+    file_hash = get_short_hash(full_hash)
+    stream_link = f"{StreamConfig.URL}stream/{target_message.id}?hash={file_hash}"
+
+    
+    # link 
+    watch_link = f"{StreamConfig.URL}watch/{target_message.id}?hash={file_hash}"
+    
+    buttons = [
+        [InlineKeyboardButton("Ver en navegador", url=watch_link)],
+        [InlineKeyboardButton("Ver en Reproductor", url=stream_link)]
+    ]
+    
+    return buttons
