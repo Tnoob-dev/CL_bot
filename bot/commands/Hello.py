@@ -19,14 +19,6 @@ logger = logging.getLogger(__name__)
 
 @bot.on_message(command("start", prefixes=["/"]) & private)
 async def hello(client: Client, message: Message):
-    if message.command is not None and len(message.command) == 1:
-        if check_administration(message):
-            await message.reply(f"Hola Administrador: {message.from_user.first_name}")
-        else:
-            await message.reply_sticker(Path.cwd() / Path("assets") / Path("dancer.tgs"))
-            await message.reply(f"Hola {message.from_user.mention}, gracias por usar nuestro bot, nos complace tenerte como usuario, para tener una guia mas detallada de como funciona el bot, utiliza el comando /help.\n\nNos encantaria conocerte, asi que por que no entras a nuestro chat del canal: @chat1080p, donde tambien...shhh...spoiler: ||Podras pedir esa serie o peli que llevas dias buscando|| (Que no se te olvide poner #cine <nombre> y una foto para nosotros saber cual es).")
-        return
-
     if message.from_user is not None:
         user_id = message.from_user.id
         username = message.from_user.username if message.from_user.username is not None else None
@@ -36,6 +28,14 @@ async def hello(client: Client, message: Message):
             user = Users(id=user_id, username=username, rest_tries=10, is_admin=False, premium_user=False)
             insert_user(user)
             logger.info(f"Usuario {username} añadido a la db")
+    
+    if message.command is not None and len(message.command) == 1:
+        if check_administration(message):
+            await message.reply(f"Hola Administrador: {message.from_user.first_name}")
+        else:
+            await message.reply_sticker(Path.cwd() / Path("assets") / Path("dancer.tgs"))
+            await message.reply(f"Hola {message.from_user.mention}, gracias por usar nuestro bot, nos complace tenerte como usuario, para tener una guia mas detallada de como funciona el bot, utiliza el comando /help.\n\nNos encantaria conocerte, asi que por que no entras a nuestro chat del canal: @chat1080p, donde tambien...shhh...spoiler: ||Podras pedir esa serie o peli que llevas dias buscando|| (Que no se te olvide poner #cine <nombre> y una foto para nosotros saber cual es).")
+        return
 
     if not await check_user_in_channel(client, message):
         return
