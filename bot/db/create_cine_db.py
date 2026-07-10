@@ -11,7 +11,7 @@ class Game(SQLModel, table = True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(default=None)
     file_ids: List[int] = Field(sa_column=Column(JSON))
-
+    
 # Users database
 class Users(SQLModel, table = True):
     id: Optional[int] = Field(sa_type=BigInteger, default=None, primary_key=True)

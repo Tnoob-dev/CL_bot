@@ -1,7 +1,7 @@
-from db.create_cine_db import cine_engine, Game
+from db.create_cine_db import Game
 from utils.db_reqs import get_user, update_user_admin
+from utils.functions import check_administration, gen_ids, register_movie
 from entry.entry import bot
-from sqlmodel import Session, select
 from pyrogram.client import Client
 from pyrogram.types import Message
 from pyrogram.filters import command, private, group
@@ -105,3 +105,25 @@ async def get_top10(client: Client, message: Message):
         template += f"{emoji}**{username}** - {downloads} Descargas\n"
     
     await message.reply(template)
+    
+@bot.on_message(command("old", prefixes=["/"]) & private)
+async def make_old_posts(client: Client, message: Message):
+    
+    if not check_administration(message):
+        return
+    
+    if message.command is not None and len(message.command) >= 2:
+        if len(message.command) > 3:
+            await message.reply("Error, solo deben ser 2 ids, un inicio y un final")
+            return
+        
+        match len(message.command):
+            case 2:
+                generated_id = gen_ids(int(message.command[-1]))
+            case 3:
+                generated_id = gen_ids(int(message.command[1]), int(message.command[-1]))
+        
+        link = register_movie(generated_id)
+        print(link)
+        
+        await message.reply(f"Aqui tienes el link ➡️ {link}")
