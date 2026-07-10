@@ -1,7 +1,5 @@
 from entry.entry import bot
-from utils.functions import check_administration, forward_messages
-from utils.db_reqs import insert
-from db.create_cine_db import Game
+from utils.functions import check_administration, forward_messages, register_movie
 from pyrogram.client import Client
 from pyrogram.types import Message
 from pyrogram.filters import command, private, document, video, photo
@@ -28,23 +26,8 @@ def init_user_state(user_id: int, massive_mode: bool = False) -> None:
         "links": []
     }
 
-
 def get_user_state(user_id: int) -> dict | None:
     return state.get(str(user_id))
-
-
-def build_season_link(last_message_id: int) -> str:
-    name = f"chn_{last_message_id}"
-    return f"https://t.me/{os.getenv('SENDER_BOT')}?start={name}"
-
-
-def register_movie(messages: List[int]) -> str:
-    
-    last_id = messages[-1]
-    name = f"chn_{last_id}"
-    insert(Game(name=name, file_ids=messages))
-    return build_season_link(last_id)
-
 
 @bot.on_message(command("massive") & private)
 async def massive_collection(client: Client, message: Message):
@@ -60,7 +43,6 @@ async def massive_collection(client: Client, message: Message):
         "Modo masivo activado con las siguientes caracteristicas:\n\n"
         "```OwO\nModo collecion: activado\nSi lees esto eres gay```"
     )
-
 
 # end_massive command, to end the complete task
 @bot.on_message(command("end_massive") & private)

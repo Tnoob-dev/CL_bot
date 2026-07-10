@@ -3,17 +3,19 @@ from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, 
 from pyrogram.errors import UserNotParticipant, FloodWait
 from typing import List, Dict
 from pathlib import Path
-from .db_reqs import get_user
+from .db_reqs import get_user, insert
 from groq import AsyncGroq
 from deep_translator import GoogleTranslator
 from stream.config import StreamConfig
 from stream.file_properties import get_file_info, pack_file, get_short_hash
+from db.create_cine_db import Game
 import os
 import asyncio
 import json
 import logging
 import aiohttp
 import time
+import hashlib
 
 # Logger 
 logger = logging.getLogger(__name__)
@@ -77,6 +79,22 @@ async def forward_messages(client: Client, messages: List[int]):
                 await asyncio.sleep(f.value)
     
     return new_ids
+
+
+import random
+random_num = random.randint(0, 89)
+
+def build_season_link(last_message_id: int) -> str:
+    name = f"chn_{last_message_id}_{random_num}"
+    return f"https://t.me/{os.getenv('SENDER_BOT')}?start={name}"
+
+def register_movie(messages: List[int]) -> str:
+    
+    last_id = messages[-1]
+    
+    name = f"chn_{last_id}_{random_num}"
+    insert(Game(name=name, file_ids=messages))
+    return build_season_link(last_id)
 
 def save_to_json(subtitles: List[Dict[str, int | str]], user_id: int, output_file: str):
     try:
@@ -256,3 +274,16 @@ async def generate_stream_link(target_message: Message) -> List[List[InlineKeybo
     ]
     
     return buttons
+
+def gen_ids(id1: int, id2: int = None) -> List[int]:
+    
+    if id2 is None:
+        return [id1]
+    
+    start, end = min(id1, id2), max(id1, id2)
+    return list(range(start, end + 1))
+ 
+def gen_hash(ids: List[int]) -> str:
+
+    content = ",".join(str(i) for i in sorted(ids))
+    return hashlib.sha256(content.encode("utf-8")).hexdigest()

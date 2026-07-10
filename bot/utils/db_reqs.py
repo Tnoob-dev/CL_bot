@@ -15,7 +15,7 @@ def insert(query: Game) -> Dict[str, str]:
         with Session(cine_engine) as session:
             session.add(query)
             session.commit()
-        return {"message": "Juego annadido"}
+        return {"message": "Pelicula o Serie annadida"}
     except Exception as e:
         session.rollback()
         logger.error(f"Error al annadir a la db -> {e}")
