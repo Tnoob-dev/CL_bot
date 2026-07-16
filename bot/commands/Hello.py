@@ -1,7 +1,6 @@
 from entry.entry import bot
 from utils.functions import check_administration, check_user_in_channel, delete_after_delay
-from utils.db_reqs import get_game
-from utils.db_reqs import insert_user, get_user, update_user_downloads
+from utils.db_reqs import get_game, insert_user, get_user, update_user_downloads, is_premium_active
 from db.create_cine_db import Users
 from pyrogram.client import Client
 from pyrogram.filters import command, private
@@ -19,15 +18,18 @@ logger = logging.getLogger(__name__)
 
 @bot.on_message(command("start", prefixes=["/"]) & private)
 async def hello(client: Client, message: Message):
+    
     if message.from_user is not None:
         user_id = message.from_user.id
         username = message.from_user.username if message.from_user.username is not None else None
         user_founded = get_user(user_id)
+        
         if not user_founded[0]:  # if the user is not in db, add it
             logger.info(f"Insertando usuario {username} ({user_id}) a la db")
             user = Users(id=user_id, username=username, rest_tries=10, is_admin=False, premium_user=False)
             insert_user(user)
             logger.info(f"Usuario {username} añadido a la db")
+            user_founded = get_user(user_id)
     
     if message.command is not None and len(message.command) == 1:
         if check_administration(message):
@@ -52,9 +54,11 @@ async def hello(client: Client, message: Message):
 
                             success = True  # success becomes True to reach next file
 
-                            asyncio.create_task(
-                                delete_after_delay(client, message.chat.id, sent_message.id, 180)
-                            )
+                            # delete for non-premium users and non-admins
+                            if not is_premium_active(user_founded[1].id) and not check_administration(message):
+                                asyncio.create_task(
+                                    delete_after_delay(client, message.chat.id, sent_message.id, int(os.getenv("DELETE_MESSAGE_DELAY")))
+                                )
                         except FloodWait as f:
                             await asyncio.sleep(f.value)
 

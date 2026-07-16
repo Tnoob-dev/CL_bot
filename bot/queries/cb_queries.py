@@ -1,18 +1,27 @@
 from entry.entry import bot
-from utils.db_reqs import get_user, delete_post
+from utils.db_reqs import get_user, delete_post, update_user_premium
 from pyrogram.client import Client
-from pyrogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors import WebpageMediaEmpty
+from pyrogram.filters import private, photo
 from utils.functions import check_administration, get_clicked_button_text, download_image, translate_synopsis, translate_title, translate_words, get_message_info
 from utils.search_subts import download_subs
 from utils.create_paths import create_subtitles_dl_path
 from utils.movie_search import get_info_by_id
-# from pathlib import Path
+from pathlib import Path
 import os
 import logging
 
 # Logger 
 logger = logging.getLogger(__name__)
+
+last_user_photo = {}
+
+# handler to listen when a user sends a pic
+@bot.on_message(private & photo, group=0)
+async def save_user_photo(client: Client, message: Message):
+    user_id = message.from_user.id
+    last_user_photo[user_id] = message.photo.file_id
 
 # callback query for query actions
 @bot.on_callback_query()
@@ -181,10 +190,164 @@ async def query_manager(client: Client, query: CallbackQuery):
     
     elif query.data.startswith("edit_"):
         
-        message_info = await get_message_info(query.data.split("_")[-1])
+        message_info = await get_message_info(client, query.data.split("_")[-1])
         
         match query.data.split("_")[1]:
             case "text":
                 print(message_info.text)
             case "btns":
                 print("botones")
+                
+    elif query.data == "become_vip":
+        
+        text = f"""
+Coste del plan VIP 💎: 
+    - 💳 Tarjeta {os.getenv('VIP_PRICE_CUP')} CUP
+    - 💳 Tarjeta {os.getenv('VIP_PRICE_MLC')} MLC
+    - 💵 USD/PayPal/Zelle {os.getenv('VIP_PRICE_USD')} USD
+    - 📱 Saldo Movil{os.getenv('VIP_PRICE_CUP')} CUP
+
+Ventajas que ofrece el plan 📈:
+    - Stream de archivos y videos 📺
+    - Se quita la eliminacion de archivos de 3 minutos 🔥
+    
+⏳ El plan tiene una duracion de 30 dias a partir de su compra
+
+Seleccione uno de los metodos de pago de abajo ⬇️
+"""
+        buttons = [
+            [InlineKeyboardButton("💳 CUP Metropolitano", callback_data="pay_edit_metro")],
+            [InlineKeyboardButton("💳 CUP BPA", callback_data="pay_edit_bpa_cup")],
+            [InlineKeyboardButton("💳 MLC BPA", callback_data="pay_edit_bpa_mlc")],
+            [InlineKeyboardButton("💙 ENZONA", callback_data="pay_edit_enzona")],
+            [InlineKeyboardButton("📱 Saldo Movil", callback_data="pay_edit_sm")],
+            [InlineKeyboardButton("💵 PayPal", callback_data="pay_edit_paypal")],
+            [InlineKeyboardButton("⚡️ Zelle", callback_data="pay_edit_zelle")]
+        ]
+        
+        await query.message.delete()
+        
+        await query.message.reply(
+            text=text,
+            reply_markup=InlineKeyboardMarkup(buttons)
+        )
+        
+    elif query.data.startswith("pay_edit_"):
+        
+        data = query.data
+        
+        if data.endswith("metro"):
+            await query.message.edit(
+                text=f"No debe recortar la foto, envie con fecha y hora presentes.\n\nSolo toque los numeros para copiar:\n\n 💳Tarjeta: <code>{os.getenv('CUP_CARD')}</code>\n📱Confirmar: <code>{os.getenv('MOBILE')}</code>\n\nPresione en Confirmar✅ para enviar su evidencia de pago a los admins", 
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Confirmar✅", callback_data="confirm_pay")]]))
+        
+        elif data.endswith("bpa_cup"):
+            await query.message.edit(
+                text=f"No debe recortar la foto, envie con fecha y hora presentes.\n\nSolo toque los numeros para copiar:\n\n 💳Tarjeta: <code>{os.getenv('CUP_CARD2')}</code>\n📱Confirmar: <code>{os.getenv('MOBILE')}</code>\n\nPresione en Confirmar✅ para enviar su evidencia de pago a los admins", 
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Confirmar✅", callback_data="confirm_pay")]]))
+        
+        elif data.endswith("bpa_mlc"):
+            await query.message.edit(
+                text=f"No debe recortar la foto, envie con fecha y hora presentes.\n\nSolo toque los numeros para copiar:\n\n 💳Tarjeta: <code>{os.getenv('MLC_CARD')}</code>\n📱Confirmar: <code>{os.getenv('MOBILE')}</code>\n\nPresione en Confirmar✅ para enviar su evidencia de pago a los admins", 
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Confirmar✅", callback_data="confirm_pay")]]))
+      
+        elif data.endswith("enzona"):
+            await query.message.delete()
+            await query.message.reply_photo(
+                photo=Path.cwd() / Path("assets") / Path("enzona_pic.jpg"), 
+                caption="No debe recortar la foto, envie con fecha y hora presentes.\n\nPresione en Confirmar✅ para enviar su evidencia de pago a los admins",
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Confirmar✅", callback_data="confirm_pay")]])
+                )
+        
+        elif data.endswith("paypal"):
+            await query.message.edit("❌No tenemos disponibilidad para esta funcion aun, sentimos las molestias😢")
+        
+        elif data.endswith("zelle"):
+            await query.message.edit("❌No tenemos disponibilidad para esta funcion aun, sentimos las molestias😢")
+       
+        elif data.endswith("sm"):
+            await query.message.edit(
+                text=f"No debe recortar la foto, envie con fecha y hora presentes.\n\nSolo toque los numeros para copiar:\n\n 📱Movil: <code>{os.getenv('MOBILE')}</code>\n\nPresione en Confirmar✅ para enviar su evidencia de pago a los admins", 
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Confirmar✅", callback_data="confirm_pay")]]))
+    
+    elif query.data == "confirm_pay":
+        
+        await query.message.delete()
+        
+        await query.message.reply(
+        text="📸 *Envíe su captura de pago ahora.*\n\nUna vez enviada la imagen, presione el botón de abajo para finalizar:", 
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Confirmar✅", callback_data="send_pay_admin")]]))
+        
+    elif query.data == "send_pay_admin":
+        
+        user_id = query.from_user.id
+        
+        photo_id = last_user_photo.get(user_id)
+    
+        if photo_id:
+            await query.answer("✅ Procesando comprobante...")
+            user_info = query.from_user
+            caption = (
+                f"🔔 Nuevo comprobante\n"
+                f"👤 @{user_info.username or 'Sin username'}\n"
+                f"🆔 `{user_id}`"
+            )
+        
+            buttons = [
+                [
+                    InlineKeyboardButton("Aceptar Pago✅", callback_data=f"premium_accept_{user_id}"),
+                    InlineKeyboardButton("Declinar Pago❌", callback_data=f"premium_decline_{user_id}")
+                ]
+            ]
+            
+            await client.send_photo(
+                chat_id=int(os.getenv("PAY_GROUP")),
+                photo=photo_id,
+                caption=caption,
+                reply_markup=InlineKeyboardMarkup(buttons)
+            )
+            
+            del last_user_photo[user_id]
+            
+            await query.message.edit_text("✅ *¡Comprobante enviado a los administradores!*")
+        else:
+            await query.answer("⚠️ Primero envía la captura de pago.", show_alert=True)
+    
+    elif query.data.startswith("premium_"):
+        
+        data = query.data
+        splitted_data = data.split("_")
+        
+        if splitted_data[1] == "accept":
+            boolean, dead_date = update_user_premium(int(splitted_data[-1]), days=30)
+            
+            if boolean:
+                await client.send_message(
+                    chat_id=int(splitted_data[-1]),
+                    text=(
+                        "✅ *¡Pago Aceptado!*\n\n"
+                        "🎉 *Felicidades*, su plan *VIP* ha sido activado correctamente.\n\n"
+                        "📅 *Válido hasta:* `{dead_date}`\n\n"
+                        "Disfrute de todos los beneficios exclusivos. Si tiene alguna duda, no dude en contactarnos.".format(dead_date=dead_date)
+                    )
+                )
+        else:
+            await client.send_message(
+                chat_id=int(splitted_data[-1]),
+                text=(
+                    "⚠️ *Problema con su Pago*\n\n"
+                    "Lamentamos informarle que hemos detectado un inconveniente con su comprobante de pago.\n\n"
+                    "📋 *Posibles causas:*\n"
+                    "• Monto incorrecto\n"
+                    "• Captura no legible\n"
+                    "• Pago no verificado\n\n"
+                    "🆘 *¿Qué hacer?*\n"
+                    "Contacte a la administración a través del grupo oficial para resolver este problema:\n"
+                    "👉 @{group_id}\n\n"
+                    "Estamos aquí para ayudarle.".format(
+                        group_id=os.getenv('GROUP_ID')
+                    )
+                )
+            )
+            
+        await query.message.delete()

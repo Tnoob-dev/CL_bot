@@ -19,6 +19,7 @@ class Users(SQLModel, table = True):
     rest_tries: int = Field(default=5)
     is_admin: bool = Field(default=False)
     premium_user: bool = Field(default=False)
+    premium_expires: Optional[int] = Field(default=None)
     int_downloaded: int = Field(default=0)
 
 # Posts database to save and show posts when user or admin needs it

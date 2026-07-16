@@ -21,10 +21,8 @@ class FileInfo:
     duration: int  # in seconds
 
 
-def get_file_info(client: Client, message: Message) -> Optional[FileInfo]:
+def get_file_info(message: Message) -> Optional[FileInfo]:
     """Extrae FileInfo de un mensaje de Pyrogram."""
-    
-    # file_info = get_message_info(client, message)
     
     if message.document:
         media = message.document

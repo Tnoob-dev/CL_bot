@@ -1,5 +1,5 @@
 from pyrogram.client import Client
-from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
+from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, User
 from pyrogram.errors import UserNotParticipant, FloodWait
 from typing import List, Dict
 from pathlib import Path
@@ -15,7 +15,6 @@ import json
 import logging
 import aiohttp
 import time
-import hashlib
 
 # Logger 
 logger = logging.getLogger(__name__)
@@ -134,6 +133,12 @@ async def download_image(url: str):
                     file.write(chunk)
     return full_path
 
+async def download_tg_files(client: Client, file_id: str, username: str):
+    os.makedirs("./images_downloaded", exist_ok=True)
+    full_path = await client.download_media(file_id, file_name=f"./images_downloaded/{username}.jpg")
+    
+    return full_path
+
 async def translate_synopsis(input_text: str):
     client = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
     
@@ -241,6 +246,12 @@ async def get_message_info(client: Client, message_id: int | List[int]) -> Messa
     
     return message_info
 
+async def get_profile_info(client: Client, user_id: int) -> User:
+    
+    profile_info = await client.get_users(user_id)
+    
+    return profile_info
+
 async def delete_after_delay(client: Client, chat_id: int, message_id: int, delay: int = 180):
 
     try:
@@ -282,8 +293,3 @@ def gen_ids(id1: int, id2: int = None) -> List[int]:
     
     start, end = min(id1, id2), max(id1, id2)
     return list(range(start, end + 1))
- 
-def gen_hash(ids: List[int]) -> str:
-
-    content = ",".join(str(i) for i in sorted(ids))
-    return hashlib.sha256(content.encode("utf-8")).hexdigest()

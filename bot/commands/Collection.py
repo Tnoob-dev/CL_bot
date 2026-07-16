@@ -127,7 +127,7 @@ async def end_collection(client: Client, message: Message):
 
 # without commands, append messages id to user state message schema
 # this will only wait for a document, video or photo
-@bot.on_message(private & (document | video | photo))
+@bot.on_message(private & (document | video | photo), group=1)
 async def collect_messages(client: Client, message: Message):
     try:
         if message.from_user and message.from_user.id is not None:

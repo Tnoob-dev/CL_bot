@@ -1,9 +1,7 @@
 from db.create_cine_db import cine_engine, users_engine, posts_engine, Game, Users, Post
 from sqlmodel import Session, select
 from typing import List, Tuple, Dict, Optional
-import threading
-import time
-import os
+from datetime import datetime
 import logging
 
 # Logger 
@@ -42,9 +40,7 @@ def get_user(id: int = None, all_the_users: bool = False) -> Tuple[bool, Optiona
             if id is not None and not all_the_users:
                 statement = select(Users).where(Users.id == id)
                 result = session.exec(statement)
-                
                 user = result.first()   
-                        
                 if user is not None:
                     return (True, user)
                 else:
@@ -52,10 +48,10 @@ def get_user(id: int = None, all_the_users: bool = False) -> Tuple[bool, Optiona
             else:
                 statement = select(Users)
                 users = session.exec(statement).all()
-                
-                return users
+                return (True, users)
     except Exception as e:
         logger.error(f"Error al obtener desde la db -> {e}")
+        return (False, None)
     
 # insert user to db
 def insert_user(query: Users) -> None:
@@ -142,6 +138,75 @@ def update_user_admin(id: int) -> Tuple[bool, str]:
         logger.error(f"Ocurrio un error al cambiar ajustes de usuario -> {e}")
         return (False, e)
     
+def update_user_premium(id: int, days: int = 30) -> Tuple[bool, str]:
+    try:
+        boolean, _ = get_user(id, all_the_users=False)
+        if not boolean:
+            return False, "Usuario no encontrado"
+        
+        with Session(users_engine) as session:
+            statement = select(Users).where(Users.id == id)
+            user = session.exec(statement).one()
+            
+            # Calculamos la fecha base: si ya es premium y no ha expirado, sumamos a su fecha actual.
+            # Si no, sumamos a partir de hoy.
+            now = int(datetime.now().timestamp())
+            base_time = user.premium_expires if (user.premium_expires and user.premium_expires > now) else now
+            
+            # Sumamos los días en segundos
+            new_expiration = base_time + (days * 24 * 60 * 60)
+            
+            user.premium_user = True
+            user.premium_expires = new_expiration
+            
+            session.add(user)
+            session.commit()
+            session.refresh(user)
+            
+            # Formateamos la fecha para mostrarla al usuario (DD/MM/AAAA)
+            expiration_date_str = datetime.fromtimestamp(new_expiration).strftime("%d/%m/%Y")
+            
+        logger.info(f"Usuario {id} actualizado a premium hasta {expiration_date_str}")
+        return True, expiration_date_str
+    
+    except Exception as e:
+        logger.error(f"Error al cambiar ajustes premium del usuario {id} -> {e}")
+        return False, str(e)
+
+
+def is_premium_active(id: int) -> bool:
+    try:
+        boolean, user = get_user(id, all_the_users=False)
+        if not boolean or not user or not user.premium_user:
+            return False
+        
+        now = int(datetime.now().timestamp())
+        # Si tiene fecha de expiración y la fecha actual es mayor, expiró
+        if user.premium_expires and now > user.premium_expires:
+            revoke_premium(id)  # Lo desactivamos automáticamente
+            return False
+        
+        return True
+    except Exception as e:
+        logger.error(f"Error verificando premium del usuario {id} -> {e}")
+        return False
+
+def revoke_premium(id: int) -> bool:
+    try:
+        with Session(users_engine) as session:
+            statement = select(Users).where(Users.id == id)
+            user = session.exec(statement).one()
+            
+            user.premium_user = False
+            user.premium_expires = None
+            
+            session.add(user)
+            session.commit()
+        logger.info(f"Premium revocado para usuario {id}")
+        return True
+    except Exception as e:
+        logger.error(f"Error revocando premium del usuario {id} -> {e}")
+        return False
 
 #################################################################
 
