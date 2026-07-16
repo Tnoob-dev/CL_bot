@@ -1,9 +1,9 @@
 from db.create_cine_db import Game
-from utils.db_reqs import get_user, update_user_admin
+from utils.db_reqs import get_user, update_user_admin, update_user_premium, is_premium_active
 from utils.functions import check_administration, gen_ids, register_movie
 from entry.entry import bot
 from pyrogram.client import Client
-from pyrogram.types import Message
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.filters import command, private, group
 from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated, PeerIdInvalid, UserIsBot
 import asyncio
@@ -63,7 +63,7 @@ async def ascend_to_admin(client: Client, message: Message):
     
     try:
         if user_id == int(owner_id):
-            if len(user_command) >= 2:
+            if len(user_command) == 2:
                 boolean, msg = update_user_admin(user_command[-1])
                 
                 if boolean:
@@ -75,7 +75,46 @@ async def ascend_to_admin(client: Client, message: Message):
     except Exception as e:
         logger.error(e)
         await message.reply(f"❌Error de excepcion: {e}❌")
-        
+
+@bot.on_message(command("premium", prefixes=["/"]) & private)
+async def convert_user_premium(client: Client, message: Message):
+    
+    if not check_administration(message):
+        return
+    
+    user_command = message.command
+    
+    try:
+        if len(user_command) == 2:
+            boolean, dead_date = update_user_premium(user_command[-1])
+            
+            if boolean:
+                logger.info(f"Se le ha otorgado premium al usuario {user_command[-1]} hasta " + dead_date)
+                await message.reply(f"Se le ha otorgado premium al usuario {user_command[-1]} hasta " + dead_date)
+            else:
+                logger.error(f"Error al otorgar premium al usuario {user_command[-1]}")
+                await message.reply(f"Error al otorgar premium al usuario {user_command[-1]}")
+                
+    except Exception as e:
+        logger.error(e)
+        await message.reply(f"❌Error de excepcion: {e}❌")
+
+@bot.on_message(command("vip", prefixes=["/"]) & private)
+async def vip_command(client: Client, message: Message):
+    
+    await message.reply(
+        text=(
+        "✨ *¡Lleva tu experiencia al siguiente nivel!* ✨\n\n"
+        "Descubre todos los beneficios exclusivos de nuestro **Plan VIP** 💎 y los sencillos pasos para activarlo.\n\n"
+        "Presiona el botón de abajo para más información ⬇️"
+    ),
+        reply_markup=InlineKeyboardMarkup(
+            [
+                [InlineKeyboardButton("💎 Ver Beneficios y Precios", callback_data="become_vip")]
+            ]
+        )
+    )
+
 @bot.on_message(command("count"))
 async def count_users(client: Client, message: Message):
 
@@ -112,18 +151,45 @@ async def make_old_posts(client: Client, message: Message):
     if not check_administration(message):
         return
     
-    if message.command is not None and len(message.command) >= 2:
+    if message.reply_to_message and message.reply_to_message.text:
+        # massive mode
+        lines = message.reply_to_message.text.strip().split("\n")
+        resultados = []
+        errores = []
+
+        for i, line in enumerate(lines, start=1):
+            parts = line.strip().split()
+
+            if len(parts) not in (1, 2):
+                errores.append(f"Línea {i}: formato inválido ➜ '{line}'")
+                continue
+
+            try:
+                if len(parts) == 1:
+                    generated_id = gen_ids(int(parts[0]))
+                else:
+                    inicio, final = int(parts[0]), int(parts[1])
+                    generated_id = gen_ids(inicio, final)
+            except ValueError:
+                errores.append(f"Línea {i}: IDs no numéricos ➜ '{line}'")
+                continue
+
+            link = register_movie(generated_id)
+            resultados.append((f"Temporada {i}", link))
+        
+        await message.reply(f"```python\n\n{str(resultados)}```")
+
+    elif message.command is not None and len(message.command) >= 2:
+        # normal mode
         if len(message.command) > 3:
             await message.reply("Error, solo deben ser 2 ids, un inicio y un final")
             return
-        
+
         match len(message.command):
             case 2:
                 generated_id = gen_ids(int(message.command[-1]))
             case 3:
                 generated_id = gen_ids(int(message.command[1]), int(message.command[-1]))
-        
+
         link = register_movie(generated_id)
-        print(link)
-        
-        await message.reply(f"Aqui tienes el link ➡️ {link}")
+        await message.reply(f"[('Temporada 1', '{link}')]")
