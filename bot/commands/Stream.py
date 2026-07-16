@@ -12,7 +12,7 @@ from stream.file_properties import get_file_info, pack_file, get_short_hash
 @bot.on_message(command("stream", prefixes=["/"]) & private)
 async def stream_handler(client: Client, message: Message):
     
-    if is_premium_active(message.from_user.id) and check_administration(message):
+    if is_premium_active(message.from_user.id) or check_administration(message):
     
         if not message.reply_to_message and not _has_media(message):
             await message.reply(
