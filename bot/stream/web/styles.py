@@ -1,5 +1,3 @@
-
-
 def styles()->str:
     return f"""<style>
             :root {{
@@ -196,7 +194,42 @@ def styles()->str:
                 background: #18181b;
                 color: #fff;
             }}
-            
+
+            .audio-track-note {{
+                margin-top: 0.75rem;
+                font-size: 0.82rem;
+                color: var(--text-muted);
+                line-height: 1.5;
+            }}
+
+            .reconnect-overlay {{
+                position: absolute;
+                inset: 0;
+                z-index: 5;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
+                background: rgba(3, 3, 5, 0.72);
+                backdrop-filter: blur(4px);
+                color: #fff;
+                font-size: 0.95rem;
+                font-weight: 500;
+                pointer-events: none;
+            }}
+            .reconnect-spinner {{
+                width: 34px;
+                height: 34px;
+                border-radius: 50%;
+                border: 3px solid rgba(255, 255, 255, 0.2);
+                border-top-color: var(--primary);
+                animation: reconnect-spin 0.8s linear infinite;
+            }}
+            @keyframes reconnect-spin {{
+                to {{ transform: rotate(360deg); }}
+            }}
+
             @media (max-width: 768px) {{
                 .info-panel {{ padding: 1.5rem; }}
                 .filename {{ font-size: 1.25rem; }}

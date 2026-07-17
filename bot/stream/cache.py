@@ -59,3 +59,8 @@ class DownloadCoordinator:
 
 global_chunk_cache = ChunkCache()
 global_coordinator = DownloadCoordinator()
+
+# Limita cuántas peticiones GetFile concurrentes se hacen a los DC de Telegram
+# entre el stream principal y todas las tareas de prefetch activas. Sin esto,
+# varios prefetch + varios usuarios pueden disparar FLOOD_WAIT en cascada.
+global_download_semaphore = asyncio.Semaphore(StreamConfig.MAX_CONCURRENT_DOWNLOADS)

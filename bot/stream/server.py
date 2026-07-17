@@ -9,12 +9,14 @@ from .config import StreamConfig
 from .file_properties import pack_file, get_short_hash
 from .streamer import PyrogramStreamer
 from .web.html import create_html
-logger = logging.getLogger("visuales_bot")
+
+logger = logging.getLogger(__name__)
 
 routes = web.RouteTableDef()
 
 _streamer: PyrogramStreamer = None
 _ongoing_requests: dict[str, int] = defaultdict(lambda: 0)
+_SERVER_START_TIME = time.time()
 
 
 def init_streamer(client):
@@ -61,12 +63,31 @@ def _get_readable_time(seconds: float) -> str:
     return readable_time
 
 
+def _parse_range_header(range_header, file_size: int):
+    """Parsea el header Range de forma robusta, incluyendo rangos "sufijo"
+    (bytes=-500) y valores malformados. Retorna (from_bytes, until_bytes) o
+    lanza ValueError si el rango no se puede interpretar."""
+    range_value = range_header.replace("bytes=", "").strip()
+
+    if range_value.startswith("-"):
+        # Rango sufijo: los últimos N bytes del archivo
+        suffix_len = int(range_value[1:])
+        from_bytes = max(file_size - suffix_len, 0)
+        until_bytes = file_size - 1
+        return from_bytes, until_bytes
+
+    parts = range_value.split("-")
+    from_bytes = int(parts[0])
+    until_bytes = int(parts[1]) if len(parts) > 1 and parts[1] else file_size - 1
+    return from_bytes, until_bytes
+
+
 @routes.get("/status", allow_head=True)
 async def status_handler(_: web.Request):
     return web.json_response(
         {
             "server_status": "running",
-            "uptime": _get_readable_time(time.time()),
+            "uptime": _get_readable_time(time.time() - _SERVER_START_TIME),
             "version": "1.0.0",
         }
     )
@@ -94,7 +115,7 @@ async def watch_handler(request: web.Request):
             return web.HTTPForbidden(text="Hash inválido")
 
         stream_url = f"{StreamConfig.URL}stream/{message_id}?hash={secure_hash}"
-        html = create_html(file_info,stream_url)
+        html = create_html(file_info, stream_url)
 
         return web.Response(text=html, content_type="text/html")
 
@@ -122,18 +143,21 @@ async def media_streamer(request: web.Request, message_id: int, secure_hash: str
     head: bool = request.method == "HEAD"
     ip = _get_requester_ip(request)
     range_header = request.headers.get("Range", 0)
+    quality = request.rel_url.query.get("quality", StreamConfig.DEFAULT_QUALITY)
+    if quality not in StreamConfig.QUALITY_CAPS_BYTES_PER_SEC:
+        quality = StreamConfig.DEFAULT_QUALITY
 
     if _streamer is None:
         return web.Response(status=503, text="Servidor de streaming no inicializado")
 
-    logger.info(f"Petición de stream: ID={message_id} | IP={ip} | Range={range_header}")
+    logger.info(f"Petición de stream: ID={message_id} | IP={ip} | Range={range_header} | Calidad={quality}")
 
     # Obtener propiedades del archivo
     file_info = await _streamer.get_file_properties(message_id)
     if not file_info:
         return web.Response(status=404, text="Archivo no encontrado")
 
-    # Verificar hash 
+    # Verificar hash
     full_hash = pack_file(
         file_info.file_name,
         file_info.file_size,
@@ -147,9 +171,14 @@ async def media_streamer(request: web.Request, message_id: int, secure_hash: str
     file_size = file_info.file_size
 
     if range_header:
-        from_bytes, until_bytes = range_header.replace("bytes=", "").split("-")
-        from_bytes = int(from_bytes)
-        until_bytes = int(until_bytes) if until_bytes else file_size - 1
+        try:
+            from_bytes, until_bytes = _parse_range_header(range_header, file_size)
+        except (ValueError, IndexError):
+            return web.Response(
+                status=416,
+                body="416: Range no válido",
+                headers={"Content-Range": f"bytes */{file_size}"},
+            )
     else:
         from_bytes = request.http_range.start or 0
         until_bytes = (request.http_range.stop or file_size) - 1
@@ -168,7 +197,7 @@ async def media_streamer(request: web.Request, message_id: int, secure_hash: str
         if not _allow_request(ip):
             return web.Response(status=429)
         _ongoing_requests[ip] += 1
-        body = _streamer.download(file_info, file_size, from_bytes, until_bytes)
+        body = _streamer.download(file_info, file_size, from_bytes, until_bytes, quality=quality)
     else:
         body = None
 

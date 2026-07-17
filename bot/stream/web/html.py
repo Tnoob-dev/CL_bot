@@ -1,8 +1,14 @@
 from ..file_properties import FileInfo
+from ..config import StreamConfig
 from .styles import styles
 from .js import scripts
 
-def create_html(file_info:FileInfo,stream_url:str)->str: 
+def create_html(file_info: FileInfo, stream_url: str) -> str:
+    quality_options = "".join(
+        f'<option value="{key}"{" selected" if key == StreamConfig.DEFAULT_QUALITY else ""}>{label}</option>'
+        for key, label in StreamConfig.QUALITY_LABELS.items()
+    )
+
     return f"""<!DOCTYPE html>
     <html lang="es">
     <head>
@@ -27,11 +33,15 @@ def create_html(file_info:FileInfo,stream_url:str)->str:
 
         <div class="player-card">
             <div class="video-wrapper">
-                <video id="player" controls crossorigin playsinline>
-                    <source src="{stream_url}" type="{file_info.mime_type or 'video/mp4'}">
+                <div id="reconnect-overlay" class="reconnect-overlay" style="display: none;">
+                    <div class="reconnect-spinner"></div>
+                    <span id="reconnect-text">Reconectando...</span>
+                </div>
+                <video id="player" controls crossorigin playsinline preload="auto">
+                    <source id="player-source" src="{stream_url}" type="{file_info.mime_type or 'video/mp4'}">
                 </video>
             </div>
-            
+
             <div class="info-panel">
                 <div class="title-group">
                     <div class="filename">{file_info.file_name}</div>
@@ -40,7 +50,7 @@ def create_html(file_info:FileInfo,stream_url:str)->str:
                         <span class="badge" style="text-transform: uppercase">{file_info.file_name.split('.')[-1].lower() if '.' in file_info.file_name else 'VIDEO'}</span>
                     </div>
                 </div>
-                
+
                 <div class="controls-row">
                     <div class="tools">
                         <label class="btn btn-glass">
@@ -49,6 +59,9 @@ def create_html(file_info:FileInfo,stream_url:str)->str:
                             Añadir Subtítulo
                         </label>
                         <select id="audio-track-selector" class="btn btn-glass" style="display: none;"></select>
+                        <select id="quality-selector" class="btn btn-glass" title="Calidad / velocidad de envío">
+                            {quality_options}
+                        </select>
                     </div>
 
                     <div class="tools">
@@ -57,6 +70,10 @@ def create_html(file_info:FileInfo,stream_url:str)->str:
                             Descargar
                         </a>
                     </div>
+                </div>
+
+                <div id="audio-track-note" class="audio-track-note" style="display: none;">
+                    Tu navegador no expone varias pistas de audio para este archivo. Prueba abrirlo en VLC o MX Player para elegir el audio.
                 </div>
 
                 <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--panel-border);">
