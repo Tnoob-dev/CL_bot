@@ -28,7 +28,7 @@ def create_html(file_info: FileInfo, stream_url: str) -> str:
                     <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
             </div>
-            <span class="header-title">Stream</span>
+            <span class="header-title">Cinema Library Stream</span>
         </div>
 
         <div class="player-card">
