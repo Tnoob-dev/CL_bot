@@ -106,25 +106,23 @@ class PyrogramStreamer:
             window_start_time = time.time()
             bytes_sent_in_window = 0
 
-            duration = getattr(file_info, "duration", 0)
-            if duration and duration > 0:
-                real_avg_bytes_per_sec = file_info.file_size / duration
-            else:
-                real_avg_bytes_per_sec = 1.5 * 1024 * 1024  # 1.5 MB/s por defecto
-
             # La "calidad" no transcodifica el video: solo limita la velocidad de
             # envío para simular menor calidad / ahorrar datos en conexiones malas.
+            # IMPORTANTE: en "auto"/"high" no se aplica ningún techo -> se entrega
+            # tan rápido como Telegram lo permita. Estimar un límite a partir de
+            # file_size/duration es poco fiable (muchos archivos, sobre todo los
+            # subidos como "documento" en vez de "video", no traen duration y caían
+            # a un valor por defecto demasiado bajo) y además el mecanismo anterior
+            # forzaba una PAUSA TOTAL de 50s cada 60s de envío: si el buffer del
+            # navegador no alcanzaba a cubrir esos 50s, el video se trababa de forma
+            # predecible y periódica. Aquí usamos un límite continuo (sin cortes
+            # duros) que solo actúa cuando el usuario elige explícitamente una
+            # calidad más baja.
             quality_cap = StreamConfig.QUALITY_CAPS_BYTES_PER_SEC.get(quality)
-            if quality_cap:
-                avg_bytes_per_sec = min(real_avg_bytes_per_sec, quality_cap)
-            else:
-                avg_bytes_per_sec = real_avg_bytes_per_sec
-
-            initial_burst_seconds = 15  # Primeros 15s de video sin limitar
-            window_send_seconds = 60    # Enviar durante 60s
-            window_pause_seconds = 50   # Pausar 50s
-            initial_burst_bytes = avg_bytes_per_sec * initial_burst_seconds
-            window_send_bytes_limit = avg_bytes_per_sec * window_send_seconds
+            avg_bytes_per_sec = quality_cap  # None = sin límite artificial
+            initial_burst_seconds = 15  # margen inicial sin limitar, para no cortar el arranque
+            rate_limit_start_time = time.time()
+            bytes_sent_since_start = 0
 
             consecutive_failures = 0
             max_consecutive_failures = 3
@@ -204,28 +202,21 @@ class PyrogramStreamer:
                 elif current_part == part_count:
                     chunk_to_yield = chunk[:last_part_cut]
 
-                # Rate limiting (también usado para simular "calidad" más baja)
-                if avg_bytes_per_sec > 0:
+                # Límite de velocidad continuo (solo si el usuario eligió una
+                # calidad con techo explícito). Sin pausas forzadas: si vamos
+                # más rápido de lo permitido, se duerme lo justo para nivelar
+                # el ritmo, nunca se corta el envío por completo.
+                if avg_bytes_per_sec:
                     chunk_size_sent = len(chunk_to_yield)
-                    bytes_sent_in_window += chunk_size_sent
+                    bytes_sent_since_start += chunk_size_sent
+                    burst_allowance = avg_bytes_per_sec * initial_burst_seconds
 
-                    if bytes_sent_in_window > initial_burst_bytes:
-                        expected_time = (bytes_sent_in_window - initial_burst_bytes) / avg_bytes_per_sec
-                        actual_time = time.time() - window_start_time
+                    if bytes_sent_since_start > burst_allowance:
+                        expected_time = (bytes_sent_since_start - burst_allowance) / avg_bytes_per_sec
+                        actual_time = time.time() - rate_limit_start_time
 
                         if actual_time < expected_time:
-                            sleep_time = expected_time - actual_time
-                            await asyncio.sleep(sleep_time)
-
-                    if bytes_sent_in_window >= window_send_bytes_limit + initial_burst_bytes:
-                        logger.debug(
-                            f"Ventana completada: {(bytes_sent_in_window - initial_burst_bytes) / 1024 / 1024:.1f}MB "
-                            f"en {window_send_seconds}s. Pausando {window_pause_seconds}s..."
-                        )
-                        await asyncio.sleep(window_pause_seconds)
-
-                        window_start_time = time.time()
-                        bytes_sent_in_window = 0
+                            await asyncio.sleep(expected_time - actual_time)
 
                 yield chunk_to_yield
 
