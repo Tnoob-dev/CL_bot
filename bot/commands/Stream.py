@@ -5,7 +5,7 @@ from pyrogram.filters import command, private
 from utils.db_reqs import is_premium_active
 from utils.functions import check_administration
 from stream.config import StreamConfig
-from stream.file_properties import get_file_info, pack_file, get_short_hash
+from stream.file_properties import get_file_info_by_id, pack_file, get_short_hash
 
 ########### ADD LOGGER ###########
 
@@ -36,7 +36,7 @@ async def stream_handler(client: Client, message: Message):
 
             forwarded = await target.forward(StreamConfig.BIN_CHANNEL)
 
-            file_info = get_file_info(forwarded)
+            file_info = await get_file_info_by_id(client, StreamConfig.BIN_CHANNEL, forwarded.id)
             if not file_info:
                 await status_msg.edit_text(
                     "<blockquote><b>Error:</b> No se pudo obtener info del archivo.</blockquote>"
@@ -92,4 +92,3 @@ def _has_media(message: Message) -> bool:
         or message.voice
         or message.video_note
     )
-    
