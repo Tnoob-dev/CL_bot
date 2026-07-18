@@ -1,14 +1,8 @@
 from ..file_properties import FileInfo
-from ..config import StreamConfig
 from .styles import styles
 from .js import scripts
 
 def create_html(file_info: FileInfo, stream_url: str) -> str:
-    quality_options = "".join(
-        f'<option value="{key}"{" selected" if key == StreamConfig.DEFAULT_QUALITY else ""}>{label}</option>'
-        for key, label in StreamConfig.QUALITY_LABELS.items()
-    )
-
     return f"""<!DOCTYPE html>
     <html lang="es">
     <head>
@@ -28,7 +22,7 @@ def create_html(file_info: FileInfo, stream_url: str) -> str:
                     <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
             </div>
-            <span class="header-title">Cinema Library Stream</span>
+            <span class="header-title">Stream</span>
         </div>
 
         <div class="player-card">
@@ -59,9 +53,6 @@ def create_html(file_info: FileInfo, stream_url: str) -> str:
                             Añadir Subtítulo
                         </label>
                         <select id="audio-track-selector" class="btn btn-glass" style="display: none;"></select>
-                        <select id="quality-selector" class="btn btn-glass" title="Calidad / velocidad de envío">
-                            {quality_options}
-                        </select>
                     </div>
 
                     <div class="tools">

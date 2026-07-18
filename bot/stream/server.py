@@ -9,8 +9,7 @@ from .config import StreamConfig
 from .file_properties import pack_file, get_short_hash
 from .streamer import PyrogramStreamer
 from .web.html import create_html
-
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("visuales_bot")
 
 routes = web.RouteTableDef()
 
@@ -143,14 +142,11 @@ async def media_streamer(request: web.Request, message_id: int, secure_hash: str
     head: bool = request.method == "HEAD"
     ip = _get_requester_ip(request)
     range_header = request.headers.get("Range", 0)
-    quality = request.rel_url.query.get("quality", StreamConfig.DEFAULT_QUALITY)
-    if quality not in StreamConfig.QUALITY_CAPS_BYTES_PER_SEC:
-        quality = StreamConfig.DEFAULT_QUALITY
 
     if _streamer is None:
         return web.Response(status=503, text="Servidor de streaming no inicializado")
 
-    logger.info(f"Petición de stream: ID={message_id} | IP={ip} | Range={range_header} | Calidad={quality}")
+    logger.info(f"Petición de stream: ID={message_id} | IP={ip} | Range={range_header}")
 
     # Obtener propiedades del archivo
     file_info = await _streamer.get_file_properties(message_id)
@@ -197,7 +193,7 @@ async def media_streamer(request: web.Request, message_id: int, secure_hash: str
         if not _allow_request(ip):
             return web.Response(status=429)
         _ongoing_requests[ip] += 1
-        body = _streamer.download(file_info, file_size, from_bytes, until_bytes, quality=quality)
+        body = _streamer.download(file_info, file_size, from_bytes, until_bytes)
     else:
         body = None
 

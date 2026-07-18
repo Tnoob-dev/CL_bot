@@ -6,7 +6,6 @@ def scripts()->str:
                 const source = document.getElementById('player-source');
                 const overlay = document.getElementById('reconnect-overlay');
                 const overlayText = document.getElementById('reconnect-text');
-                const qualitySelector = document.getElementById('quality-selector');
                 const audioSelector = document.getElementById('audio-track-selector');
                 const audioNote = document.getElementById('audio-track-note');
 
@@ -106,16 +105,6 @@ def scripts()->str:
                     reconnectAttempts = 0;
                     hideOverlay();
                 }});
-
-                // ---------- Selector de calidad (limita velocidad de envío) ----------
-                if (qualitySelector) {{
-                    qualitySelector.addEventListener('change', (e) => {{
-                        const url = currentBaseUrl();
-                        url.searchParams.set('quality', e.target.value);
-                        showOverlay('Cambiando calidad...');
-                        reloadPreservingPosition(url, true);
-                    }});
-                }}
 
                 // ---------- Subtítulos por archivo local ----------
                 document.getElementById('sub-upload').addEventListener('change', function(e) {{

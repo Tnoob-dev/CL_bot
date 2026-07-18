@@ -27,26 +27,6 @@ class StreamConfig:
     # cuando el stream principal + varios prefetch piden chunks a la vez).
     MAX_CONCURRENT_DOWNLOADS: int = int(os.getenv("STREAM_MAX_CONCURRENT_DOWNLOADS", 8))
 
-    # --- Calidades (limitación de velocidad, NO transcodifica el video real) ---
-    # Los valores son bytes/segundo objetivo. "auto"/"high" no aplican techo
-    # adicional (usan el ritmo real del video). El resto limita el envío para
-    # ahorrar datos / reducir cortes en conexiones malas.
-    QUALITY_LABELS = {
-        "auto": "Automática",
-        "high": "Alta (original)",
-        "medium": "Media (~1.5 Mbps)",
-        "low": "Baja (~700 Kbps)",
-        "data_saver": "Ahorro de datos (~350 Kbps)",
-    }
-    QUALITY_CAPS_BYTES_PER_SEC = {
-        "auto": None,
-        "high": None,
-        "medium": int(1500 * 1024 / 8),
-        "low": int(700 * 1024 / 8),
-        "data_saver": int(350 * 1024 / 8),
-    }
-    DEFAULT_QUALITY: str = "auto"
-
     _url = os.getenv("STREAM_URL", "")
     URL = _url.rstrip("/") + "/" if _url else f"http://{BIND_ADDRESS}:{PORT}/"
 

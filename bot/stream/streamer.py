@@ -3,7 +3,6 @@ import math
 import asyncio
 from collections import OrderedDict
 from typing import AsyncGenerator, Optional
-import time
 from pyrogram import Client, raw
 from pyrogram.file_id import FileId, PHOTO_TYPES
 
@@ -13,7 +12,7 @@ from .cache import global_chunk_cache, global_coordinator, global_download_semap
 from .prefetch import global_prefetch_manager
 from .tg_download import fetch_chunk, FileReferenceExpiredError
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("visuales_bot")
 
 
 def _build_location(file_id: FileId):
@@ -74,7 +73,6 @@ class PyrogramStreamer:
         file_size: int,
         from_bytes: int,
         until_bytes: int,
-        quality: str = "auto",
     ) -> AsyncGenerator[bytes, None]:
         chunk_size = StreamConfig.CHUNK_SIZE
 
@@ -93,36 +91,13 @@ class PyrogramStreamer:
         prefetch_count = StreamConfig.PREFETCH_COUNT
 
         logger.debug(
-            f"Streaming: chunks {first_part}-{last_part} de {part_count} (total {total_parts}) "
-            f"quality={quality}"
+            f"Streaming: chunks {first_part}-{last_part} de {part_count} (total {total_parts})"
         )
 
         try:
             session = None
             current_part = 1
             current_offset = offset
-
-            # Rate limiting logic
-            window_start_time = time.time()
-            bytes_sent_in_window = 0
-
-            # La "calidad" no transcodifica el video: solo limita la velocidad de
-            # envío para simular menor calidad / ahorrar datos en conexiones malas.
-            # IMPORTANTE: en "auto"/"high" no se aplica ningún techo -> se entrega
-            # tan rápido como Telegram lo permita. Estimar un límite a partir de
-            # file_size/duration es poco fiable (muchos archivos, sobre todo los
-            # subidos como "documento" en vez de "video", no traen duration y caían
-            # a un valor por defecto demasiado bajo) y además el mecanismo anterior
-            # forzaba una PAUSA TOTAL de 50s cada 60s de envío: si el buffer del
-            # navegador no alcanzaba a cubrir esos 50s, el video se trababa de forma
-            # predecible y periódica. Aquí usamos un límite continuo (sin cortes
-            # duros) que solo actúa cuando el usuario elige explícitamente una
-            # calidad más baja.
-            quality_cap = StreamConfig.QUALITY_CAPS_BYTES_PER_SEC.get(quality)
-            avg_bytes_per_sec = quality_cap  # None = sin límite artificial
-            initial_burst_seconds = 15  # margen inicial sin limitar, para no cortar el arranque
-            rate_limit_start_time = time.time()
-            bytes_sent_since_start = 0
 
             consecutive_failures = 0
             max_consecutive_failures = 3
@@ -201,22 +176,6 @@ class PyrogramStreamer:
                     chunk_to_yield = chunk[first_part_cut:]
                 elif current_part == part_count:
                     chunk_to_yield = chunk[:last_part_cut]
-
-                # Límite de velocidad continuo (solo si el usuario eligió una
-                # calidad con techo explícito). Sin pausas forzadas: si vamos
-                # más rápido de lo permitido, se duerme lo justo para nivelar
-                # el ritmo, nunca se corta el envío por completo.
-                if avg_bytes_per_sec:
-                    chunk_size_sent = len(chunk_to_yield)
-                    bytes_sent_since_start += chunk_size_sent
-                    burst_allowance = avg_bytes_per_sec * initial_burst_seconds
-
-                    if bytes_sent_since_start > burst_allowance:
-                        expected_time = (bytes_sent_since_start - burst_allowance) / avg_bytes_per_sec
-                        actual_time = time.time() - rate_limit_start_time
-
-                        if actual_time < expected_time:
-                            await asyncio.sleep(expected_time - actual_time)
 
                 yield chunk_to_yield
 
