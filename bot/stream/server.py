@@ -9,7 +9,8 @@ from .config import StreamConfig
 from .file_properties import pack_file, get_short_hash
 from .streamer import PyrogramStreamer
 from .web.html import create_html
-logger = logging.getLogger("visuales_bot")
+
+logger = logging.getLogger(__name__)
 
 routes = web.RouteTableDef()
 
@@ -110,6 +111,9 @@ async def watch_handler(request: web.Request):
             file_info.mime_type,
             file_info.message_id,
         )
+        logger.info("Full hash: " + full_hash)
+        logger.info("Short Hash: " + get_short_hash(full_hash))
+        logger.info("Secure hash: " + secure_hash)
         if get_short_hash(full_hash) != secure_hash:
             return web.HTTPForbidden(text="Hash inválido")
 

@@ -5,7 +5,9 @@ from pyrogram.types import Message
 from .config import StreamConfig
 # from utils.functions import get_message_info
 import hashlib
+import logging
 
+logger = logging.getLogger(__name__)
 
 @dataclass
 class FileInfo:
@@ -102,7 +104,10 @@ def pack_file(file_name: str, file_size: int, mime_type: str, message_id: int) -
     """Genera un hash MD5 a partir de las propiedades del archivo."""
     hasher = hashlib.md5()
     for field in [file_name, str(file_size), mime_type, str(message_id)]:
-        hasher.update(field.encode())
+        hasher.update(field.encode(encoding="utf-8"))
+    
+    logger.info(f"Creado: {hasher.hexdigest()}")    
+    
     return hasher.hexdigest()
 
 

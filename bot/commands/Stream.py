@@ -6,8 +6,9 @@ from utils.db_reqs import is_premium_active
 from utils.functions import check_administration
 from stream.config import StreamConfig
 from stream.file_properties import get_file_info_by_id, pack_file, get_short_hash
+import logging
 
-########### ADD LOGGER ###########
+logger = logging.getLogger(__name__)
 
 @bot.on_message(command("stream", prefixes=["/"]) & private)
 async def stream_handler(client: Client, message: Message):
@@ -50,6 +51,9 @@ async def stream_handler(client: Client, message: Message):
                 file_info.mime_type,
                 file_info.message_id,
             )
+            logger.info("Full hash: " + full_hash)
+            logger.info("Short Hash: " + get_short_hash(full_hash))
+            
             file_hash = get_short_hash(full_hash)
             stream_link = f"{StreamConfig.URL}stream/{forwarded.id}?hash={file_hash}"
 
