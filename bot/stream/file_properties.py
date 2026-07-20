@@ -40,7 +40,7 @@ def get_file_info(message: Message) -> Optional[FileInfo]:
         )
     elif message.video:
         media = message.video
-        file_name = os.path.splittext(media.file_name)[0]
+        file_name = os.path.splitext(media.file_name)[0]
         
         patron = r'video_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}'
         name = "video.mp4"
