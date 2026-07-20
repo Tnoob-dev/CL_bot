@@ -61,8 +61,10 @@ async def hello(client: Client, message: Message):
                                 )
                         except FloodWait as f:
                             await asyncio.sleep(f.value)
-
-                await message.reply("Esto tendrá una duración de 3 minutos ⏳ contados a partir del envío del mensaje. 📨\n\n¡Reenvíalo a tus mensajes guardados para no perderlo! 📂✅")
+                
+                if not is_premium_active(user_founded[1].id) and not check_administration(message):
+                    await message.reply("Esto tendrá una duración de 3 minutos ⏳ contados a partir del envío del mensaje. 📨\n\n¡Reenvíalo a tus mensajes guardados para no perderlo! 📂✅")
+               
                 await message.reply_sticker(Path.cwd() / Path("assets") / Path("finished.webp"))
                 donation_message = """
 💖 ¿Te gusta el contenido del canal?

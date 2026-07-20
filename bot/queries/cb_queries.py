@@ -141,7 +141,7 @@ async def query_manager(client: Client, query: CallbackQuery):
         else:
             await query.answer("Esta no es tu busqueda :|", show_alert=True)
     elif query.data.startswith("info_"):
-        
+
         data = query.data.split("_")
         template = ""
 
@@ -319,7 +319,7 @@ Seleccione uno de los metodos de pago de abajo ⬇️
         splitted_data = data.split("_")
         
         if splitted_data[1] == "accept":
-            boolean, dead_date = update_user_premium(int(splitted_data[-1]), days=30)
+            boolean, dead_date = update_user_premium(int(splitted_data[-1]), days=32)
             
             if boolean:
                 await client.send_message(
@@ -331,6 +331,7 @@ Seleccione uno de los metodos de pago de abajo ⬇️
                         "Disfrute de todos los beneficios exclusivos. Si tiene alguna duda, no dude en contactarnos.".format(dead_date=dead_date)
                     )
                 )
+                await query.message.edit("Pago aceptado ✅")
         else:
             await client.send_message(
                 chat_id=int(splitted_data[-1]),
@@ -350,4 +351,5 @@ Seleccione uno de los metodos de pago de abajo ⬇️
                 )
             )
             
-        await query.message.delete()
+            await query.message.edit("Pago denegado ❌")
+        

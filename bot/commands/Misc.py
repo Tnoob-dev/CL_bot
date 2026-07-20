@@ -86,11 +86,15 @@ async def convert_user_premium(client: Client, message: Message):
     
     try:
         if len(user_command) == 2:
-            boolean, dead_date = update_user_premium(user_command[-1])
+            boolean, dead_date = update_user_premium(user_command[-1], 32)
             
             if boolean:
                 logger.info(f"Se le ha otorgado premium al usuario {user_command[-1]} hasta " + dead_date)
                 await message.reply(f"Se le ha otorgado premium al usuario {user_command[-1]} hasta " + dead_date)
+                await client.send_message(
+                    chat_id=int(message.command[-1]),
+                    text="Se le ha otorgado premium hasta " + dead_date
+                )
             else:
                 logger.error(f"Error al otorgar premium al usuario {user_command[-1]}")
                 await message.reply(f"Error al otorgar premium al usuario {user_command[-1]}")
