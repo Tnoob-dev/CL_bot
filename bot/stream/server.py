@@ -105,10 +105,10 @@ async def watch_handler(request: web.Request):
             return web.Response(status=404, text="Archivo no encontrado")
 
         # Verificaciones antes del hash
-        logger.info("Nombre del archivo a stremear antes de crear hash: " + file_info.file_name)
-        logger.info("Tamanho del archivo a stremear antes de crear hash: " + file_info.file_size)
-        logger.info("MimeType del archivo a stremear antes de crear hash: " + file_info.mime_type)
-        logger.info("Message ID del archivo a stremear antes de crear hash: " + file_info.message_id)
+        logger.info("Nombre del archivo a stremear antes de crear hash: " + str(file_info.file_name))
+        logger.info("Tamanho del archivo a stremear antes de crear hash: " + str(file_info.file_size))
+        logger.info("MimeType del archivo a stremear antes de crear hash: " + str(file_info.mime_type))
+        logger.info("Message ID del archivo a stremear antes de crear hash: " + str(file_info.message_id))
         
         # Verificar hash
         full_hash = pack_file(
