@@ -87,3 +87,4 @@ def create_html(file_info: FileInfo, stream_url: str) -> str:
         {scripts()}
     </body>
     </html>"""
+    
