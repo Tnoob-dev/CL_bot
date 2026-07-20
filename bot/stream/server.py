@@ -123,8 +123,10 @@ async def watch_handler(request: web.Request):
         logger.info("Secure hash: " + secure_hash)
         
         if get_short_hash(full_hash) != secure_hash:
-            secure_hash = get_short_hash(full_hash)
-            # return web.HTTPForbidden(text="Hash inválido")
+            # patch por si todo explota
+            # secure_hash = get_short_hash(full_hash)
+            
+            return web.HTTPForbidden(text="Hash inválido")
 
         stream_url = f"{StreamConfig.URL}stream/{message_id}?hash={secure_hash}"
         html = create_html(file_info, stream_url)

@@ -40,7 +40,7 @@ def get_file_info(message: Message) -> Optional[FileInfo]:
         return FileInfo(
             file_size=media.file_size,
             mime_type=media.mime_type or "video/mp4",
-            file_name=media.file_name or f"video_{message.id}",
+            file_name=media.file_name,
             file_id=media.file_id,
             message_id=message.id,
             duration=getattr(media, "duration", 0),
