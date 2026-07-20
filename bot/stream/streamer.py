@@ -100,7 +100,14 @@ class PyrogramStreamer:
             current_offset = offset
 
             consecutive_failures = 0
-            max_consecutive_failures = 3
+            # Antes: 3 intentos x hasta ~15s de reintentos internos c/u ≈ 45-60s
+            # antes de rendirse. Eso es más de lo que tarda el navegador en
+            # decidir que la conexión se cayó y reconectar por su cuenta,
+            # generando un bucle (el backend seguía reintentando mientras el
+            # navegador ya había reiniciado la petición). Se acorta a un peor
+            # caso de pocos segundos: mejor fallar rápido y dejar que sea el
+            # navegador quien reconecte una vez, que reintentar en cascada.
+            max_consecutive_failures = 2
 
             while current_part <= part_count:
                 chunk = await global_chunk_cache.get(file_info.file_id, current_offset)
@@ -125,11 +132,22 @@ class PyrogramStreamer:
                                     file_id = FileId.decode(file_info.file_id)
                                     location = _build_location(file_id)
                                     session = await self.client.get_session(dc_id, is_media=True)
-                                    chunk = await fetch_chunk(
-                                        session, location, current_offset, chunk_size,
-                                        StreamConfig.SLEEP_THRESHOLD, global_download_semaphore,
-                                        StreamConfig.MAX_TELEGRAM_RETRIES, StreamConfig.RETRY_BASE_DELAY,
-                                    )
+                                    try:
+                                        chunk = await fetch_chunk(
+                                            session, location, current_offset, chunk_size,
+                                            StreamConfig.SLEEP_THRESHOLD, global_download_semaphore,
+                                            StreamConfig.MAX_TELEGRAM_RETRIES, StreamConfig.RETRY_BASE_DELAY,
+                                        )
+                                    except Exception as e:
+                                        # Si vuelve a fallar (incluso con otro
+                                        # FileReferenceExpiredError) NO debe escaparse:
+                                        # antes esto terminaba el generador a medias,
+                                        # cortando la respuesta HTTP sin avisar, lo que
+                                        # el navegador interpretaba como un corte de red
+                                        # y disparaba una reconexión que repetía el
+                                        # mismo fallo indefinidamente.
+                                        logger.error(f"Fallo también tras refrescar file_reference: {e}")
+                                        chunk = None
                                 else:
                                     chunk = None
 
@@ -150,7 +168,7 @@ class PyrogramStreamer:
                         logger.error("Demasiados fallos consecutivos, abortando el stream.")
                         break
                     # pequeña espera antes de reintentar el mismo offset una vez más
-                    await asyncio.sleep(1.0)
+                    await asyncio.sleep(0.3)
                     continue
 
                 consecutive_failures = 0
