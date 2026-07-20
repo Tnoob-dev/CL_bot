@@ -44,6 +44,11 @@ async def stream_handler(client: Client, message: Message):
                 )
                 return
 
+            logger.info("Nombre del archivo a stremear despues de crear hash: " + file_info.file_name)
+            logger.info("Tamanho del archivo a stremear despues de crear hash: " + file_info.file_size)
+            logger.info("MimeType del archivo a stremear despues de crear hash: " + file_info.mime_type)
+            logger.info("MessageID del archivo a stremear despues de crear hash: " + file_info.message_id)
+            
             # hash y link
             full_hash = pack_file(
                 file_info.file_name,
@@ -51,6 +56,7 @@ async def stream_handler(client: Client, message: Message):
                 file_info.mime_type,
                 file_info.message_id,
             )
+            
             logger.info("Full hash: " + full_hash)
             logger.info("Short Hash: " + get_short_hash(full_hash))
             

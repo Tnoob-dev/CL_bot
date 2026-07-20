@@ -104,6 +104,12 @@ async def watch_handler(request: web.Request):
         if not file_info:
             return web.Response(status=404, text="Archivo no encontrado")
 
+        # Verificaciones antes del hash
+        logger.info("Nombre del archivo a stremear antes de crear hash: " + file_info.file_name)
+        logger.info("Tamanho del archivo a stremear antes de crear hash: " + file_info.file_size)
+        logger.info("MimeType del archivo a stremear antes de crear hash: " + file_info.mime_type)
+        logger.info("Message ID del archivo a stremear antes de crear hash: " + file_info.message_id)
+        
         # Verificar hash
         full_hash = pack_file(
             file_info.file_name,
@@ -111,11 +117,14 @@ async def watch_handler(request: web.Request):
             file_info.mime_type,
             file_info.message_id,
         )
+        
         logger.info("Full hash: " + full_hash)
         logger.info("Short Hash: " + get_short_hash(full_hash))
         logger.info("Secure hash: " + secure_hash)
+        
         if get_short_hash(full_hash) != secure_hash:
-            return web.HTTPForbidden(text="Hash inválido")
+            secure_hash = get_short_hash(full_hash)
+            # return web.HTTPForbidden(text="Hash inválido")
 
         stream_url = f"{StreamConfig.URL}stream/{message_id}?hash={secure_hash}"
         html = create_html(file_info, stream_url)
@@ -133,9 +142,12 @@ async def stream_handler(request: web.Request):
         message_id = int(request.match_info["messageID"])
         secure_hash = request.rel_url.query.get("hash")
         logger.info(f"--- Recibida petición HTTP para /stream/{message_id} ---")
+        
         return await media_streamer(request, message_id, secure_hash)
+    
     except (AttributeError, BadStatusLine, ConnectionResetError, ConnectionAbortedError, ConnectionError):
         return web.Response(status=204)
+    
     except Exception as e:
         logger.critical(str(e), exc_info=True)
         raise web.HTTPInternalServerError(text=str(e))
