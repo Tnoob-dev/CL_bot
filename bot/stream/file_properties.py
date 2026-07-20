@@ -3,7 +3,6 @@ from typing import Optional
 from pyrogram import Client
 from pyrogram.types import Message
 from .config import StreamConfig
-# from utils.functions import get_message_info
 import hashlib
 import logging
 
@@ -41,7 +40,7 @@ def get_file_info(message: Message) -> Optional[FileInfo]:
         return FileInfo(
             file_size=media.file_size,
             mime_type=media.mime_type or "video/mp4",
-            file_name=media.file_name or f"video_{message.id}.mp4",
+            file_name=media.file_name or f"video_{message.id}",
             file_id=media.file_id,
             message_id=message.id,
             duration=getattr(media, "duration", 0),
