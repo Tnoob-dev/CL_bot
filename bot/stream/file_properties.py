@@ -5,6 +5,9 @@ from pyrogram.types import Message
 from .config import StreamConfig
 import hashlib
 import logging
+import os
+import re
+
 
 logger = logging.getLogger(__name__)
 
@@ -37,10 +40,18 @@ def get_file_info(message: Message) -> Optional[FileInfo]:
         )
     elif message.video:
         media = message.video
+        file_name = os.path.splittext(media.file_name)[0]
+        
+        patron = r'video_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}'
+        name = "video.mp4"
+        
+        if not re.match(patron, file_name):
+            name = media.file_name
+            
         return FileInfo(
             file_size=media.file_size,
             mime_type=media.mime_type or "video/mp4",
-            file_name="video.mp4",
+            file_name=name,
             file_id=media.file_id,
             message_id=message.id,
             duration=getattr(media, "duration", 0),
