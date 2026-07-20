@@ -122,14 +122,14 @@ async def vip_command(client: Client, message: Message):
 @bot.on_message(command("count"))
 async def count_users(client: Client, message: Message):
 
-    users = get_user(all_the_users=True)
+    _, users = get_user(all_the_users=True)
     await client.send_message(message.chat.id, f"Actualmente tengo registrados a {len(users)} usuarios")
 
 @bot.on_message(command("top10") & (private | group))
 async def get_top10(client: Client, message: Message):
     
     bot_username = os.getenv("SENDER_BOT")
-    users = get_user(all_the_users=True)
+    _, users = get_user(all_the_users=True)
     
     sorted_users = sorted(users, key=lambda u: u.int_downloaded, reverse=True)
     
