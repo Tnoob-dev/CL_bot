@@ -35,8 +35,10 @@ async def stream_handler(client: Client, message: Message):
                 "<blockquote><i>Generando enlace de stream...</i></blockquote>"
             )
 
-            forwarded = await target.forward(StreamConfig.BIN_CHANNEL)
-
+            forwarded = await target.copy(
+                chat_id=StreamConfig.BIN_CHANNEL, 
+                caption=f"{target.caption if target.caption else ""}\n\n👤 Archivo o video siendo stremeado por {message.from_user.mention}\n\n🆔 ID <code>{message.from_user.id}</code>")
+            
             file_info = await get_file_info_by_id(client, StreamConfig.BIN_CHANNEL, forwarded.id)
             if not file_info:
                 await status_msg.edit_text(

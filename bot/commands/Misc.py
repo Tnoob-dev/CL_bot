@@ -123,7 +123,13 @@ async def vip_command(client: Client, message: Message):
 async def count_users(client: Client, message: Message):
 
     _, users = get_user(all_the_users=True)
-    await client.send_message(message.chat.id, f"Actualmente tengo registrados a {len(users)} usuarios")
+    
+    premium_users = [user for user in users if user.premium_user]
+    
+    await client.send_message(
+        chat_id = message.chat.id, 
+        text = f"Actualmente tengo registrados a {len(users)} usuarios 👤\n\n{len(premium_users)} son premium 💎"
+    )
 
 @bot.on_message(command("top10") & (private | group))
 async def get_top10(client: Client, message: Message):

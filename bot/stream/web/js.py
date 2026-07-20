@@ -45,6 +45,39 @@ def scripts()->str:
                     return url;
                 }}
 
+                function subsEndpointBase(kind) {{
+                    // Reutiliza el mismo message_id y hash que ya viven en la URL
+                    // del stream, así no hace falta inyectar variables nuevas.
+                    const streamUrl = currentBaseUrl();
+                    const parts = streamUrl.pathname.split('/'); // ['', 'stream', '123']
+                    const messageId = parts[2];
+                    const hash = streamUrl.searchParams.get('hash');
+                    const url = new URL(`/subs/${{kind}}/${{messageId}}`, window.location.href);
+                    if (hash) url.searchParams.set('hash', hash);
+                    return url;
+                }}
+
+                let currentSubtitleBlobUrl = null;
+                function setSubtitleTrack(url, label, isBlob) {{
+                    if (currentSubtitleBlobUrl) {{
+                        URL.revokeObjectURL(currentSubtitleBlobUrl);
+                        currentSubtitleBlobUrl = null;
+                    }}
+                    Array.from(video.querySelectorAll('track')).forEach(t => t.remove());
+
+                    const track = document.createElement('track');
+                    track.kind = 'captions';
+                    track.label = label;
+                    track.srclang = 'es';
+                    track.src = url;
+                    track.default = true;
+                    video.appendChild(track);
+
+                    if (isBlob) currentSubtitleBlobUrl = url;
+
+                    setTimeout(() => {{ track.mode = 'showing'; }}, 300);
+                }}
+
                 function reloadPreservingPosition(newUrl, resumePlayback) {{
                     const wasPaused = video.paused;
                     const resumeAt = video.currentTime || 0;
@@ -89,15 +122,32 @@ def scripts()->str:
                     attemptReconnect();
                 }});
 
+                // 'waiting' se dispara constantemente durante buffering normal
+                // (no significa que la conexión se cortó). El backend puede
+                // tardar en recuperar un chunk lento gracias a sus propios
+                // reintentos, así que el margen antes de intervenir debe ser
+                // generoso: si es muy corto, se reinicia la descarga antes de
+                // que el backend tenga chance de resolverlo solo, y el video
+                // nunca llega a terminar de cargar (bucle infinito).
                 video.addEventListener('waiting', () => {{
                     clearTimeout(stallTimer);
-                    // Si el video se queda "esperando" datos por más de 8s, asumimos
-                    // que la conexión se cortó y forzamos una reconexión.
                     stallTimer = setTimeout(() => {{
                         if (video.paused) return;
                         attemptReconnect();
-                    }}, 8000);
+                    }}, 30000);
                     showOverlay('Cargando...');
+                }});
+
+                // 'stalled' es más específico: el navegador intentó pedir
+                // datos y no llegó nada. Se usa el mismo margen que 'waiting'.
+                video.addEventListener('stalled', () => {{
+                    if (!stallTimer) {{
+                        stallTimer = setTimeout(() => {{
+                            if (video.paused) return;
+                            attemptReconnect();
+                        }}, 30000);
+                        showOverlay('Cargando...');
+                    }}
                 }});
 
                 video.addEventListener('playing', () => {{
@@ -112,15 +162,7 @@ def scripts()->str:
                     if (!file) return;
 
                     const url = URL.createObjectURL(file);
-                    const track = document.createElement('track');
-                    track.kind = 'captions';
-                    track.label = file.name;
-                    track.srclang = 'es';
-                    track.src = url;
-                    track.default = true;
-
-                    Array.from(video.querySelectorAll('track')).forEach(t => t.remove());
-                    video.appendChild(track);
+                    setSubtitleTrack(url, file.name, true);
 
                     // Animación de éxito
                     const label = this.parentElement;
@@ -130,14 +172,113 @@ def scripts()->str:
                     label.style.color = '#4ade80';
 
                     setTimeout(() => {{
-                        track.mode = 'showing';
-                        setTimeout(() => {{
-                            label.innerHTML = originalText;
-                            label.style.borderColor = '';
-                            label.style.color = '';
-                        }}, 3000);
-                    }}, 500);
+                        label.innerHTML = originalText;
+                        label.style.borderColor = '';
+                        label.style.color = '';
+                    }}, 3000);
                 }});
+
+                // ---------- Subtítulos en línea (OpenSubtitles) ----------
+                const subsQueryInput = document.getElementById('subs-query-input');
+                const subsSearchBtn = document.getElementById('subs-search-btn');
+                const subsSelector = document.getElementById('subs-results-selector');
+                const subsStatus = document.getElementById('subs-status');
+
+                function showSubsStatus(text) {{
+                    if (!subsStatus) return;
+                    subsStatus.style.display = 'block';
+                    subsStatus.textContent = text;
+                }}
+                function hideSubsStatus() {{
+                    if (subsStatus) subsStatus.style.display = 'none';
+                }}
+
+                async function searchSubtitles(query) {{
+                    showSubsStatus('Buscando subtítulos...');
+                    if (subsSelector) subsSelector.style.display = 'none';
+                    try {{
+                        const url = subsEndpointBase('search');
+                        if (query) url.searchParams.set('query', query);
+                        const res = await fetch(url.toString());
+                        const data = await res.json();
+
+                        if (data.error) {{
+                            showSubsStatus(data.error);
+                            return;
+                        }}
+                        if (subsQueryInput && data.query) {{
+                            subsQueryInput.value = data.query;
+                        }}
+
+                        if (!data.results || data.results.length === 0) {{
+                            showSubsStatus('No se encontraron subtítulos para esta búsqueda. Prueba con otro título.');
+                            return;
+                        }}
+
+                        hideSubsStatus();
+                        if (subsSelector) {{
+                            subsSelector.innerHTML = '<option value="">Elige un subtítulo...</option>';
+                            data.results.forEach((item) => {{
+                                const opt = document.createElement('option');
+                                opt.value = item.file_id;
+                                const dl = item.download_count != null ? ` · ${{item.download_count}} descargas` : '';
+                                const hi = item.hearing_impaired ? ' · [SDH]' : '';
+                                opt.textContent = `${{item.release || 'Subtítulo'}} (${{(item.language || '?').toUpperCase()}})${{dl}}${{hi}}`;
+                                subsSelector.appendChild(opt);
+                            }});
+                            subsSelector.style.display = 'inline-flex';
+                        }}
+                    }} catch (e) {{
+                        showSubsStatus('Error buscando subtítulos. Intenta de nuevo.');
+                    }}
+                }}
+
+                async function applySelectedSubtitle(fileId, label) {{
+                    showSubsStatus('Descargando subtítulo...');
+                    try {{
+                        const url = subsEndpointBase('get');
+                        url.searchParams.set('file_id', fileId);
+                        const res = await fetch(url.toString());
+                        if (!res.ok) {{
+                            showSubsStatus('No se pudo descargar ese subtítulo, prueba con otro de la lista.');
+                            return;
+                        }}
+                        const vttText = await res.text();
+                        const blob = new Blob([vttText], {{ type: 'text/vtt' }});
+                        const blobUrl = URL.createObjectURL(blob);
+                        setSubtitleTrack(blobUrl, label, true);
+                        hideSubsStatus();
+                    }} catch (e) {{
+                        showSubsStatus('Error descargando el subtítulo. Intenta con otro.');
+                    }}
+                }}
+
+                if (subsSearchBtn) {{
+                    subsSearchBtn.addEventListener('click', () => {{
+                        searchSubtitles(subsQueryInput ? subsQueryInput.value.trim() : '');
+                    }});
+                }}
+                if (subsQueryInput) {{
+                    subsQueryInput.addEventListener('keydown', (e) => {{
+                        if (e.key === 'Enter') {{
+                            e.preventDefault();
+                            searchSubtitles(subsQueryInput.value.trim());
+                        }}
+                    }});
+                }}
+                if (subsSelector) {{
+                    subsSelector.addEventListener('change', (e) => {{
+                        const fileId = e.target.value;
+                        if (!fileId) return;
+                        const label = e.target.selectedOptions[0].textContent;
+                        applySelectedSubtitle(fileId, label);
+                    }});
+                }}
+
+                // Búsqueda automática al cargar la página, usando el nombre
+                // del archivo como punto de partida (el usuario puede editarlo
+                // y volver a buscar).
+                searchSubtitles('');
 
                 // ---------- Selección de pista de audio ----------
                 video.addEventListener('loadedmetadata', () => {{

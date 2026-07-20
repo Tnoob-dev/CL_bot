@@ -40,14 +40,14 @@ def get_file_info(message: Message) -> Optional[FileInfo]:
         )
     elif message.video:
         media = message.video
-        file_name = os.path.splitext(media.file_name)[0]
-        
         patron = r'video_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}'
-        name = "video.mp4"
-        
-        if not re.match(patron, file_name):
-            name = media.file_name
-            
+
+        name = media.file_name or f"video_{message.id}.mp4"
+        if media.file_name:
+            base_name = os.path.splitext(media.file_name)[0]
+            if re.match(patron, base_name):
+                name = "video.mp4"
+
         return FileInfo(
             file_size=media.file_size,
             mime_type=media.mime_type or "video/mp4",
