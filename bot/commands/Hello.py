@@ -64,6 +64,7 @@ async def hello(client: Client, message: Message):
                 
                 if not is_premium_active(user_founded[1].id) and not check_administration(message):
                     await message.reply("Esto tendrá una duración de 3 minutos ⏳ contados a partir del envío del mensaje. 📨\n\n¡Reenvíalo a tus mensajes guardados para no perderlo! 📂✅")
+                    await message.reply("Si deseas eliminar esta restricción, usa el comando /vip o /profile para acceder a nuestro plan premium, el más barato de todo Telegram🚀")
                
                 await message.reply_sticker(Path.cwd() / Path("assets") / Path("finished.webp"))
                 donation_message = """
