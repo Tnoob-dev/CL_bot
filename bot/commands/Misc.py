@@ -19,9 +19,10 @@ async def send_admin_message(client: Client, message: Message):
     try:
         owner_id = os.getenv("OWNER_ID")
         if message.from_user.id == int(owner_id):
-            users = get_user(all_the_users=True)
+            _, users = get_user(all_the_users=True)
             quantity_users = len(users)
-            await message.reply("Enviando mensaje a usuarios")
+            await message.reply(f"Enviando mensaje {quantity_users} a usuarios")
+            
             blocked_users = 0
             bots = 0
             
