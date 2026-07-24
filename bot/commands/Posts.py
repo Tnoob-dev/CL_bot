@@ -26,7 +26,7 @@ async def create_posts(client: Client, message: Message):
 
             m = await message.reply("Descargando imagen, creando post y enviando...")
             pic = await client.download_media(post, file_name="./posts/")
-            description = message.reply_to_message.caption
+            description = message.reply_to_message.caption.markdown
             links = literal_eval(message.text[6:])
 
             sent = await client.send_photo(
