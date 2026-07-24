@@ -211,12 +211,7 @@ Actúa como un traductor especializado en localización cinematográfica. Tu tar
 def translate_words(words: List[str], target_lang: str = "es") -> List[str]:
     translator = GoogleTranslator(source="auto", target=target_lang)
 
-    results = []
-
-    for word in words:
-        tr_word = translator.translate(word)
-        time.sleep(.5)
-        results.append(tr_word)
+    results = [translator.translate(word) for word in words]
 
     return results
 

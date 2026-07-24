@@ -161,42 +161,37 @@ async def query_manager(client: Client, query: CallbackQuery):
         image = movie.get("primaryImage")
 
         if kind == "movie":
-            template += f"🎬 {title} | {title_translated if title_translated is not None else title} 🎬\n"
-            template += f"🗓 Año: {year}\n"
-            template += f"⭐️Rating: {rating['aggregateRating'] if rating is not None else '-'}\n"
-            template += f"⏱️ Duración: {duration} minutos\n"
-            template += f"📚 Género: {genres}\n"
-            template += f"📌 Sinopsis: {synopsis if synopsis is not None else plot}\n"
+            template += f"🎬 **{title}** | **{title_translated if title_translated is not None else title}** 🎬\n"
+            template += f"🗓 Año: **{year}**\n"
+            template += f"⭐️Rating: **{rating['aggregateRating'] if rating is not None else '-'}/10**\n"
+            template += f"⏱️ Duración: **{duration} minutos**\n"
+            template += f"📚 Género: **{genres}**\n"
+            template += f"\n<blockquote expandable><strong>{synopsis if synopsis is not None else plot}</strong></blockquote>\n"
         else:
-            template += f"🎭 {title} | {title_translated if title_translated is not None else title} 🎭\n"
-            template += f"🗓 Año: {year}\n"
-            template += f"⭐️Rating: {rating["aggregateRating"]}\n"
-            template += f"⏱️ Duración: {duration} minutos por episodio\n"
-            template += f"🎨 Géneros: {genres}\n"
-            template += f"📖 Sinopsis: {synopsis if synopsis is not None else plot}\n"
+            template += f"🎭 **{title}** | **{title_translated if title_translated is not None else title}** 🎭\n"
+            template += f"🗓 Año: **{year}**\n"
+            template += f"⭐️Rating: **{rating["aggregateRating"] if rating is not None else '-'}/10**\n"
+            template += f"⏱️ Duración: **{duration} minutos por episodio**\n"
+            template += f"🎨 Géneros: **{genres}**\n"
+            template += f"\n<blockquote expandable><strong>{synopsis if synopsis is not None else plot}</strong></blockquote>\n"
 
         if image:
             try:
-                await query.message.reply_photo(image["url"], caption=template)
+                await query.message.reply_photo(
+                    image["url"], 
+                    caption=template
+                )
             except WebpageMediaEmpty:
                 await query.answer("No se puede subir como imagen, subiendo como archivo")
-                path = await download_image(image["url"])
-                await query.message.reply_document(path, caption=template)
-                os.remove(path)
+                
+                await query.message.reply_document(
+                    document=image["url"], 
+                    caption=template
+                )
         else:
             await query.message.reply(template)
 
         template = ""
-    
-    elif query.data.startswith("edit_"):
-        
-        message_info = await get_message_info(client, query.data.split("_")[-1])
-        
-        match query.data.split("_")[1]:
-            case "text":
-                print(message_info.text)
-            case "btns":
-                print("botones")
                 
     elif query.data == "become_vip":
         

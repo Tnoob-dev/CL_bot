@@ -8,18 +8,22 @@ import asyncio
 
 # COMMAND FUNCTIONS
 from commands.Hello import hello
-from commands.Help import help_command
 from commands.Collection import collect_messages, end_collection
 from commands.InfoPosts import info_posts
-from commands.Misc import count_users, send_admin_message, ascend_to_admin, get_top10, make_old_posts, convert_user_premium
+from commands.Misc import (help_command,
+                           count_users, 
+                           send_admin_message, 
+                           ascend_to_admin, 
+                           get_top10, 
+                           make_old_posts, 
+                           donations,
+                           convert_user_premium)
 from commands.Order import get_orders
 from commands.Posts import create_posts, remove_posts
 from commands.SearchPosts import search_posts
 from commands.Subtitles import search_subtitles
-from commands.Donations import donations
 from commands.Publicity import publi_command
 from commands.Fusion import fusion_posts
-from commands.Edit import edit_posts
 from commands.Stream import stream_handler
 from commands.Profile import profile_panel
 
@@ -71,7 +75,6 @@ bot.add_handler(MessageHandler(search_posts))
 bot.add_handler(MessageHandler(donations))
 bot.add_handler(MessageHandler(publi_command))
 bot.add_handler(MessageHandler(fusion_posts))
-bot.add_handler(MessageHandler(edit_posts))
 bot.add_handler(MessageHandler(stream_handler))
 bot.add_handler(MessageHandler(make_old_posts))
 bot.add_handler(MessageHandler(profile_panel))
