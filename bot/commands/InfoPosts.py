@@ -6,7 +6,6 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.errors.exceptions import WebpageMediaEmpty
 from pyrogram.filters import command, private, group, text
 import logging
-import os
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +20,6 @@ async def info_posts(client: Client, message: Message):
                 movie.pop(0)
 
                 query = ' '.join(movie)
-
-                template = ""
 
                 results = await get_results(query)
 

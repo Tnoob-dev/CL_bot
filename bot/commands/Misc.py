@@ -1,6 +1,6 @@
 from db.create_cine_db import Game
-from utils.db_reqs import get_user, update_user_admin, update_user_premium, is_premium_active
-from utils.functions import check_administration, gen_ids, register_movie
+from utils.db_reqs import get_user, update_user_admin, update_user_premium
+from utils.functions import check_administration, gen_ids, register_movie, check_user_in_channel
 from entry.entry import bot
 from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
@@ -12,6 +12,63 @@ import os
 
 # Logger
 logger = logging.getLogger(__name__)
+
+@bot.on_message(command("help", prefixes=["/"]) & private)
+async def help_command(client: Client, message: Message):
+    
+    if not await check_user_in_channel(client, message):
+        return
+    
+    help_message = f"""
+📖 **Menú de Ayuda**
+
+Estos son los comandos disponibles:
+
+🔹 /start - Inicia el bot u obtiene el archivo solicitado
+🔹 /help - Obtiene la ayuda del bot
+🔹 /count - Ver cuántos usuarios hay registrados en el bot
+🔹 /srt - Búsqueda online de subtítulos
+🔹 /search - Buscar posts del canal
+🔹 /top10 - Obtener el top 10 de usuarios que más descargan del canal
+🔹 /profile - Ver tu perfil de usuario
+🔹 /vip - Adquirir plan VIP
+🔹 /stream - Hacer stream a archivos y videos
+🔹 /donate - Ver métodos de donación para el canal
+🔹 /publi - Ver ofertas de publicidad
+
+❓ Si tienes dudas o problemas, contacta a un administrador. En el chat del canal @{os.getenv('GROUP_ID')}.
+"""
+    
+    await message.reply(help_message)
+
+@bot.on_message(command("donate", prefixes=["/"]) & private)
+async def donations(client: Client, message: Message):
+
+    my_msg = f"""
+Hola {message.from_user.mention}
+
+✨ Este canal es posible gracias a ti ✨
+
+Si el contenido te ha sido útil y quieres retribuir de alguna forma, 
+aceptamos donaciones voluntarias.
+
+No es obligatorio, pero cada pequeño gesto ayuda a seguir creciendo.
+
+Para cubanos en la isla 🇨🇺:
+🎁 Tarjeta CUP METROPOLITANO: {os.getenv("CUP_CARD")}
+🎁 Tarjeta CUP BPA: {os.getenv("CUP_CARD2")}
+🎁 Saldo Movil: {os.getenv("MOBILE")}
+
+Para Residentes de otros Países 🌎:
+🎁 Wallet BNB (BEP20): {os.getenv("Wallet_BEP")}
+
+En caso de ser otro tipo de moneda u otro tipo de incentivo,
+puede escribir directamente al DM: @TitiLM10
+
+¡Gracias de corazón por estar aquí! ❤️
+"""
+
+    await message.reply(my_msg)
 
 @bot.on_message(command("advise") & private)
 async def send_admin_message(client: Client, message: Message):
