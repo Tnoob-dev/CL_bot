@@ -199,7 +199,7 @@ async def query_manager(client: Client, query: CallbackQuery):
 Coste del plan VIP 💎: 
     - 💳 Tarjeta ➡️ {os.getenv('VIP_PRICE_CUP')} CUP
     - 💳 Tarjeta ➡️ {os.getenv('VIP_PRICE_MLC')} MLC
-    - 💵 USD/PayPal/Zelle ➡️ {os.getenv('VIP_PRICE_USD')} USD
+    - 💵 USD (PayPal/QvaPay/Crypto) ➡️ {os.getenv('VIP_PRICE_USD')} USD
     - 📱 Saldo Movil ➡️ {os.getenv('VIP_PRICE_CUP')} CUP
 
 Ventajas que ofrece el plan 📈:
