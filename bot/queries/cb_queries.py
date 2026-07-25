@@ -216,8 +216,7 @@ Seleccione uno de los metodos de pago de abajo ⬇️
             [InlineKeyboardButton("💳 MLC BPA", callback_data="pay_edit_bpa_mlc")],
             [InlineKeyboardButton("💙 ENZONA", callback_data="pay_edit_enzona")],
             [InlineKeyboardButton("📱 Saldo Movil", callback_data="pay_edit_sm")],
-            [InlineKeyboardButton("💵 PayPal", callback_data="pay_edit_paypal")],
-            [InlineKeyboardButton("⚡️ Zelle", callback_data="pay_edit_zelle")]
+            [InlineKeyboardButton("💵 PayPal/QvaPay", callback_data="pay_edit_paypal")]
         ]
         
         await query.message.delete()
@@ -255,11 +254,18 @@ Seleccione uno de los metodos de pago de abajo ⬇️
                 )
         
         elif data.endswith("paypal"):
-            await query.message.edit("❌No tenemos disponibilidad para esta funcion aun, sentimos las molestias😢")
+            await query.message.delete()
+            await query.message.reply_photo(
+                photo=Path.cwd() / Path("assets") / Path("qvapay_pic.png"),
+                caption="No debe recortar la foto, envie con fecha y hora presentes.\n\nPresione en Confirmar✅ para enviar su evidencia de pago a los admins",
+                reply_markup=InlineKeyboardMarkup(
+                    [
+                        [InlineKeyboardButton("💜QvaPay PayMe Link", url=os.getenv("QVAPAY_LINK"))],
+                        [InlineKeyboardButton("Confirmar✅", callback_data="confirm_pay")]
+                    ]
+                )
+            )
         
-        elif data.endswith("zelle"):
-            await query.message.edit("❌No tenemos disponibilidad para esta funcion aun, sentimos las molestias😢")
-       
         elif data.endswith("sm"):
             await query.message.edit(
                 text=f"No debe recortar la foto, envie con fecha y hora presentes.\n\nSolo toque los numeros para copiar:\n\n 📱Movil: <code>{os.getenv('MOBILE')}</code>\n\nPresione en Confirmar✅ para enviar su evidencia de pago a los admins", 
