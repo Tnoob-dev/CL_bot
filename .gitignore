@@ -216,14 +216,29 @@ __marimo__/
 .streamlit/secrets.toml
 
 
+# --- Project-specific ---
+
+# SQLite databases & Pyrogram session files
 *.db
 *.session
 *session-journal
 
+# Subtitle working dirs/files (keep both correct + legacy misspelling)
+translations/
 tranlations/
-
 *.srt
 
+# Generated posts
 posts/
 
-*.txt
+# Runtime data dir (.env, session, cine.db live here)
+/data/
+
+# Local, private movie-info fixtures used to simulate the IMDb API offline
+.fixtures/
+
+# Local working plan (not part of the repo history)
+PLAN.md
+
+# NOTE: intentionally NOT ignoring *.txt anymore — the old blanket rule
+# silently hid every new text file. Generated logs are already ignored above.
