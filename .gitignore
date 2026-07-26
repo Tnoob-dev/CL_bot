@@ -248,10 +248,5 @@ data/.env.*
 # Throwaway data dir created by the test suite
 .pytest-data/
 
-# Local working plans & agent notes (not part of the repo history)
-PLAN*.md
-CLAUDE.md
-.history
-
 # NOTE: intentionally NOT ignoring *.txt anymore — the old blanket rule
 # silently hid every new text file. Generated logs are already ignored above.
