@@ -34,11 +34,20 @@ def test_composition_root_exposes_handlers():
 
 
 def test_register_handlers_wires_the_bot():
+    import asyncio
+
     import cinemalibrarybot.__main__ as app
 
-    before = _handler_count(app.bot)
-    app.register_handlers()
-    after = _handler_count(app.bot)
+    # kurigram's add_handler schedules the actual registration as a task on the
+    # client's event loop, so we install a fresh loop, register, then drive it
+    # briefly to let those tasks run before counting.
+    loop = asyncio.new_event_loop()
+    app.bot.loop = loop
+    try:
+        app.register_handlers()
+        loop.run_until_complete(asyncio.sleep(0.05))
+    finally:
+        loop.close()
 
     # 22 message handlers + 1 callback-query + 1 inline-query handler.
-    assert after - before >= 24
+    assert _handler_count(app.bot) >= 24

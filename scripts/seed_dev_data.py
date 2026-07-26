@@ -37,7 +37,7 @@ SAMPLE_CATALOG = [
     ("Interstellar", [201]),
 ]
 
-SAMPLE_USER = Users(id=1, username="dev_user", is_admin=True, premium_user=True)
+SAMPLE_USERNAME = "dev_user"
 
 
 def main() -> None:
@@ -51,8 +51,8 @@ def main() -> None:
         insert(Game(name=name, file_ids=file_ids))
         logger.info("catalog seeded: %s", name)
 
-    insert_user(SAMPLE_USER)
-    logger.info("user seeded: %s", SAMPLE_USER.username)
+    insert_user(Users(id=1, username=SAMPLE_USERNAME, is_admin=True, premium_user=True))
+    logger.info("user seeded: %s", SAMPLE_USERNAME)
 
     logger.info("Done. Try /search matrix in your dev bot.")
 
