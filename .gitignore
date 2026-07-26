@@ -6,6 +6,16 @@ __pycache__/
 # C extensions
 *.so
 
+# vscode
+.history/
+.code/
+
+# Mac related
+.DS_Store
+
+# intellij
+.idea/
+
 # Distribution / packaging
 .Python
 build/
@@ -148,7 +158,6 @@ activemq-data/
 *.sage.py
 
 # Environments
-.env
 .envrc
 .venv
 env/
