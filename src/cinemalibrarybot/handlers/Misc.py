@@ -1,7 +1,7 @@
-from db.create_cine_db import Game
-from utils.db_reqs import get_user, update_user_admin, update_user_premium
-from utils.functions import check_administration, gen_ids, register_movie, check_user_in_channel
-from entry.entry import bot
+from cinemalibrarybot.repositories.create_cine_db import Game
+from cinemalibrarybot.repositories.db_reqs import get_user, update_user_admin, update_user_premium
+from cinemalibrarybot.services.functions import check_administration, gen_ids, register_movie, check_user_in_channel
+from cinemalibrarybot.client import bot
 from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.filters import command, private, group

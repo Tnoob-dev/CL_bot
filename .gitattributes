@@ -1,0 +1,26 @@
+# Enforce consistent LF line endings for text files across platforms.
+* text=auto eol=lf
+
+# Explicit source types (LF).
+*.py   text eol=lf
+*.toml text eol=lf
+*.md   text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.css  text eol=lf
+*.js   text eol=lf
+*.sql  text eol=lf
+*.sh   text eol=lf
+Dockerfile text eol=lf
+Makefile   text eol=lf
+
+# Binary assets — never touch line endings.
+*.tgs  binary
+*.webp binary
+*.jpg  binary
+*.jpeg binary
+*.png  binary
+*.gif  binary
+*.ico  binary
+*.session binary
+*.db   binary

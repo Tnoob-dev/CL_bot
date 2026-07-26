@@ -1,9 +1,9 @@
-from entry.entry import bot
+from cinemalibrarybot.client import bot
 from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.filters import command, private
-from utils.functions import get_profile_info, download_tg_files
-from utils.db_reqs import get_user
+from cinemalibrarybot.services.functions import get_profile_info, download_tg_files
+from cinemalibrarybot.repositories.db_reqs import get_user
 import os
 
 @bot.on_message(command("profile", prefixes=["/"]) & private)

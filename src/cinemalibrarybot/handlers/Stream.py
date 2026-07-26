@@ -1,11 +1,11 @@
-from entry.entry import bot
+from cinemalibrarybot.client import bot
 from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.filters import command, private
-from utils.db_reqs import is_premium_active
-from utils.functions import check_administration
-from stream.config import StreamConfig
-from stream.file_properties import get_file_info_by_id, pack_file, get_short_hash
+from cinemalibrarybot.repositories.db_reqs import is_premium_active
+from cinemalibrarybot.services.functions import check_administration
+from cinemalibrarybot.stream.config import StreamConfig
+from cinemalibrarybot.stream.file_properties import get_file_info_by_id, pack_file, get_short_hash
 import logging
 
 logger = logging.getLogger(__name__)

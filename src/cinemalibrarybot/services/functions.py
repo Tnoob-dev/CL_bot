@@ -3,12 +3,13 @@ from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, 
 from pyrogram.errors import UserNotParticipant, FloodWait
 from typing import List, Dict
 from pathlib import Path
-from .db_reqs import get_user, insert
+from cinemalibrarybot.repositories.db_reqs import get_user, insert
 from groq import AsyncGroq
 from deep_translator import GoogleTranslator
-from stream.config import StreamConfig
-from stream.file_properties import get_file_info, pack_file, get_short_hash
-from db.create_cine_db import Game
+from cinemalibrarybot.stream.config import StreamConfig
+from cinemalibrarybot.stream.file_properties import get_file_info, pack_file, get_short_hash
+from cinemalibrarybot.repositories.create_cine_db import Game
+from cinemalibrarybot.config import settings
 import os
 import asyncio
 import json
@@ -46,7 +47,7 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
 
         return True
     except UserNotParticipant:
-        await message.reply_sticker(Path.cwd() / Path("assets") / Path("tongue_out.tgs"))
+        await message.reply_sticker(settings.ASSETS_DIR / "tongue_out.tgs")
         await message.reply("Para usar este bot, primero debes unirte a nuestros canales.", 
                             reply_markup=InlineKeyboardMarkup(
                                 [
@@ -97,8 +98,9 @@ def register_movie(messages: List[int]) -> str:
 
 def save_to_json(subtitles: List[Dict[str, int | str]], user_id: int, output_file: str):
     try:
-        
-        with open(f"./bot/translations/downloads/{user_id}/{output_file}", 'w', encoding='utf-8') as f:
+        out_dir = settings.translations_dir / "downloads" / str(user_id)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        with open(out_dir / output_file, 'w', encoding='utf-8') as f:
             json.dump(subtitles, f, ensure_ascii=False, indent=2)
             
     except Exception as error:

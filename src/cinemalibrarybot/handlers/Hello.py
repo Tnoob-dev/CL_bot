@@ -1,7 +1,8 @@
-from entry.entry import bot
-from utils.functions import check_administration, check_user_in_channel, delete_after_delay
-from utils.db_reqs import get_game, insert_user, get_user, update_user_downloads, is_premium_active
-from db.create_cine_db import Users
+from cinemalibrarybot.client import bot
+from cinemalibrarybot.services.functions import check_administration, check_user_in_channel, delete_after_delay
+from cinemalibrarybot.repositories.db_reqs import get_game, insert_user, get_user, update_user_downloads, is_premium_active
+from cinemalibrarybot.repositories.create_cine_db import Users
+from cinemalibrarybot.config import settings
 from pyrogram.client import Client
 from pyrogram.filters import command, private
 from pyrogram.types import Message
@@ -35,7 +36,7 @@ async def hello(client: Client, message: Message):
         if check_administration(message):
             await message.reply(f"Hola Administrador: {message.from_user.first_name}")
         else:
-            await message.reply_sticker(Path.cwd() / Path("assets") / Path("dancer.tgs"))
+            await message.reply_sticker(settings.ASSETS_DIR / "dancer.tgs")
             await message.reply(f"Hola {message.from_user.mention}, gracias por usar nuestro bot, nos complace tenerte como usuario, para tener una guia mas detallada de como funciona el bot, utiliza el comando /help.\n\nNos encantaria conocerte, asi que por que no entras a nuestro chat del canal: @chat1080p, donde tambien...shhh...spoiler: ||Podras pedir esa serie o peli que llevas dias buscando|| (Que no se te olvide poner #cine <nombre> y una foto para nosotros saber cual es).")
         return
 
@@ -66,7 +67,7 @@ async def hello(client: Client, message: Message):
                     await message.reply("Esto tendrá una duración de 3 minutos ⏳ contados a partir del envío del mensaje. 📨\n\n¡Reenvíalo a tus mensajes guardados para no perderlo! 📂✅")
                     await message.reply("Si deseas eliminar esta restricción, usa el comando /vip o /profile para acceder a nuestro plan premium, el más barato de todo Telegram🚀")
                
-                await message.reply_sticker(Path.cwd() / Path("assets") / Path("finished.webp"))
+                await message.reply_sticker(settings.ASSETS_DIR / "finished.webp")
                 donation_message = """
 💖 ¿Te gusta el contenido del canal?
 

@@ -1,9 +1,9 @@
-from entry.entry import bot
-from utils.search_subts import subs
-from utils.db_reqs import get_user, insert_user
-from utils.functions import check_user_in_channel
+from cinemalibrarybot.client import bot
+from cinemalibrarybot.services.search_subts import subs
+from cinemalibrarybot.repositories.db_reqs import get_user, insert_user
+from cinemalibrarybot.services.functions import check_user_in_channel
 from opensubtitlescom import OpenSubtitlesException
-from db.create_cine_db import Users
+from cinemalibrarybot.repositories.create_cine_db import Users
 from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.filters import command, private

@@ -1,6 +1,6 @@
-from entry.entry import bot
-from utils.functions import check_administration, get_message_info
-from utils.db_reqs import delete_post
+from cinemalibrarybot.client import bot
+from cinemalibrarybot.services.functions import check_administration, get_message_info
+from cinemalibrarybot.repositories.db_reqs import delete_post
 from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardMarkup
 from pyrogram.filters import command, private

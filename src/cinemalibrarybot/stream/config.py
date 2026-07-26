@@ -8,7 +8,9 @@ class StreamConfig:
 
     PORT: int = int(os.getenv("STREAM_PORT", 8080))
     BIND_ADDRESS: str = os.getenv("STREAM_BIND", "0.0.0.0")
-    BIN_CHANNEL: int = int(os.getenv("STREAM_BIN_CHANNEL"))
+    # Tolerate an unset bin channel so the app can import/start without it;
+    # streaming simply won't work until it's configured.
+    BIN_CHANNEL: int = int(os.getenv("STREAM_BIN_CHANNEL") or 0)
     HASH_LENGTH: int = int(os.getenv("STREAM_HASH_LENGTH", 6))
     CHUNK_SIZE: int = 1024 * 1024
     CACHE_SIZE: int = 128

@@ -1,6 +1,6 @@
-from entry.entry import bot
-from utils.functions import check_user_in_channel
-from utils.db_reqs import get_post_by_name
+from cinemalibrarybot.client import bot
+from cinemalibrarybot.services.functions import check_user_in_channel
+from cinemalibrarybot.repositories.db_reqs import get_post_by_name
 from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.filters import command, private, group

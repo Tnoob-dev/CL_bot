@@ -1,5 +1,6 @@
-from entry.entry import bot
-from utils.functions import check_administration, forward_messages, register_movie
+from cinemalibrarybot.client import bot
+from cinemalibrarybot.services.functions import check_administration, forward_messages, register_movie
+from cinemalibrarybot.config import settings
 from pyrogram.client import Client
 from pyrogram.types import Message
 from pyrogram.filters import command, private, document, video, photo
@@ -68,7 +69,7 @@ async def end_massive(client: Client, message: Message):
 
     await message.reply(f"```python\n{formed_seasons}```")
     await message.reply_document(
-        document=Path.cwd() / Path("bot") / Path("core") / "cine.db"
+        document=settings.cine_db_path
     )
     
     del state[str(user_id)]
@@ -113,7 +114,7 @@ async def end_collection(client: Client, message: Message):
                 f"escriba el comando /add\n\nSu enlace es {link}"
             )
             await message.reply_document(
-                document=Path.cwd() / Path("bot") / Path("core") / "cine.db"
+                document=settings.cine_db_path
             )
 
             # delete user from memory

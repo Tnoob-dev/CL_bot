@@ -1,13 +1,14 @@
-from entry.entry import bot
-from utils.db_reqs import get_user, delete_post, update_user_premium
+from cinemalibrarybot.client import bot
+from cinemalibrarybot.repositories.db_reqs import get_user, delete_post, update_user_premium
 from pyrogram.client import Client
 from pyrogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors import WebpageMediaEmpty
 from pyrogram.filters import private, photo
-from utils.functions import check_administration, get_clicked_button_text, download_image, translate_synopsis, translate_title, translate_words, get_message_info
-from utils.search_subts import download_subs
-from utils.create_paths import create_subtitles_dl_path
-from utils.movie_search import get_info_by_id
+from cinemalibrarybot.services.functions import check_administration, get_clicked_button_text, download_image, translate_synopsis, translate_title, translate_words, get_message_info
+from cinemalibrarybot.services.search_subts import download_subs
+from cinemalibrarybot.services.create_paths import create_subtitles_dl_path
+from cinemalibrarybot.services.movie_search import get_info_by_id
+from cinemalibrarybot.config import settings
 from pathlib import Path
 import os
 import logging
@@ -57,7 +58,7 @@ async def query_manager(client: Client, query: CallbackQuery):
                 m = await query.message.reply(f"🔽Descargando __{file_name.replace("🔡", "")}__.srt😏🔽")
                 
                 srt_file_original = download_subs(query.data.split("sub_")[1])
-                srt_file_renamed = f"./bot/subts/{user_id}/{file_name.replace("🔡", "")}.srt"
+                srt_file_renamed = str(settings.subtitles_dir / str(user_id) / f"{file_name.replace("🔡", "")}.srt")
                 
                 os.rename(srt_file_original, srt_file_renamed)
                 
@@ -248,7 +249,7 @@ Seleccione uno de los metodos de pago de abajo ⬇️
         elif data.endswith("enzona"):
             await query.message.delete()
             await query.message.reply_photo(
-                photo=Path.cwd() / Path("assets") / Path("enzona_pic.jpg"), 
+                photo=settings.ASSETS_DIR / "enzona_pic.jpg",
                 caption="No debe recortar la foto, envie con fecha y hora presentes.\n\nPresione en Confirmar✅ para enviar su evidencia de pago a los admins",
                 reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Confirmar✅", callback_data="confirm_pay")]])
                 )
@@ -256,7 +257,7 @@ Seleccione uno de los metodos de pago de abajo ⬇️
         elif data.endswith("paypal"):
             await query.message.delete()
             await query.message.reply_photo(
-                photo=Path.cwd() / Path("assets") / Path("qvapay_pic.png"),
+                photo=settings.ASSETS_DIR / "qvapay_pic.png",
                 caption="No debe recortar la foto, envie con fecha y hora presentes.\n\nPresione en Confirmar✅ para enviar su evidencia de pago a los admins",
                 reply_markup=InlineKeyboardMarkup(
                     [

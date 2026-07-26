@@ -1,5 +1,5 @@
-from entry.entry import bot
-from utils.db_reqs import get_post_by_name
+from cinemalibrarybot.client import bot
+from cinemalibrarybot.repositories.db_reqs import get_post_by_name
 from pyrogram.client import Client
 from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardMarkup, InlineKeyboardButton, InlineQuery
 from pyrogram.errors import UserNotParticipant, QueryIdInvalid, MessageEmpty

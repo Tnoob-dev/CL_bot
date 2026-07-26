@@ -1,6 +1,6 @@
-from entry.entry import bot
-from utils.functions import check_administration
-from utils.movie_search import get_results
+from cinemalibrarybot.client import bot
+from cinemalibrarybot.services.functions import check_administration
+from cinemalibrarybot.services.movie_search import get_results
 from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.errors.exceptions import WebpageMediaEmpty

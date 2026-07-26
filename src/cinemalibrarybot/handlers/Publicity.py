@@ -1,5 +1,5 @@
-from entry.entry import bot
-from utils.functions import check_user_in_channel
+from cinemalibrarybot.client import bot
+from cinemalibrarybot.services.functions import check_user_in_channel
 from pyrogram.filters import command, private, group
 from pyrogram.types import Message
 from pyrogram.client import Client

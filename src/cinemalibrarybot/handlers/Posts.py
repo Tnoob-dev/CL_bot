@@ -1,10 +1,10 @@
-from entry.entry import bot
+from cinemalibrarybot.client import bot
 from pyrogram.client import Client
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.filters import command, private
-from utils.functions import check_administration, clean_name
-from utils.db_reqs import insert_post, delete_post, get_post_by_id
-from db.create_cine_db import Post
+from cinemalibrarybot.services.functions import check_administration, clean_name
+from cinemalibrarybot.repositories.db_reqs import insert_post, delete_post, get_post_by_id
+from cinemalibrarybot.repositories.create_cine_db import Post
 from ast import literal_eval
 import os
 import logging
