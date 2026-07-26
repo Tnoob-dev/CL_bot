@@ -31,9 +31,8 @@ seed: ## Insert sample catalog/posts so /search returns results
 test: ## Run the test suite
 	uv run pytest
 
-lint: ## Lint & type-check (ruff + basedpyright)
+lint: ## Lint & type-check (matches CI: ruff check + basedpyright)
 	uv run ruff check .
-	uv run ruff format --check .
 	uv run basedpyright
 
 fmt: ## Auto-format the code
