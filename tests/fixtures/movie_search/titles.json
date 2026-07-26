@@ -1,0 +1,35 @@
+{
+  "tt0111161": {
+    "id": "tt0111161",
+    "type": "movie",
+    "primaryTitle": "The Shawshank Redemption",
+    "startYear": 1994,
+    "rating": { "aggregateRating": 9.3, "voteCount": 2900000 },
+    "runtimeSeconds": 8520,
+    "genres": ["Drama"],
+    "plot": "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
+    "primaryImage": { "url": "https://example.invalid/shawshank.jpg" }
+  },
+  "tt0903747": {
+    "id": "tt0903747",
+    "type": "tvSeries",
+    "primaryTitle": "Breaking Bad",
+    "startYear": 2008,
+    "rating": { "aggregateRating": 9.5, "voteCount": 2100000 },
+    "runtimeSeconds": 2940,
+    "genres": ["Crime", "Drama", "Thriller"],
+    "plot": "A high school chemistry teacher turned methamphetamine producer navigates the dangers of the criminal underworld.",
+    "primaryImage": { "url": "https://example.invalid/breakingbad.jpg" }
+  },
+  "tt0110413": {
+    "id": "tt0110413",
+    "type": "movie",
+    "primaryTitle": "Leon: The Professional",
+    "startYear": 1994,
+    "rating": { "aggregateRating": 8.5, "voteCount": 1200000 },
+    "runtimeSeconds": 6600,
+    "genres": ["Action", "Crime", "Drama"],
+    "plot": "A professional assassin reluctantly takes in a young girl after her family is murdered, and teaches her his trade.",
+    "primaryImage": { "url": "https://example.invalid/leon.jpg" }
+  }
+}

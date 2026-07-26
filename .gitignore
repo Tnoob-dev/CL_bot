@@ -237,6 +237,9 @@ posts/
 # Local, private movie-info fixtures used to simulate the IMDb API offline
 .fixtures/
 
+# Throwaway data dir created by the test suite
+.pytest-data/
+
 # Local working plan (not part of the repo history)
 PLAN.md
 
