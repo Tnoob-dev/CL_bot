@@ -234,14 +234,24 @@ posts/
 # Runtime data dir (.env, session, cine.db live here)
 /data/
 
+# Environment files — ignore every variant (root or data/), but keep the
+# committed template. Covers .env, .env.dev, .env.prod, .env.local, .env.*.local
+.env
+.env.*
+data/.env
+data/.env.*
+!.env.example
+
 # Local, private movie-info fixtures used to simulate the IMDb API offline
 .fixtures/
 
 # Throwaway data dir created by the test suite
 .pytest-data/
 
-# Local working plan (not part of the repo history)
-PLAN.md
+# Local working plans & agent notes (not part of the repo history)
+PLAN*.md
+CLAUDE.md
+.history
 
 # NOTE: intentionally NOT ignoring *.txt anymore — the old blanket rule
 # silently hid every new text file. Generated logs are already ignored above.
