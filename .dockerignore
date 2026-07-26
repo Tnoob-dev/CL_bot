@@ -1,0 +1,45 @@
+# Keep the build context small and avoid leaking local state into the image.
+
+# VCS / project meta
+.git
+.gitignore
+.github
+
+# Python caches & build artifacts
+__pycache__/
+*.py[codz]
+*.egg-info/
+build/
+dist/
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# Virtualenvs
+.venv/
+venv/
+env/
+
+# Runtime data & secrets (must NOT be baked into the image)
+data/
+.env
+.fixtures/
+*.db
+*.session
+*session-journal
+
+# Local generated working dirs
+posts/
+translations/
+tranlations/
+*.srt
+
+# Docs & dev-only files (README.md is kept — it is the project's build readme)
+docs/
+PLAN.md
+CONTRIBUTING.md
+
+# Editor/OS cruft
+.vscode/
+.idea/
+.DS_Store

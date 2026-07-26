@@ -1,0 +1,54 @@
+# Development stack: PostgreSQL + the bot, wired together.
+# Usage:
+#   cp .env.example data/.env   # fill in your dev bot credentials
+#   docker compose -f docker-compose.dev.yml up --build
+# (or simply `make dev`)
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: clbot
+      POSTGRES_PASSWORD: clbot
+      POSTGRES_DB: clbot_users
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Creates the second database (clbot_posts) on first boot.
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clbot -d clbot_users"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    ports:
+      - "5432:5432"
+
+  bot:
+    build:
+      context: .
+      # Use the builder stage: it has uv + the source, and installs the project
+      # in editable mode, so the source bind-mount below gives live reloads.
+      target: builder
+    command: ["uv", "run", "--no-sync", "cl-bot"]
+    env_file:
+      - data/.env
+    environment:
+      # Point the app at the compose Postgres and data volume regardless of
+      # what's in data/.env, so the stack is self-consistent.
+      DATA_DIR: /app/data
+      USER_DB: postgresql+psycopg2://clbot:clbot@db:5432/clbot_users
+      POSTGRE_DB_URL: postgresql+psycopg2://clbot:clbot@db:5432/clbot_posts
+    volumes:
+      - ./src:/app/src         # live source
+      - ./assets:/app/assets
+      - ./tests:/app/tests
+      - ./scripts:/app/scripts
+      - ./data:/app/data       # .env, session file, cine.db
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"            # streaming server
+
+volumes:
+  pgdata:
