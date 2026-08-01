@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from typing import Optional
 
 from pyrogram import raw
 from pyrogram.errors import FloodWait, RPCError
@@ -14,7 +13,6 @@ class FileReferenceExpiredError(Exception):
     Quien llame debe refrescarlo (re-obteniendo el mensaje original desde
     Telegram) y reconstruir el location antes de reintentar.
     """
-    pass
 
 
 async def fetch_chunk(
@@ -26,7 +24,7 @@ async def fetch_chunk(
     semaphore: asyncio.Semaphore,
     max_retries: int = 4,
     base_delay: float = 1.0,
-) -> Optional[bytes]:
+) -> bytes | None:
     """Descarga un chunk de Telegram con reintentos y backoff exponencial.
 
     - Ante FLOOD_WAIT espera lo que Telegram pide y reintenta.
@@ -54,7 +52,9 @@ async def fetch_chunk(
 
         except FloodWait as e:
             wait_time = e.value + 1
-            logger.warning(f"FloodWait de Telegram: esperando {wait_time}s (offset={offset})")
+            logger.warning(
+                f"FloodWait de Telegram: esperando {wait_time}s (offset={offset})"
+            )
             await asyncio.sleep(wait_time)
             attempt += 1
 

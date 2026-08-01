@@ -1,11 +1,12 @@
-import subprocess
-import re
-import time
-import threading
 import os
 import platform
-import urllib.request
+import re
 import stat
+import subprocess
+import threading
+import time
+import urllib.request
+
 
 class CloudflareTunnel:
     def __init__(self, port: int):
@@ -18,25 +19,27 @@ class CloudflareTunnel:
     def _get_bin_path(self):
         """Determina la ruta del binario y lo descarga si es necesario."""
         local_bin = os.path.join(os.getcwd(), "bin", "cloudflared")
-        
+
         if os.path.exists(local_bin):
             return local_bin
-            
-    
+
         try:
-            subprocess.check_call(["cloudflared", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.check_call(
+                ["cloudflared", "--version"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
             return "cloudflared"
         except (subprocess.CalledProcessError, FileNotFoundError):
             pass
-            
+
         os.makedirs(os.path.dirname(local_bin), exist_ok=True)
-        
+
         system = platform.system().lower()
         machine = platform.machine().lower()
-        
-     
+
         url = "https://github.com/cloudflare/cloudflared/releases/latest/download/"
-        
+
         if system == "linux":
             if "arm64" in machine or "aarch64" in machine:
                 url += "cloudflared-linux-arm64"
@@ -47,7 +50,7 @@ class CloudflareTunnel:
         elif system == "darwin":
             url += "cloudflared-darwin-amd64"
         else:
-            return "cloudflared" 
+            return "cloudflared"
 
         print(f"Descargando cloudflared desde {url}...")
         try:
@@ -95,12 +98,11 @@ class CloudflareTunnel:
             if not line:
                 break
 
-
             match = re.search(r"https://[a-zA-Z0-9-]+\.trycloudflare\.com", line)
             if match:
                 self.url = match.group(0)
                 print(f"Túnel creado con éxito => URL pública: {self.url}")
-        
+
                 threading.Thread(target=self._monitor_tunnel, daemon=True).start()
                 return self.url
 

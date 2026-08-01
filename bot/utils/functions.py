@@ -1,56 +1,58 @@
-from pyrogram.client import Client
-from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, User
-from pyrogram.errors import UserNotParticipant, FloodWait
-from typing import List, Dict
-from pathlib import Path
-from .db_reqs import get_user, insert
-from groq import AsyncGroq
-from deep_translator import GoogleTranslator
-from stream.config import StreamConfig
-from stream.file_properties import get_file_info, pack_file, get_short_hash
-from db.create_cine_db import Game
-import os
 import asyncio
 import json
 import logging
-import aiohttp
-import time
+import os
+from pathlib import Path
 
-# Logger 
+from db.create_cine_db import Game
+from deep_translator import GoogleTranslator
+from groq import AsyncGroq
+from pyrogram.client import Client
+from pyrogram.errors import FloodWait, UserNotParticipant
+from pyrogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+    User,
+)
+from stream.config import StreamConfig
+from stream.file_properties import get_file_info, get_short_hash, pack_file
+
+from .db_reqs import get_user, insert
+
+# Logger
 logger = logging.getLogger(__name__)
 
 # check if a path or file exists
 def check_existence(path: Path):
-    return False if not path.exists() else True
+    return not path.exists()
 
 # check if a user is admin
 def check_administration(message: Message) -> bool:
-    
-    user_id = message.from_user.id
-    
-    _, user = get_user(user_id, all_the_users=False)
-    
-    if not user.is_admin:
-        return False
 
-    return True
+    user_id = message.from_user.id
+
+    _, user = get_user(user_id, all_the_users=False)
+
+    return user.is_admin
 
 # check if a user is in the channel
 async def check_user_in_channel(client: Client, message: Message) -> bool:
-    
+
     if not message.from_user:
         return False
-    
+
     try:
         await client.get_chat_member(chat_id=os.getenv("CINEMA_ID"), user_id=message.from_user.id)
 
         return True
     except UserNotParticipant:
         await message.reply_sticker(Path.cwd() / Path("assets") / Path("tongue_out.tgs"))
-        await message.reply("Para usar este bot, primero debes unirte a nuestros canales.", 
+        await message.reply("Para usar este bot, primero debes unirte a nuestros canales.",
                             reply_markup=InlineKeyboardMarkup(
                                 [
-                                    [InlineKeyboardButton("🎬Cinema Library🎬", url=f"https://t.me/{os.getenv("CINEMA_ID")}")]
+                                    [InlineKeyboardButton("🎬Cinema Library🎬", url=f"https://t.me/{os.getenv('CINEMA_ID')}")]
                                 ]
                             ))
         return False
@@ -58,8 +60,8 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
         logger.error(f"Error inesperado en check_user_in_channel: {e}")
         return False
 
-async def forward_messages(client: Client, messages: List[int]):
-    new_ids = []  
+async def forward_messages(client: Client, messages: list[int]):
+    new_ids = []
 
     for message_id in messages:
         success = False  # Flag: if True, means file sent to backup channel succesfully
@@ -72,76 +74,64 @@ async def forward_messages(client: Client, messages: List[int]):
                     from_chat_id=os.getenv("SENDER_BOT"),
                     message_id=message_id
                 )
-                new_ids.append(copied.id)  
+                new_ids.append(copied.id)
                 success = True  # change flag to True and go for the next file
             except FloodWait as f:  # if exists flood sleep bot the time estimated
                 await asyncio.sleep(f.value)
-    
+
     return new_ids
 
 
 import random
+
 random_num = random.randint(0, 89)
 
 def build_season_link(last_message_id: int) -> str:
     name = f"chn_{last_message_id}_{random_num}"
     return f"https://t.me/{os.getenv('SENDER_BOT')}?start={name}"
 
-def register_movie(messages: List[int]) -> str:
-    
+def register_movie(messages: list[int]) -> str:
+
     last_id = messages[-1]
-    
+
     name = f"chn_{last_id}_{random_num}"
     insert(Game(name=name, file_ids=messages))
     return build_season_link(last_id)
 
-def save_to_json(subtitles: List[Dict[str, int | str]], user_id: int, output_file: str):
+def save_to_json(subtitles: list[dict[str, int | str]], user_id: int, output_file: str):
     try:
-        
+
         with open(f"./bot/translations/downloads/{user_id}/{output_file}", 'w', encoding='utf-8') as f:
             json.dump(subtitles, f, ensure_ascii=False, indent=2)
-            
+
     except Exception as error:
         logger.error(f"Error guardando el json -> {error}")
-        
+
 def clear_path(path: str) -> None:
-    
+
     if os.path.exists(path):
         files = os.listdir(path)
-        
+
         if len(files) > 0:
             for file in files:
                 os.remove(path + file)
 
 def get_clicked_button_text(query: CallbackQuery):
     key = query.data
-    
+
     for markup in query.message.reply_markup.inline_keyboard:
         if markup[0].callback_data == key:
             return markup[0].text
-        
-async def download_image(url: str):
-    os.makedirs("./images_downloaded", exist_ok=True)
-    ext = str(url).split(".")[-1].split("?")[0]
-    full_path = f"./images_downloaded/imagen.{ext}"
-
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            response.raise_for_status()
-            with open(full_path, "wb") as file:
-                async for chunk in response.content:
-                    file.write(chunk)
-    return full_path
 
 async def download_tg_files(client: Client, file_id: str, username: str):
     os.makedirs("./images_downloaded", exist_ok=True)
     full_path = await client.download_media(file_id, file_name=f"./images_downloaded/{username}.jpg")
-    
+
     return full_path
 
 async def translate_synopsis(input_text: str):
     client = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
-    
+
     prompt = f"""
 Por favor, traduce la siguiente sinopsis de película o serie del inglés al español. Sigue estas instrucciones al pie de la letra:
 
@@ -169,7 +159,7 @@ Por favor, traduce la siguiente sinopsis de película o serie del inglés al esp
 
 async def translate_title(title: str):
     client = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
-    
+
     prompt = f"""
 Actúa como un traductor especializado en localización cinematográfica. Tu tarea es traducir o adaptar al español **SOLO** el título principal que te proporcione, aplicando esta jerarquía de reglas de manera estricta:
 
@@ -208,7 +198,7 @@ Actúa como un traductor especializado en localización cinematográfica. Tu tar
     except Exception as e:
         logger.error(f"Error: {e}")
 
-def translate_words(words: List[str], target_lang: str = "es") -> List[str]:
+def translate_words(words: list[str], target_lang: str = "es") -> list[str]:
     translator = GoogleTranslator(source="auto", target=target_lang)
 
     results = [translator.translate(word) for word in words]
@@ -216,35 +206,35 @@ def translate_words(words: List[str], target_lang: str = "es") -> List[str]:
     return results
 
 def clean_name(text: str):
-    
+
     splitted_text = text.split("\n")
     title = splitted_text[0]
     special_chars = ["🎬", "🎭"]
-    
-    
+
+
     if special_chars[0] in title:
         title = title.replace(special_chars[0], "")
         return title.strip()
-    
+
     elif special_chars[1] in title:
         title = title.replace(special_chars[1], "")
         return title.strip()
-    
+
     return title
 
-async def get_message_info(client: Client, message_id: int | List[int]) -> Message | List[Message]:
-    
+async def get_message_info(client: Client, message_ids: list[int]) -> Message | list[Message] | None:
+
     message_info = await client.get_messages(
                     chat_id=os.getenv("CINEMA_ID"),
-                    message_ids=int(message_id)
+                    message_ids=message_ids
                 )
-    
+
     return message_info
 
 async def get_profile_info(client: Client, user_id: int) -> User:
-    
+
     profile_info = await client.get_users(user_id)
-    
+
     return profile_info
 
 async def delete_after_delay(client: Client, chat_id: int, message_id: int, delay: int = 180):
@@ -257,34 +247,34 @@ async def delete_after_delay(client: Client, chat_id: int, message_id: int, dela
         logger.error(f"No se pudo eliminar el mensaje {message_id} en el chat {chat_id}: {e}")
 
 
-async def generate_stream_link(target_message: Message) -> List[List[InlineKeyboardButton]]:
+async def generate_stream_link(target_message: Message) -> list[list[InlineKeyboardButton]]:
     file_info = get_file_info(target_message)
-    
+
     full_hash = pack_file(
         file_info.file_name,
         file_info.file_size,
         file_info.mime_type,
         file_info.message_id
     )
-    
+
     file_hash = get_short_hash(full_hash)
     stream_link = f"{StreamConfig.URL}stream/{target_message.id}?hash={file_hash}"
 
-    
-    # link 
+
+    # link
     watch_link = f"{StreamConfig.URL}watch/{target_message.id}?hash={file_hash}"
-    
+
     buttons = [
         [InlineKeyboardButton("Ver en navegador", url=watch_link)],
         [InlineKeyboardButton("Ver en Reproductor", url=stream_link)]
     ]
-    
+
     return buttons
 
-def gen_ids(id1: int, id2: int = None) -> List[int]:
-    
+def gen_ids(id1: int, id2: int = None) -> list[int]:
+
     if id2 is None:
         return [id1]
-    
+
     start, end = min(id1, id2), max(id1, id2)
     return list(range(start, end + 1))

@@ -1,7 +1,9 @@
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
+
 
 class StreamConfig:
     """Configuración del servidor de streaming."""
@@ -13,7 +15,6 @@ class StreamConfig:
     CHUNK_SIZE: int = 1024 * 1024
     CACHE_SIZE: int = 128
     REQUEST_LIMIT: int = 5
-
 
     MAX_CACHE_BYTES: int = int(os.getenv("STREAM_MAX_CACHE_BYTES", 200 * 1024 * 1024))
     PREFETCH_COUNT: int = int(os.getenv("STREAM_PREFETCH_COUNT", 15))
