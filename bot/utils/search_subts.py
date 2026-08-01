@@ -1,15 +1,17 @@
-from opensubtitlescom import OpenSubtitles, OpenSubtitlesException
-import random
-import os
 import logging
+import os
+import random
 
-# Logger 
+from opensubtitlescom import OpenSubtitles, OpenSubtitlesException
+
+# Logger
 logger = logging.getLogger(__name__)
 
+
 def subs(query: str):
-    
+
     global op
-    
+
     api_keys = os.getenv("OPENSUBTITLES_KEYS").split(",")
     username = os.getenv("OPENSUBTITLE_USERNAME")
     password = os.getenv("OPENSUBTITLE_PASSWORD")
@@ -22,13 +24,14 @@ def subs(query: str):
 
     if len(response.data) > 0:
         response.data.pop(0)
-    
+
         return response.data
-    
+
     return None
 
+
 def download_subs(file_id: str):
-    
+
     try:
         file = op.download_and_save(file_id)
         return file

@@ -1,16 +1,17 @@
+import asyncio
 import logging
 import math
-import asyncio
 from collections import OrderedDict
-from typing import AsyncGenerator, Optional
-from pyrogram import Client, raw
-from pyrogram.file_id import FileId, PHOTO_TYPES
+from collections.abc import AsyncGenerator
 
+from pyrogram import Client, raw
+from pyrogram.file_id import PHOTO_TYPES, FileId
+
+from .cache import global_chunk_cache, global_coordinator, global_download_semaphore
 from .config import StreamConfig
 from .file_properties import FileInfo, get_file_info_by_id
-from .cache import global_chunk_cache, global_coordinator, global_download_semaphore
 from .prefetch import global_prefetch_manager
-from .tg_download import fetch_chunk, FileReferenceExpiredError
+from .tg_download import FileReferenceExpiredError, fetch_chunk
 
 logger = logging.getLogger("visuales_bot")
 
@@ -39,7 +40,7 @@ class PyrogramStreamer:
         self.client = client
         self.cached_files: OrderedDict[int, FileInfo] = OrderedDict()
 
-    async def get_file_properties(self, message_id: int) -> Optional[FileInfo]:
+    async def get_file_properties(self, message_id: int) -> FileInfo | None:
         """Obtiene las propiedades de un archivo, con caché."""
         if message_id in self.cached_files:
             return self.cached_files[message_id]
@@ -58,10 +59,12 @@ class PyrogramStreamer:
         logger.debug(f"FileInfo cacheado para message_id {message_id}")
         return file_info
 
-    async def _refresh_file_reference(self, message_id: int) -> Optional[FileInfo]:
+    async def _refresh_file_reference(self, message_id: int) -> FileInfo | None:
         """Vuelve a pedir el mensaje a Telegram para obtener un file_reference fresco."""
         self.cached_files.pop(message_id, None)
-        fresh_info = await get_file_info_by_id(self.client, StreamConfig.BIN_CHANNEL, message_id)
+        fresh_info = await get_file_info_by_id(
+            self.client, StreamConfig.BIN_CHANNEL, message_id
+        )
         if fresh_info:
             self.cached_files[message_id] = fresh_info
             logger.info(f"file_reference refrescado para message_id {message_id}")
@@ -113,30 +116,48 @@ class PyrogramStreamer:
                 chunk = await global_chunk_cache.get(file_info.file_id, current_offset)
 
                 if not chunk:
-                    should_download = await global_coordinator.wait_or_start(file_info.file_id, current_offset)
+                    should_download = await global_coordinator.wait_or_start(
+                        file_info.file_id, current_offset
+                    )
                     if should_download:
                         try:
                             if not session:
-                                session = await self.client.get_session(dc_id, is_media=True)
+                                session = await self.client.get_session(
+                                    dc_id, is_media=True
+                                )
 
                             try:
                                 chunk = await fetch_chunk(
-                                    session, location, current_offset, chunk_size,
-                                    StreamConfig.SLEEP_THRESHOLD, global_download_semaphore,
-                                    StreamConfig.MAX_TELEGRAM_RETRIES, StreamConfig.RETRY_BASE_DELAY,
+                                    session,
+                                    location,
+                                    current_offset,
+                                    chunk_size,
+                                    StreamConfig.SLEEP_THRESHOLD,
+                                    global_download_semaphore,
+                                    StreamConfig.MAX_TELEGRAM_RETRIES,
+                                    StreamConfig.RETRY_BASE_DELAY,
                                 )
                             except FileReferenceExpiredError:
-                                fresh_info = await self._refresh_file_reference(file_info.message_id)
+                                fresh_info = await self._refresh_file_reference(
+                                    file_info.message_id
+                                )
                                 if fresh_info:
                                     file_info.file_id = fresh_info.file_id
                                     file_id = FileId.decode(file_info.file_id)
                                     location = _build_location(file_id)
-                                    session = await self.client.get_session(dc_id, is_media=True)
+                                    session = await self.client.get_session(
+                                        dc_id, is_media=True
+                                    )
                                     try:
                                         chunk = await fetch_chunk(
-                                            session, location, current_offset, chunk_size,
-                                            StreamConfig.SLEEP_THRESHOLD, global_download_semaphore,
-                                            StreamConfig.MAX_TELEGRAM_RETRIES, StreamConfig.RETRY_BASE_DELAY,
+                                            session,
+                                            location,
+                                            current_offset,
+                                            chunk_size,
+                                            StreamConfig.SLEEP_THRESHOLD,
+                                            global_download_semaphore,
+                                            StreamConfig.MAX_TELEGRAM_RETRIES,
+                                            StreamConfig.RETRY_BASE_DELAY,
                                         )
                                     except Exception as e:
                                         # Si vuelve a fallar (incluso con otro
@@ -146,17 +167,25 @@ class PyrogramStreamer:
                                         # el navegador interpretaba como un corte de red
                                         # y disparaba una reconexión que repetía el
                                         # mismo fallo indefinidamente.
-                                        logger.error(f"Fallo también tras refrescar file_reference: {e}")
+                                        logger.error(
+                                            f"Fallo también tras refrescar file_reference: {e}"
+                                        )
                                         chunk = None
                                 else:
                                     chunk = None
 
                             if chunk:
-                                await global_chunk_cache.put(file_info.file_id, current_offset, chunk)
+                                await global_chunk_cache.put(
+                                    file_info.file_id, current_offset, chunk
+                                )
                         finally:
-                            await global_coordinator.finish(file_info.file_id, current_offset)
+                            await global_coordinator.finish(
+                                file_info.file_id, current_offset
+                            )
                     else:
-                        chunk = await global_chunk_cache.get(file_info.file_id, current_offset)
+                        chunk = await global_chunk_cache.get(
+                            file_info.file_id, current_offset
+                        )
 
                 if not chunk:
                     consecutive_failures += 1
@@ -165,7 +194,9 @@ class PyrogramStreamer:
                         f"(fallo consecutivo {consecutive_failures}/{max_consecutive_failures})"
                     )
                     if consecutive_failures >= max_consecutive_failures:
-                        logger.error("Demasiados fallos consecutivos, abortando el stream.")
+                        logger.error(
+                            "Demasiados fallos consecutivos, abortando el stream."
+                        )
                         break
                     # pequeña espera antes de reintentar el mismo offset una vez más
                     await asyncio.sleep(0.3)
@@ -179,9 +210,16 @@ class PyrogramStreamer:
                     prefetch_start_part = first_part + current_part
                     if prefetch_start_offset < file_size:
                         global_prefetch_manager.start_prefetch(
-                            self.client, dc_id, file_info.file_id, location,
-                            prefetch_start_offset, prefetch_start_part, prefetch_count,
-                            chunk_size, file_size, message_id=file_info.message_id,
+                            self.client,
+                            dc_id,
+                            file_info.file_id,
+                            location,
+                            prefetch_start_offset,
+                            prefetch_start_part,
+                            prefetch_count,
+                            chunk_size,
+                            file_size,
+                            message_id=file_info.message_id,
                             refresh_callback=self._refresh_file_reference,
                         )
 

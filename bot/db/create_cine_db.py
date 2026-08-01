@@ -1,37 +1,42 @@
-from sqlmodel import SQLModel, Field, create_engine, Column, JSON, BigInteger
-from typing import Optional, List
-import os
 import logging
+import os
+
+from sqlmodel import JSON, BigInteger, Column, Field, SQLModel, create_engine
 
 # Logger
 logger = logging.getLogger(__name__)
 
+
 # Movies database (the name is game cuz this is the same code used in games library first version bot)
-class Game(SQLModel, table = True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+class Game(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
     name: str = Field(default=None)
-    file_ids: List[int] = Field(sa_column=Column(JSON))
-    
+    file_ids: list[int] = Field(sa_column=Column(JSON))
+
+
 # Users database
-class Users(SQLModel, table = True):
-    id: Optional[int] = Field(sa_type=BigInteger, default=None, primary_key=True)
-    username: Optional[str] = Field(default=None)
+class Users(SQLModel, table=True):
+    id: int | None = Field(sa_type=BigInteger, default=None, primary_key=True)
+    username: str | None = Field(default=None)
     rest_tries: int = Field(default=5)
     is_admin: bool = Field(default=False)
     premium_user: bool = Field(default=False)
-    premium_expires: Optional[int] = Field(default=None)
+    premium_expires: int | None = Field(default=None)
     int_downloaded: int = Field(default=0)
 
+
 # Posts database to save and show posts when user or admin needs it
-class Post(SQLModel, table = True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+class Post(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
     movie_name: str = Field(default=None)
     link: str = Field(default=None)
+
 
 cine_engine = create_engine("sqlite:///./bot/core/cine.db")
 # users_engine = create_engine("sqlite:///./bot/core/users.db")
 users_engine = create_engine(os.getenv("USER_DB"))
 posts_engine = create_engine(os.getenv("POSTGRE_DB_URL"))
+
 
 def create_db():
     if not os.path.exists("./bot/core/cine.db"):

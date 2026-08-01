@@ -1,33 +1,41 @@
-from dataclasses import dataclass
-from typing import Optional
-from pyrogram import Client
-from pyrogram.types import Message
-from .config import StreamConfig
 import hashlib
 import logging
 import os
 import re
+from dataclasses import dataclass
 
+from pyrogram import Client
+from pyrogram.types import Message
+
+from .config import StreamConfig
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class FileInfo:
     """Información de un archivo de Telegram necesaria para el streaming."""
 
-    __slots__ = ("file_size", "mime_type", "file_name", "file_id", "message_id", "duration")
+    __slots__ = (
+        "duration",
+        "file_id",
+        "file_name",
+        "file_size",
+        "message_id",
+        "mime_type",
+    )
 
     file_size: int
     mime_type: str
     file_name: str
-    file_id: str 
+    file_id: str
     message_id: int
     duration: int  # in seconds
 
 
-def get_file_info(message: Message) -> Optional[FileInfo]:
+def get_file_info(message: Message) -> FileInfo | None:
     """Extrae FileInfo de un mensaje de Pyrogram."""
-    
+
     if message.document:
         media = message.document
         return FileInfo(
@@ -40,7 +48,7 @@ def get_file_info(message: Message) -> Optional[FileInfo]:
         )
     elif message.video:
         media = message.video
-        patron = r'video_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}'
+        patron = r"video_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}"
 
         name = media.file_name or f"video_{message.id}.mp4"
         if media.file_name:
@@ -102,7 +110,7 @@ def get_file_info(message: Message) -> Optional[FileInfo]:
 
 async def get_file_info_by_id(
     client: Client, chat_id: int, message_id: int
-) -> Optional[FileInfo]:
+) -> FileInfo | None:
     """Obtiene FileInfo de un mensaje por su ID."""
     message = await client.get_messages(chat_id, message_id)
     if not message or message.empty:
@@ -115,9 +123,9 @@ def pack_file(file_name: str, file_size: int, mime_type: str, message_id: int) -
     hasher = hashlib.md5()
     for field in [file_name, str(file_size), mime_type, str(message_id)]:
         hasher.update(field.encode(encoding="utf-8"))
-    
-    logger.info(f"Creado: {hasher.hexdigest()}")    
-    
+
+    logger.info(f"Creado: {hasher.hexdigest()}")
+
     return hasher.hexdigest()
 
 

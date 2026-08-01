@@ -1,12 +1,14 @@
-import time
 import logging
 import mimetypes
+import os
+import time
 from collections import defaultdict
+
 from aiohttp import web
 from aiohttp.http_exceptions import BadStatusLine
-import os
+
 from .config import StreamConfig
-from .file_properties import pack_file, get_short_hash
+from .file_properties import get_short_hash, pack_file
 from .streamer import PyrogramStreamer
 from .web.html import create_html
 
@@ -105,11 +107,23 @@ async def watch_handler(request: web.Request):
             return web.Response(status=404, text="Archivo no encontrado")
 
         # Verificaciones antes del hash
-        logger.info("Nombre del archivo a stremear antes de crear hash: " + str(file_info.file_name))
-        logger.info("Tamanho del archivo a stremear antes de crear hash: " + str(file_info.file_size))
-        logger.info("MimeType del archivo a stremear antes de crear hash: " + str(file_info.mime_type))
-        logger.info("Message ID del archivo a stremear antes de crear hash: " + str(file_info.message_id))
-        
+        logger.info(
+            "Nombre del archivo a stremear antes de crear hash: "
+            + str(file_info.file_name)
+        )
+        logger.info(
+            "Tamanho del archivo a stremear antes de crear hash: "
+            + str(file_info.file_size)
+        )
+        logger.info(
+            "MimeType del archivo a stremear antes de crear hash: "
+            + str(file_info.mime_type)
+        )
+        logger.info(
+            "Message ID del archivo a stremear antes de crear hash: "
+            + str(file_info.message_id)
+        )
+
         # Verificar hash
         full_hash = pack_file(
             file_info.file_name,
@@ -117,15 +131,15 @@ async def watch_handler(request: web.Request):
             file_info.mime_type,
             file_info.message_id,
         )
-        
+
         logger.info("Full hash: " + full_hash)
         logger.info("Short Hash: " + get_short_hash(full_hash))
         logger.info("Secure hash: " + secure_hash)
-        
+
         if get_short_hash(full_hash) != secure_hash:
             # patch por si todo explota
             # secure_hash = get_short_hash(full_hash)
-            
+
             return web.HTTPForbidden(text="Hash inválido")
 
         stream_url = f"{StreamConfig.URL}stream/{message_id}?hash={secure_hash}"
@@ -144,12 +158,18 @@ async def stream_handler(request: web.Request):
         message_id = int(request.match_info["messageID"])
         secure_hash = request.rel_url.query.get("hash")
         logger.info(f"--- Recibida petición HTTP para /stream/{message_id} ---")
-        
+
         return await media_streamer(request, message_id, secure_hash)
-    
-    except (AttributeError, BadStatusLine, ConnectionResetError, ConnectionAbortedError, ConnectionError):
+
+    except (
+        AttributeError,
+        BadStatusLine,
+        ConnectionResetError,
+        ConnectionAbortedError,
+        ConnectionError,
+    ):
         return web.Response(status=204)
-    
+
     except Exception as e:
         logger.critical(str(e), exc_info=True)
         raise web.HTTPInternalServerError(text=str(e))
@@ -230,7 +250,7 @@ async def media_streamer(request: web.Request, message_id: int, secure_hash: str
         ".mkv": "video/x-matroska",
         ".webm": "video/webm",
         ".mov": "video/quicktime",
-        ".avi": "video/x-msvideo"
+        ".avi": "video/x-msvideo",
     }
 
     if ext in video_mimes:

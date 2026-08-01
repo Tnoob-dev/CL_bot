@@ -1,10 +1,11 @@
 from __future__ import annotations
-from ..file_properties import FileInfo
+
 import html as html_lib
 import json
 import re
 from pathlib import Path
 
+from ..file_properties import FileInfo
 
 _ROOT = Path(__file__).resolve().parent
 _CSS_PATH = _ROOT / "static" / "css" / "player.css"

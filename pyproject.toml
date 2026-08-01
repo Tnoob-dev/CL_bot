@@ -64,3 +64,9 @@ reportUnusedVariable = "none"
 reportMissingImports = "none"
 reportGeneralTypeIssues = "none"
 reportOptionalMemberAccess = "none"
+
+[tool.ty.src]
+root = "./bot"
+
+[tool.ty.rules]
+all = "ignore"

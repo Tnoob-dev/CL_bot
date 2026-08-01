@@ -1,48 +1,51 @@
 # BOT CLIENT
-from entry.entry import bot
-# LOGGING
-import logging
-
 # misc
 import asyncio
 
+# LOGGING
+import logging
+
+from commands.Collection import collect_messages, end_collection
+from commands.Fusion import fusion_posts
+
 # COMMAND FUNCTIONS
 from commands.Hello import hello
-from commands.Collection import collect_messages, end_collection
 from commands.InfoPosts import info_posts
-from commands.Misc import (help_command,
-                           count_users, 
-                           send_admin_message, 
-                           ascend_to_admin, 
-                           get_top10, 
-                           make_old_posts, 
-                           donations,
-                           convert_user_premium)
+from commands.Misc import (
+    ascend_to_admin,
+    convert_user_premium,
+    count_users,
+    donations,
+    get_top10,
+    help_command,
+    make_old_posts,
+    send_admin_message,
+)
 from commands.Order import get_orders
 from commands.Posts import create_posts, remove_posts
-from commands.SearchPosts import search_posts
-from commands.Subtitles import search_subtitles
-from commands.Publicity import publi_command
-from commands.Fusion import fusion_posts
-from commands.Stream import stream_handler
 from commands.Profile import profile_panel
+from commands.Publicity import publi_command
+from commands.SearchPosts import search_posts
+from commands.Stream import stream_handler
+from commands.Subtitles import search_subtitles
 
 # MAIN FUNCTIONS
 from db.create_cine_db import create_db
+from entry.entry import bot
+from pyrogram.handlers.callback_query_handler import CallbackQueryHandler
+from pyrogram.handlers.inline_query_handler import InlineQueryHandler
 
 # PYRO
 from pyrogram.handlers.message_handler import MessageHandler
-from pyrogram.handlers.callback_query_handler import CallbackQueryHandler
-from pyrogram.handlers.inline_query_handler import InlineQueryHandler
 
 # QUERY FUNCTIONS
 from queries.cb_queries import query_manager, save_user_photo
 from queries.inline_queries import inline_answer
+from stream.config import StreamConfig
 
 # STREAM
 from stream.server import start_stream_server
 from stream.tunnel import start_cloudflare_tunnel
-from stream.config import StreamConfig
 
 # Logging config
 logging.basicConfig(
@@ -84,6 +87,7 @@ bot.add_handler(MessageHandler(save_user_photo))
 bot.add_handler(CallbackQueryHandler(query_manager))
 bot.add_handler(InlineQueryHandler(inline_answer))
 
+
 async def main():
     # Primero configura el tunnel si es necesario
     if "localhost" in StreamConfig.URL or "127.0.0.1" in StreamConfig.URL:
@@ -104,6 +108,7 @@ async def main():
     logger.info("Bot started")
 
     await asyncio.Event().wait()
+
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()

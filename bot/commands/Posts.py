@@ -1,25 +1,28 @@
+import logging
+import os
+from ast import literal_eval
+
+from db.create_cine_db import Post
 from entry.entry import bot
 from pyrogram.client import Client
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.filters import command, private
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from utils.db_reqs import delete_post, get_post_by_id, insert_post
 from utils.functions import check_administration, clean_name
-from utils.db_reqs import insert_post, delete_post, get_post_by_id
-from db.create_cine_db import Post
-from ast import literal_eval
-import os
-import logging
 
 # Logger
 logger = logging.getLogger(__name__)
+
 
 @bot.on_message(command("post", prefixes=["/"]) & private)
 async def create_posts(client: Client, message: Message):
 
     try:
         if check_administration(message):
-
             if not message.reply_to_message or not message.reply_to_message.photo:
-                await message.reply("Responde a un mensaje con foto para crear el post.")
+                await message.reply(
+                    "Responde a un mensaje con foto para crear el post."
+                )
                 return
 
             post = message.reply_to_message.photo.file_id
@@ -35,17 +38,25 @@ async def create_posts(client: Client, message: Message):
                 caption=description,
                 reply_markup=InlineKeyboardMarkup(
                     [
-                        [InlineKeyboardButton(text=content[0], url=content[1])] for content in links
+                        [InlineKeyboardButton(text=content[0], url=content[1])]
+                        for content in links
                     ]
-                )
+                ),
             )
 
-            await m.edit(f"⏩Post Enviado\n🆔ID: {sent.id}",
-                         reply_markup=InlineKeyboardMarkup(
-                             [
-                                 [InlineKeyboardButton("Eliminar del canal y la BD", callback_data=f"remove_{sent.id}")]
-                             ]
-                         ))
+            await m.edit(
+                f"⏩Post Enviado\n🆔ID: {sent.id}",
+                reply_markup=InlineKeyboardMarkup(
+                    [
+                        [
+                            InlineKeyboardButton(
+                                "Eliminar del canal y la BD",
+                                callback_data=f"remove_{sent.id}",
+                            )
+                        ]
+                    ]
+                ),
+            )
             os.remove(pic)
 
             sent_id = sent.id
@@ -55,7 +66,7 @@ async def create_posts(client: Client, message: Message):
                 Post(
                     id=sent_id,
                     movie_name=name_cleaned,
-                    link=f"https://t.me/{os.getenv("CINEMA_ID")}/{sent_id}"
+                    link=f"https://t.me/{os.getenv('CINEMA_ID')}/{sent_id}",
                 )
             )
 
@@ -67,27 +78,24 @@ async def create_posts(client: Client, message: Message):
 
 @bot.on_message(command("delpost", prefixes=["/"]) & private)
 async def remove_posts(client: Client, message: Message):
-    
+
     user_command = message.command
     clibrary = os.getenv("CINEMA_ID")
 
-    if check_administration(message):
-        if len(user_command) >= 2:
-            
-            post_id = int(user_command[-1])
-            post = get_post_by_id(post_id)
+    if check_administration(message) and len(user_command) >= 2:
+        post_id = int(user_command[-1])
+        post = get_post_by_id(post_id)
 
-            boolean, msg = delete_post(post_id)
-            
-            if not boolean:
-                await message.reply(f"❌{msg}❌")
-            else:
-                await client.delete_messages(chat_id=clibrary, 
-                                            message_ids=post_id)
-                
-                await message.reply("✅Post eliminado de la base de datos y el canal✅")
-                
-                await client.send_message(
-                    chat_id=int(os.getenv("OWNER_ID")),
-                    text=f"El administrador {message.from_user.mention} ha eliminado __{post.movie_name}__ de la db"
-                )
+        boolean, msg = delete_post(post_id)
+
+        if not boolean:
+            await message.reply(f"❌{msg}❌")
+        else:
+            await client.delete_messages(chat_id=clibrary, message_ids=post_id)
+
+            await message.reply("✅Post eliminado de la base de datos y el canal✅")
+
+            await client.send_message(
+                chat_id=int(os.getenv("OWNER_ID")),
+                text=f"El administrador {message.from_user.mention} ha eliminado __{post.movie_name}__ de la db",
+            )
