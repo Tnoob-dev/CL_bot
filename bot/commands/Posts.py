@@ -44,22 +44,18 @@ async def create_posts(client: Client, message: Message):
             audience_url = rt_info.get("audience").get("reviews_links")
             
             links = literal_eval(message.text[6:])
+            
+            keyboard = [InlineKeyboardButton(text="Rotten Tomatoes 🍅 Reviews", url=rt_url), InlineKeyboardButton(text="Review de la Audiencia🙋", url=audience_url)]
 
+            for content in links:
+                
+                keyboard.append([InlineKeyboardButton(text=content[0], url=content[1])])
+            
             sent = await client.send_photo(
                 chat_id=os.getenv("CINEMA_ID"),
                 photo=pic,
                 caption=description.markdown,
-                reply_markup=InlineKeyboardMarkup(
-                    [
-                        [
-                            InlineKeyboardButton(text="Rotten Tomatoes 🍅 Reviews", url=rt_url),
-                            InlineKeyboardButton(text="Review de la Audiencia🙋", url=audience_url)
-                        ],
-                        *[
-                            [InlineKeyboardButton(text=content[0], url=content[1])]
-                            for content in links
-                    ]]
-                ),
+                reply_markup=InlineKeyboardMarkup([keyboard]),
             )
 
             await m.edit(
