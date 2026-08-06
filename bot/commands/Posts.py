@@ -51,12 +51,9 @@ async def create_posts(client: Client, message: Message):
                     InlineKeyboardButton(text="Review de la Audiencia 🙋", url=audience_url)
                 ]
             ]
-
-            for content in links:
-                keyboard.append(
-                    [InlineKeyboardButton(text=content[0], url=content[1])]
-                )
-
+            
+            keyboard.extend([InlineKeyboardButton(text=content[0], url=content[1])] for content in links)
+            
             sent = await client.send_photo(
                 chat_id=os.getenv("CINEMA_ID"),
                 photo=pic,
