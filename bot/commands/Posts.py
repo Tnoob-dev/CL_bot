@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 from ast import literal_eval
 
 from db.create_cine_db import Post
@@ -9,6 +10,7 @@ from pyrogram.filters import command, private
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from utils.db_reqs import delete_post, get_post_by_id, insert_post
 from utils.functions import check_administration, clean_name
+from utils.rt_client import info
 
 # Logger
 logger = logging.getLogger(__name__)
@@ -29,18 +31,34 @@ async def create_posts(client: Client, message: Message):
 
             m = await message.reply("Descargando imagen, creando post y enviando...")
             pic = await client.download_media(post, file_name="./posts/")
-            description = message.reply_to_message.caption.markdown
+            description = message.reply_to_message.caption
+            
+            if description.startswith("🎬"):
+                title = re.search(r"^🎬\s*(.*?)\s*🎬$", description, re.MULTILINE).group(1).split("|")
+            else:
+                title = re.search(r"^🎭\s*(.*?)\s*🎭$$", description, re.MULTILINE).group(1).split("|")
+            
+            rt_info = await info(title[0])
+            
+            rt_url = rt_info.get("tomatoes").get("reviews_links")
+            audience_url = rt_info.get("audience").get("reviews_links")
+            
             links = literal_eval(message.text[6:])
 
             sent = await client.send_photo(
                 chat_id=os.getenv("CINEMA_ID"),
                 photo=pic,
-                caption=description,
+                caption=description.markdown,
                 reply_markup=InlineKeyboardMarkup(
                     [
-                        [InlineKeyboardButton(text=content[0], url=content[1])]
-                        for content in links
-                    ]
+                        [
+                            InlineKeyboardButton(text="Rotten Tomatoes 🍅 Reviews", url=rt_url),
+                            InlineKeyboardButton(text="Review de la Audiencia🙋", url=audience_url)
+                        ],
+                        *[
+                            [InlineKeyboardButton(text=content[0], url=content[1])]
+                            for content in links
+                    ]]
                 ),
             )
 

@@ -22,6 +22,7 @@ from utils.functions import (
     translate_words,
 )
 from utils.movie_search import get_info_by_id
+from utils.rt_client import info
 from utils.search_subts import download_subs
 
 # Logger
@@ -122,9 +123,9 @@ async def query_manager(client: Client, query: CallbackQuery):
                 chat_id=os.getenv("ORDERS_ID"),
                 text=(
                     f"🎟Nueva solicitud:\n\n"
-                    f"**Pedido**: __{user_message}__\n"
-                    f"**Usuario**: {query.from_user.mention} (__{user_id_cb}__)\n"
-                    f"**Link**: https://t.me/{group_chat}/{message_replied_id}"
+                    f"📩**Pedido**: <code>{user_message}</code>\n"
+                    f"👤**Usuario**: {query.from_user.mention} (__{user_id_cb}__)\n"
+                    f"🔗**Link**: https://t.me/{group_chat}/{message_replied_id}"
                 ),
                 reply_markup=InlineKeyboardMarkup(
                     [
@@ -207,11 +208,23 @@ async def query_manager(client: Client, query: CallbackQuery):
         plot = movie.get("plot")
         synopsis = await translate_synopsis(plot) if plot is not None else ""
         image = movie.get("primaryImage")
+        
+        rt_info = await info(title)
+        
+        if rt_info is not None:
+            tomato = rt_info.get("tomatoes")
+            audience = rt_info.get("audience")
 
         if kind == "movie":
             template += f"🎬 **{title}** | **{title_translated if title_translated is not None else title}** 🎬\n"
             template += f"🗓 Año: **{year}**\n"
             template += f"⭐️Rating: **{rating['aggregateRating'] if rating is not None else '-'}/10**\n"
+            
+            if tomato is not None:
+                template += f"🍅Rotten Tomatoes: **{tomato.get("percentage")} ({tomato.get("reviews")})**\n"
+            if audience is not None:
+                template += f"👤Audiencia: **{audience.get("percentage")} ({audience.get("reviews")})**\n"
+            
             template += f"⏱️ Duración: **{duration} minutos**\n"
             template += f"📚 Género: **{genres}**\n"
             template += f"\n<blockquote expandable><strong>{synopsis if synopsis is not None else plot}</strong></blockquote>\n"
@@ -219,6 +232,12 @@ async def query_manager(client: Client, query: CallbackQuery):
             template += f"🎭 **{title}** | **{title_translated if title_translated is not None else title}** 🎭\n"
             template += f"🗓 Año: **{year}**\n"
             template += f"⭐️Rating: **{rating['aggregateRating'] if rating is not None else '-'}/10**\n"
+            
+            if tomato is not None:
+                template += f"🍅Rotten Tomatoes: **{tomato.get("percentage")} ({tomato.get("reviews")})**\n"
+            if audience is not None:
+                template += f"👤Audiencia: **{audience.get("percentage")} ({audience.get("reviews")})**\n"
+            
             template += f"⏱️ Duración: **{duration} minutos por episodio**\n"
             template += f"🎨 Géneros: **{genres}**\n"
             template += f"\n<blockquote expandable><strong>{synopsis if synopsis is not None else plot}</strong></blockquote>\n"
