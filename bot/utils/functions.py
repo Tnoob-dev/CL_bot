@@ -3,6 +3,7 @@ import json
 import logging
 import os
 from pathlib import Path
+from typing import BinaryIO, List
 
 from db.create_cine_db import Game
 from deep_translator import GoogleTranslator
@@ -25,7 +26,7 @@ from .db_reqs import get_user, insert
 logger = logging.getLogger(__name__)
 
 # check if a path or file exists
-def check_existence(path: Path):
+def check_existence(path: Path) -> bool:
     return not path.exists()
 
 # check if a user is admin
@@ -60,7 +61,7 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
         logger.error(f"Error inesperado en check_user_in_channel: {e}")
         return False
 
-async def forward_messages(client: Client, messages: list[int]):
+async def forward_messages(client: Client, messages: list[int]) -> list[int]:
     new_ids = []
 
     for message_id in messages:
@@ -116,14 +117,14 @@ def clear_path(path: str) -> None:
             for file in files:
                 os.remove(path + file)
 
-def get_clicked_button_text(query: CallbackQuery):
+def get_clicked_button_text(query: CallbackQuery) -> str | None:
     key = query.data
 
     for markup in query.message.reply_markup.inline_keyboard:
         if markup[0].callback_data == key:
             return markup[0].text
 
-async def download_tg_files(client: Client, file_id: str, username: str):
+async def download_tg_files(client: Client, file_id: str, username: str) -> str | BinaryIO | List[str | BinaryIO] | None:
     os.makedirs("./images_downloaded", exist_ok=True)
     full_path = await client.download_media(file_id, file_name=f"./images_downloaded/{username}.jpg")
 
@@ -157,7 +158,7 @@ Por favor, traduce la siguiente sinopsis de película o serie del inglés al esp
     except Exception as e:
         logger.error(f"Error: {e}")
 
-async def translate_title(title: str):
+async def translate_title(title: str) -> str | None:
     client = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
 
     prompt = f"""

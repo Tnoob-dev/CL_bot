@@ -55,7 +55,7 @@ async def get_orders(client: Client, message: Message):
 
             await client.send_message(
                 chat_id="CinemaOrders",
-                text=f"🎟Nueva solicitud:\n\n**Pedido**: __{user_message}__\n**Usuario**: {message.from_user.mention} (__{user_id}__)\n**Link**: {message.link}",
+                text=f"🎟Nueva solicitud:\n\n📩**Pedido**: <code>{user_message}</code>\n👤**Usuario**: {message.from_user.mention} (__{user_id}__)\n🔗**Link**: {message.link}",
                 reply_markup=InlineKeyboardMarkup(
                     [
                         [
