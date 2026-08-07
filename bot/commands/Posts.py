@@ -33,23 +33,23 @@ async def create_posts(client: Client, message: Message):
             pic = await client.download_media(post, file_name="./posts/")
             description = message.reply_to_message.caption
             
-            if description.startswith("🎬"):
-                title = re.search(r"^🎬\s*(.*?)\s*🎬$", description, re.MULTILINE).group(1).split("|")
-            else:
-                title = re.search(r"^🎭\s*(.*?)\s*🎭$$", description, re.MULTILINE).group(1).split("|")
+            # if description.startswith("🎬"):
+            #     title = re.search(r"^🎬\s*(.*?)\s*🎬$", description, re.MULTILINE).group(1).split("|")
+            # else:
+            #     title = re.search(r"^🎭\s*(.*?)\s*🎭$$", description, re.MULTILINE).group(1).split("|")
             
-            rt_info = await info(title[0])
+            # rt_info = await info(title[0])
             
-            rt_url = rt_info.get("tomatoes").get("reviews_link")
-            audience_url = rt_info.get("audience").get("reviews_link")
+            # rt_url = rt_info.get("tomatoes").get("reviews_link")
+            # audience_url = rt_info.get("audience").get("reviews_link")
             
             links = literal_eval(message.text[6:])
             
             keyboard = [
-                [
-                    InlineKeyboardButton(text="Rotten Tomatoes 🍅 Reviews", url=rt_url),
-                    InlineKeyboardButton(text="Review de la Audiencia 🙋", url=audience_url)
-                ]
+                # [
+                #     InlineKeyboardButton(text="Rotten Tomatoes 🍅 Reviews", url=rt_url),
+                #     InlineKeyboardButton(text="Review de la Audiencia 🙋", url=audience_url)
+                # ]
             ]
             
             keyboard.extend([InlineKeyboardButton(text=content[0], url=content[1])] for content in links)
