@@ -40,8 +40,8 @@ async def create_posts(client: Client, message: Message):
             
             rt_info = await info(title[0])
             
-            rt_url = rt_info.get("tomatoes").get("reviews_links")
-            audience_url = rt_info.get("audience").get("reviews_links")
+            rt_url = rt_info.get("tomatoes").get("reviews_link")
+            audience_url = rt_info.get("audience").get("reviews_link")
             
             links = literal_eval(message.text[6:])
             

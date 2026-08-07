@@ -109,9 +109,9 @@ async def find_scorecard(soup: BeautifulSoup) -> Optional[dict[str, dict]]:
         rt_audience_reviews = media_scorecard.find_next("rt-link", {"slot": "audience-reviews"})
     
     rt_audience_reviews_count = rt_audience_reviews.text.replace("+ Verified Ratings", "").replace("+ Ratings", "").strip().replace(",", "")
-    rt_audience_reviews_links = f"{URL}{rt_audience_reviews.get("href")}"
+    rt_audience_reviews_link = f"{URL}{rt_audience_reviews.get("href")}"
     
-    score_info["audience"] = {"percentage": rt_auience_percentage.text.strip(), "reviews": rt_audience_reviews_count, "reviews_links": rt_audience_reviews_links}
+    score_info["audience"] = {"percentage": rt_auience_percentage.text.strip(), "reviews": rt_audience_reviews_count, "reviews_link": rt_audience_reviews_link}
         
     return score_info
     
