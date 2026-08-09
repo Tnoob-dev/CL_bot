@@ -77,7 +77,7 @@ async def create_posts(client: Client, message: Message):
             os.remove(pic)
 
             sent_id = sent.id
-            name_cleaned = clean_name(sent.caption)
+            name_cleaned = await clean_name(sent.caption)
 
             insert_post(
                 Post(
