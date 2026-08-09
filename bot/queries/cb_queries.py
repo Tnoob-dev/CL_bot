@@ -201,7 +201,7 @@ async def query_manager(client: Client, query: CallbackQuery):
         time_in_seconds = movie.get("runtimeSeconds")
         duration = int(time_in_seconds / 60) if time_in_seconds is not None else "-"
         genres = (
-            ", ".join(translate_words(words=movie.get("genres")))
+            ", ".join(await translate_words(words=movie.get("genres")))
             if movie.get("genres") is not None
             else movie.get("genres")
         )

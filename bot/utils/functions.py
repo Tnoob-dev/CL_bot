@@ -199,14 +199,52 @@ Actúa como un traductor especializado en localización cinematográfica. Tu tar
     except Exception as e:
         logger.error(f"Error: {e}")
 
-def translate_words(words: list[str], target_lang: str = "es") -> list[str]:
+async def translate_words(words: list[str], target_lang: str = "es") -> list[str]:
+    
+    words_dict = {
+        'Action': 'Acción', 
+        'Family': 'Familia', 
+        'Mystery': 'Misterio', 
+        'Sci-Fi': 'Ciencia ficción',
+        'Documentary': "Documental",
+        'Romance': 'Romance', 
+        'Drama/Romance': 'Drama/Romance',
+        'Fantasy': 'Fantasía', 
+        'Adventure': 'Aventura',
+        'Suspense': 'Suspenso', 
+        'Crime': 'Crimen', 
+        'Comedy': 'Comedia',
+        'War': 'Guerra', 
+        'Romance': 'Romance',
+        'Horror': 'Horror',
+        'Sci-Fi & Fantasy': 'Ciencia ficción & Fantasía',
+        'Sobrenatural': 'Sobrenatural', 
+        'Terror/Mystery': 'Terror/Misterio', 
+        'Drama': 'Drama',
+        'Musical': 'Música', 
+        'Animation': 'Animación', 
+        'Thriller': 'Thriller',
+        'History': 'Historia', 
+        'Biography': 'Biografía',
+        'Terror': 'Terror',
+        'Sport': 'Deporte', 
+        'Short': 'Corto',
+        }
+    
     translator = GoogleTranslator(source="auto", target=target_lang)
 
-    results = [translator.translate(word) for word in words]
+    results = []
+    
+    for word in words:
+        try:
+            results.append(words_dict[word])
+        except KeyError:
+            results.append(translator.translate(word))
+            await asyncio.sleep(.5)
 
     return results
 
-def clean_name(text: str):
+async def clean_name(text: str):
 
     splitted_text = text.split("\n")
     title = splitted_text[0]
@@ -272,7 +310,7 @@ async def generate_stream_link(target_message: Message) -> list[list[InlineKeybo
 
     return buttons
 
-def gen_ids(id1: int, id2: int = None) -> list[int]:
+async def gen_ids(id1: int, id2: int = None) -> list[int]:
 
     if id2 is None:
         return [id1]

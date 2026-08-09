@@ -275,10 +275,10 @@ async def make_old_posts(client: Client, message: Message):
 
             try:
                 if len(parts) == 1:
-                    generated_id = gen_ids(int(parts[0]))
+                    generated_id = await gen_ids(int(parts[0]))
                 else:
                     inicio, final = int(parts[0]), int(parts[1])
-                    generated_id = gen_ids(inicio, final)
+                    generated_id = await gen_ids(inicio, final)
             except ValueError:
                 errores.append(f"Línea {i}: IDs no numéricos ➜ '{line}'")
                 continue
@@ -296,9 +296,9 @@ async def make_old_posts(client: Client, message: Message):
 
         match len(message.command):
             case 2:
-                generated_id = gen_ids(int(message.command[-1]))
+                generated_id = await gen_ids(int(message.command[-1]))
             case 3:
-                generated_id = gen_ids(
+                generated_id = await gen_ids(
                     int(message.command[1]), int(message.command[-1])
                 )
 
