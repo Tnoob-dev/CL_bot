@@ -1,11 +1,41 @@
+"""
+player.py — HTML player document builder (Plyr shell).
+
+Reads ``static/css/player.css`` and ``static/js/player.js`` (beside this file)
+and returns one portable HTML document via ``create_html``.
+
+Host usage (same as original)::
+
+    from player import create_html
+    html = create_html(file_info, stream_url)
+
+``file_info`` is duck-typed: needs ``file_name``, ``file_size``, ``mime_type``.
+Extra host fields (``file_id``, ``message_id``, ``duration``, …) are ignored.
+"""
+
 from __future__ import annotations
 
 import html as html_lib
 import json
 import re
+from dataclasses import dataclass
 from pathlib import Path
 
-from ..file_properties import FileInfo
+
+@dataclass
+class FileInfo:
+    """Minimal file metadata for the player shell.
+
+    Compatible with the host Telegram ``FileInfo`` (duck typing). Only
+    ``file_name``, ``file_size``, and ``mime_type`` are read; other slots
+    such as ``file_id``, ``message_id``, and ``duration`` may exist and are
+    ignored here.
+    """
+
+    file_name: str
+    file_size: int
+    mime_type: str | None = None
+
 
 _ROOT = Path(__file__).resolve().parent
 _CSS_PATH = _ROOT / "static" / "css" / "player.css"
@@ -353,7 +383,7 @@ def create_html(
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="{THEME_COLOR}">
   <meta name="color-scheme" content="dark">
-  <title>{name} · Cinema Library</title>
+  <title>{name} · CinemaLibrary</title>
   <link rel="stylesheet" href="{PLYR_CSS_URL}">
   {styles()}
 </head>
@@ -362,7 +392,7 @@ def create_html(
     <header class="topbar">
       <div class="brand">
         <span class="brand-mark" aria-hidden="true">{ICON_PLAY}</span>
-        <span class="brand-name" data-i18n="brand">Cinema Library</span>
+        <span class="brand-name" data-i18n="brand">CinemaLibrary</span>
       </div>
     </header>
 
