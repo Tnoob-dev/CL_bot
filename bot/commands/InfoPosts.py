@@ -66,6 +66,7 @@ async def info_posts(client: Client, message: Message):
                             )]
                                 )
                     
+                    
                     await m.delete()
                     await message.reply(
                         "IMDB no esta funcionando, asi que busque por TMDB.\n\nSe han encontrado los siguientes resultados⬇️",
