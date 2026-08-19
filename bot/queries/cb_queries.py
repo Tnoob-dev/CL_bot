@@ -21,7 +21,7 @@ from utils.functions import (
     translate_title,
     translate_words,
 )
-from utils.movie_search import get_info_by_id
+from utils.movie_search import get_info_by_id, get_movie_info_by_id_tmdb, get_tv_info_by_id_tmdb
 from utils.rt_client import info
 from utils.search_subts import download_subs
 
@@ -186,76 +186,187 @@ async def query_manager(client: Client, query: CallbackQuery):
         data = query.data.split("_")
         template = ""
 
-        movie = await get_info_by_id(data[1])
+        if data[1] == "imdb":
+            movie = await get_info_by_id(data[-1])
 
-        kind = (
-            "movie"
-            if movie["type"].lower() == "movie" or movie["type"].lower() == "tvmovie"
-            else "serie"
-        )
+            kind = (
+                "movie"
+                if movie.get("type").lower() == "movie" or movie.get("type").lower() == "tvmovie"
+                else "serie"
+            )
 
-        title = movie.get("primaryTitle")
-        title_translated = await translate_title(title)
-        year = movie.get("startYear")
-        rating = movie.get("rating")
-        time_in_seconds = movie.get("runtimeSeconds")
-        duration = int(time_in_seconds / 60) if time_in_seconds is not None else "-"
-        genres = (
-            ", ".join(await translate_words(words=movie.get("genres")))
-            if movie.get("genres") is not None
-            else movie.get("genres")
-        )
-        plot = movie.get("plot")
-        synopsis = await translate_synopsis(plot) if plot is not None else ""
-        image = movie.get("primaryImage")
-        
-        # rt_info = await info(title)
-        
-        # if rt_info is not None:
-        #     tomato = rt_info.get("tomatoes")
-        #     audience = rt_info.get("audience")
-
-        if kind == "movie":
-            template += f"🎬 **{title}** | **{title_translated if title_translated is not None else title}** 🎬\n"
-            template += f"🗓 Año: **{year}**\n"
-            template += f"⭐️Rating: **{rating['aggregateRating'] if rating is not None else '-'}/10**\n"
+            title = movie.get("primaryTitle")
+            title_translated = await translate_title(title)
+            year = movie.get("startYear")
+            rating = movie.get("rating")
+            time_in_seconds = movie.get("runtimeSeconds")
+            duration = int(time_in_seconds / 60) if time_in_seconds is not None else "-"
+            genres = (
+                ", ".join(await translate_words(words=movie.get("genres")))
+                if movie.get("genres") is not None
+                else movie.get("genres")
+            )
+            plot = movie.get("plot")
+            synopsis = await translate_synopsis(plot) if plot is not None else ""
+            image = movie.get("primaryImage")
             
-            # if tomato is not None:
-            #     template += f"🍅Rotten Tomatoes: **{tomato.get("percentage")} ({tomato.get("reviews")})**\n"
-            # if audience is not None:
-            #     template += f"👤Audiencia: **{audience.get("percentage")} ({audience.get("reviews")})**\n"
+            # rt_info = await info(title)
             
-            template += f"⏱️ Duración: **{duration} minutos**\n"
-            template += f"📚 Género: **{genres}**\n"
-            template += f"\n<blockquote expandable><strong>{synopsis if synopsis is not None else plot}</strong></blockquote>\n"
+            # if rt_info is not None:
+            #     tomato = rt_info.get("tomatoes")
+            #     audience = rt_info.get("audience")
+
+            if kind == "movie":
+                template += f"🎬 **{title}** | **{title_translated if title_translated is not None else title}** 🎬\n"
+                template += f"🗓 Año: **{year}**\n"
+                template += f"⭐️Rating: **{rating['aggregateRating'] if rating is not None else '-'}/10**\n"
+                
+                # if tomato is not None:
+                #     template += f"🍅Rotten Tomatoes: **{tomato.get("percentage")} ({tomato.get("reviews")})**\n"
+                # if audience is not None:
+                #     template += f"👤Audiencia: **{audience.get("percentage")} ({audience.get("reviews")})**\n"
+                
+                template += f"⏱️ Duración: **{duration} minutos**\n"
+                template += f"📚 Género: **{genres}**\n"
+                template += f"\n<blockquote expandable><strong>{synopsis if synopsis is not None else plot}</strong></blockquote>\n"
+            else:
+                template += f"🎭 **{title}** | **{title_translated if title_translated is not None else title}** 🎭\n"
+                template += f"🗓 Año: **{year}**\n"
+                template += f"⭐️Rating: **{rating['aggregateRating'] if rating is not None else '-'}/10**\n"
+                
+                # if tomato is not None:
+                #     template += f"🍅Rotten Tomatoes: **{tomato.get("percentage")} ({tomato.get("reviews")})**\n"
+                # if audience is not None:
+                #     template += f"👤Audiencia: **{audience.get("percentage")} ({audience.get("reviews")})**\n"
+                
+                template += f"⏱️ Duración: **{duration} minutos por episodio**\n"
+                template += f"🎨 Géneros: **{genres}**\n"
+                template += f"\n<blockquote expandable><strong>{synopsis if synopsis is not None else plot}</strong></blockquote>\n"
+
+            if image:
+                try:
+                    await query.message.reply_photo(image.get("url"), caption=template)
+                except WebpageMediaEmpty:
+                    await query.answer(
+                        "No se puede subir como imagen, subiendo como archivo"
+                    )
+
+                    await query.message.reply_document(
+                        document=image.get("url"), caption=template
+                    )
+            else:
+                await query.message.reply(template)
         else:
-            template += f"🎭 **{title}** | **{title_translated if title_translated is not None else title}** 🎭\n"
-            template += f"🗓 Año: **{year}**\n"
-            template += f"⭐️Rating: **{rating['aggregateRating'] if rating is not None else '-'}/10**\n"
-            
-            # if tomato is not None:
-            #     template += f"🍅Rotten Tomatoes: **{tomato.get("percentage")} ({tomato.get("reviews")})**\n"
-            # if audience is not None:
-            #     template += f"👤Audiencia: **{audience.get("percentage")} ({audience.get("reviews")})**\n"
-            
-            template += f"⏱️ Duración: **{duration} minutos por episodio**\n"
-            template += f"🎨 Géneros: **{genres}**\n"
-            template += f"\n<blockquote expandable><strong>{synopsis if synopsis is not None else plot}</strong></blockquote>\n"
+            # movie or serie
+            kind = data[1]
 
-        if image:
-            try:
-                await query.message.reply_photo(image["url"], caption=template)
-            except WebpageMediaEmpty:
-                await query.answer(
-                    "No se puede subir como imagen, subiendo como archivo"
-                )
+            if kind == "movie":
+                movie = await get_movie_info_by_id_tmdb(data[-1])
+                
+                
+                title = movie.get('original_title')
+                year = movie.get('release_date').split("-")[0]
+                    
+                title_translated = await translate_title(title)
+                rating = round(movie.get('vote_average'), 1)
+                # at difference with imdb, tmdb returns the time in minutes
+                duration = movie.get("runtime") if movie.get("runtime") is not None else "-"
+                
+                tmdb_mv_genres = []
+                
+                for genr in movie.get("genres"):
+                    genr: dict
+                    
+                    tmdb_mv_genres.append(
+                        genr.get('name')
+                    )
+                
+                genres = ", ".join(await translate_words(words=tmdb_mv_genres))
+                # plot = synopsis
+                plot = movie.get('overview')
+                synopsis = await translate_synopsis(plot) 
+                if synopsis is None:
+                    synopsis = plot
+                image = f"{os.getenv('TMDB_IMAGE_BASE_URL')}{movie.get('poster_path')}"
 
-                await query.message.reply_document(
-                    document=image["url"], caption=template
-                )
-        else:
-            await query.message.reply(template)
+                
+                template += f"🎬 **{title}** | **{title_translated if title_translated is not None else title}** 🎬\n"
+                template += f"🗓 Año: **{year}**\n"
+                template += f"⭐️Rating: **{str(rating) if rating is not None else '-'}/10**\n"                
+                template += f"⏱️ Duración: **{duration} minutos**\n"
+                template += f"📚 Géneros: **{genres}**\n"
+                template += f"\n<blockquote expandable><strong>{synopsis}</strong></blockquote>\n"
 
+                if image:
+                    try:
+                        await query.message.reply_photo(image, caption=template)
+                    except WebpageMediaEmpty:
+                        await query.answer(
+                            "No se puede subir como imagen, subiendo como archivo"
+                        )
+
+                        await query.message.reply_document(
+                            document=image, caption=template
+                        )
+                else:
+                    await query.message.reply(template)
+
+            else:
+                serie = await get_tv_info_by_id_tmdb(data[-1])
+                
+                title = serie.get('original_name')
+                year = serie.get('first_air_date').split("-")[0]
+                    
+                title_translated = await translate_title(title)
+                rating = round(serie.get('vote_average'), 1)
+                # at difference with imdb, tmdb returns the time in minutes
+                duration = list(serie.get('episode_run_time'))
+                
+                if len(duration) == 0:
+                    duration = "-"
+                else:
+                    duration = int(sum(duration) / len(duration))
+                
+                tmdb_mv_genres = []
+                
+                for genr in serie.get("genres"):
+                    genr: dict
+                    
+                    tmdb_mv_genres.append(
+                        genr.get('name')
+                    )
+                
+                genres = ", ".join(await translate_words(words=tmdb_mv_genres))
+                # plot = synopsis
+                plot = serie.get('overview')
+                synopsis = await translate_synopsis(plot) 
+                if synopsis is None:
+                    synopsis = plot
+                image = f"{os.getenv('TMDB_IMAGE_BASE_URL')}{serie.get('poster_path')}"
+
+                
+                template += f"🎬 **{title}** | **{title_translated if title_translated is not None else title}** 🎬\n"
+                template += f"🗓 Año: **{year}**\n"
+                template += f"⭐️Rating: **{str(rating) if rating is not None else '-'}/10**\n"                
+                template += f"⏱️ Duración: **{duration} minutos por episodio**\n"
+                template += f"📚 Géneros: **{genres}**\n"
+                template += f"\n<blockquote expandable><strong>{synopsis}</strong></blockquote>\n"
+
+                if image:
+                    try:
+                        await query.message.reply_photo(image, caption=template)
+                    except WebpageMediaEmpty:
+                        await query.answer(
+                            "No se puede subir como imagen, subiendo como archivo"
+                        )
+
+                        await query.message.reply_document(
+                            document=image, caption=template
+                        )
+                else:
+                    await query.message.reply(template)
+                    
+                    
         template = ""
 
     elif query.data == "become_vip":
