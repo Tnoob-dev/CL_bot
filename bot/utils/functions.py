@@ -197,6 +197,8 @@ Actúa como un traductor especializado en localización cinematográfica. Tu tar
             temperature=0.1,
             max_tokens=150
         )
+        
+        print(response.choices[0].message.content)
         return response.choices[0].message.content
     except Exception as e:
         logger.error(f"Error: {e}")
