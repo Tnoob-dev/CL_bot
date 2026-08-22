@@ -151,7 +151,7 @@ Por favor, traduce la siguiente sinopsis de película o serie del inglés al esp
 
     try:
         response = await client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="openai/gpt-oss-120b",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.1,
             max_tokens=1000
@@ -192,7 +192,7 @@ Actúa como un traductor especializado en localización cinematográfica. Tu tar
 
     try:
         response = await client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="openai/gpt-oss-120b",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.1,
             max_tokens=150
