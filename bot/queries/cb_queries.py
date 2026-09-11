@@ -91,7 +91,7 @@ async def query_manager(client: Client, query: CallbackQuery):
                 os.remove(srt_file_renamed)
         except Exception as error:
             logger.error(f"Error al descargar el subtitulo -> {error}")
-            await query.message.reply(error)
+            await query.message.reply("❌ Ocurrió un error al descargar el subtítulo. Inténtalo de nuevo más tarde.")
 
     #  not confuse with order_404
     # order_not_found its for when an order its not founded after the user asked and the bot searched for it
@@ -172,7 +172,8 @@ async def query_manager(client: Client, query: CallbackQuery):
             await query.message.edit("Post eliminado del canal y BD")
             await client.delete_messages(chat_id=clibrary, message_ids=int(data[-1]))
         except Exception as e:
-            await query.message.reply(e)
+            logger.error(f"Error al eliminar el post -> {e}")
+            await query.message.reply("❌ Ocurrió un error al eliminar el post. Inténtalo de nuevo más tarde.")
 
     elif query.data.startswith("close_"):
         data = query.data.split("_")

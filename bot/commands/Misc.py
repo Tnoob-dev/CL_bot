@@ -155,7 +155,7 @@ async def ascend_to_admin(client: Client, message: Message):
                 await message.reply(f"❌{msg}❌")
     except Exception as e:
         logger.error(e)
-        await message.reply(f"❌Error de excepcion: {e}❌")
+        await message.reply("❌ Error interno. Si el problema persiste, contacta al administrador.")
 
 
 @bot.on_message(command("premium", prefixes=["/"]) & private)
@@ -191,7 +191,7 @@ async def convert_user_premium(client: Client, message: Message):
 
     except Exception as e:
         logger.error(e)
-        await message.reply(f"❌Error de excepcion: {e}❌")
+        await message.reply("❌ Error interno. Si el problema persiste, contacta al administrador.")
 
 
 @bot.on_message(command("vip", prefixes=["/"]) & private)

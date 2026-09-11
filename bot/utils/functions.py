@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 from pathlib import Path
 from typing import BinaryIO, List
 
@@ -248,7 +249,7 @@ async def translate_words(words: list[str], target_lang: str = "es") -> list[str
 
     return results
 
-async def clean_name(text: str):
+async def clean_title(text: str) -> str:
 
     splitted_text = text.split("\n")
     title = splitted_text[0]
@@ -264,6 +265,18 @@ async def clean_name(text: str):
         return title.strip()
 
     return title
+
+async def clean_genres(text: str) -> list[str]:
+    pattern = r"(?im)^\s*(?:📚|🎨)?\s*géneros?\s*:\s*(?:\*\*)?(.*?)(?:\*\*)?\s*$"
+    match = re.search(pattern, text)
+
+    if not match:
+        return []
+
+    genres_text = match.group(1).strip()
+    genres = [genre.strip() for genre in genres_text.split(",") if genre.strip()]
+
+    return genres
 
 async def get_message_info(client: Client, message_ids: list[int]) -> Message | list[Message] | None:
 

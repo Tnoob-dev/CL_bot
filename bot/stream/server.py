@@ -172,7 +172,7 @@ async def stream_handler(request: web.Request):
 
     except Exception as e:
         logger.critical(str(e), exc_info=True)
-        raise web.HTTPInternalServerError(text=str(e))
+        raise web.HTTPInternalServerError(text="Error interno del servidor")
 
 
 async def media_streamer(request: web.Request, message_id: int, secure_hash: str):

@@ -129,10 +129,11 @@ async def end_collection(client: Client, message: Message):
             # delete user from memory
             del state[str(user_id)]
 
-    except PeerIdInvalid as e:
+    except PeerIdInvalid:
         await message.reply(
-            f"Error -> **{e}**\n\nEste error tal vez es porque despues de inicializar el bot "
-            "no puso algun mensaje random en el canal de backup"
+            "❌ Ocurrió un error al reenviar los archivos. "
+            "Esto puede deberse a que el canal de backup no está configurado correctamente. "
+            "Contacta al administrador si el problema persiste."
         )
 
 
