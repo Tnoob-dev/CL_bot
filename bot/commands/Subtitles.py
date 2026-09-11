@@ -68,4 +68,4 @@ async def search_subtitles(client: Client, message: Message):
             )
     except OpenSubtitlesException as error:
         logger.error(error)
-        await message.reply(error)
+        await message.reply("❌ Ocurrió un error al buscar subtítulos. Inténtalo de nuevo más tarde.")

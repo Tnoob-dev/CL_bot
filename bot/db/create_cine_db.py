@@ -23,12 +23,13 @@ class Users(SQLModel, table=True):
     premium_user: bool = Field(default=False)
     premium_expires: int | None = Field(default=None)
     int_downloaded: int = Field(default=0)
-
+    genre_stats: dict = Field(default_factory=dict, sa_column=Column(JSON))
 
 # Posts database to save and show posts when user or admin needs it
 class Post(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     movie_name: str = Field(default=None)
+    movie_genres: list[str] = Field(sa_column=Column(JSON))
     link: str = Field(default=None)
 
 

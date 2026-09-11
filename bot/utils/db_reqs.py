@@ -75,6 +75,27 @@ def insert_user(query: Users) -> tuple[bool, str] | None:
         logger.error(f"Error al annadir a la db -> {e}")
 
 
+def update_user_genres(id: int, genres: list[str]):
+    
+    try:
+        with Session(users_engine) as session:
+            statement = select(Users).where(Users.id == id)
+            user = session.exec(statement).one()
+            
+            if user.genre_stats is None:
+                user.genre_stats = {}
+                
+            for genre in genres:
+                genre_clean = genre.strip()
+                if genre_clean:
+                    user.genre_stats[genre_clean] =  user.genre_stats.get(genre_clean, 0) + 1
+                    
+            session.add(user)
+            session.commit()
+            session.refresh(user)
+    except Exception as e:
+        logger.error(f"Error al actualizar contador de generos: USER_ID: {user.id}\n\nError:{e}")    
+
 # update user translations value, from 10, until 0
 def update_user_value(id: int) -> None:
     try:
@@ -142,7 +163,7 @@ def update_user_admin(id: int) -> tuple[bool, str]:
     except Exception as e:
         session.rollback()
         logger.error(f"Ocurrio un error al cambiar ajustes de usuario -> {e}")
-        return False, f"error: {e}"
+        return False, "Ocurrió un error al actualizar los permisos del usuario"
 
 
 def update_user_premium(id: int, days: int = 30) -> tuple[bool, str]:
@@ -184,7 +205,7 @@ def update_user_premium(id: int, days: int = 30) -> tuple[bool, str]:
 
     except Exception as e:
         logger.error(f"Error al cambiar ajustes premium del usuario {id} -> {e}")
-        return False, str(e)
+        return False, "Ocurrió un error al actualizar el plan premium del usuario"
 
 
 def is_premium_active(id: int) -> bool:
@@ -283,4 +304,4 @@ def delete_post(id: int) -> tuple[bool, str]:
 
     except Exception as e:
         logger.error(f"Ha ocurrido una excepcion en los posts -> {e}")
-        return (False, e)
+        return (False, "Ocurrió un error al eliminar el post de la base de datos")

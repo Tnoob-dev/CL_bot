@@ -98,9 +98,9 @@ async def stream_handler(client: Client, message: Message):
             print(f"Stream link generado: {stream_link} (msg_id={forwarded.id})")
 
         except Exception as e:
-            print("Error generando stream link: %s", e)
+            logger.error(f"Error generando stream link: {e}")
             await message.reply(
-                f"<blockquote><b>Error:</b>\n<pre>{e}</pre></blockquote>"
+                "<blockquote><b>Error:</b> No se pudo generar el enlace de stream. Inténtalo de nuevo más tarde.</blockquote>"
             )
 
     else:

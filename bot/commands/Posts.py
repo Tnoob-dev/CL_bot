@@ -9,7 +9,7 @@ from pyrogram.client import Client
 from pyrogram.filters import command, private
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from utils.db_reqs import delete_post, get_post_by_id, insert_post
-from utils.functions import check_administration, clean_name
+from utils.functions import check_administration, clean_title, clean_genres
 from utils.rt_client import info
 
 # Logger
@@ -77,12 +77,14 @@ async def create_posts(client: Client, message: Message):
             os.remove(pic)
 
             sent_id = sent.id
-            name_cleaned = await clean_name(sent.caption)
+            name_cleaned = await clean_title(sent.caption)
+            genres_cleaned = await clean_genres(sent.caption)
 
             insert_post(
                 Post(
                     id=sent_id,
                     movie_name=name_cleaned,
+                    movie_genres=genres_cleaned,
                     link=f"https://t.me/{os.getenv('CINEMA_ID')}/{sent_id}",
                 )
             )
@@ -90,7 +92,7 @@ async def create_posts(client: Client, message: Message):
             logger.info("Post enviado y anadido a la db")
     except Exception as e:
         logger.error(e)
-        await message.reply(f"Ha ocurrido un error: {e}")
+        await message.reply("❌ Ocurrió un error al crear el post. Inténtalo de nuevo más tarde.")
 
 
 @bot.on_message(command("delpost", prefixes=["/"]) & private)

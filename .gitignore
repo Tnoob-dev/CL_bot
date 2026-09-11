@@ -227,3 +227,5 @@ tranlations/
 posts/
 
 *.txt
+
+bin/
