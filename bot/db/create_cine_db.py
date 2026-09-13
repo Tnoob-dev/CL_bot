@@ -12,7 +12,7 @@ class Game(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str = Field(default=None)
     file_ids: list[int] = Field(sa_column=Column(JSON))
-
+    movie_genres: list[str] = Field(sa_column=Column(JSON))
 
 # Users database
 class Users(SQLModel, table=True):
@@ -31,9 +31,11 @@ class Post(SQLModel, table=True):
     movie_name: str = Field(default=None)
     movie_genres: list[str] = Field(sa_column=Column(JSON))
     link: str = Field(default=None)
+    file_ids: list[int] = Field(sa_column=Column(JSON))
 
 
-cine_engine = create_engine("sqlite:///./bot/core/cine.db")
+# cine_engine = create_engine("sqlite:///./bot/core/cine.db")
+cine_engine = create_engine(os.getenv("POSTGRE_CINE_DB"))
 # users_engine = create_engine("sqlite:///./bot/core/users.db")
 users_engine = create_engine(os.getenv("USER_DB"))
 posts_engine = create_engine(os.getenv("POSTGRE_DB_URL"))

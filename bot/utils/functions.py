@@ -85,21 +85,16 @@ async def forward_messages(client: Client, messages: list[int]) -> list[int]:
 
     return new_ids
 
-
-import random
-
-random_num = random.randint(0, 89)
-
 def build_season_link(last_message_id: int) -> str:
-    name = f"chn_{last_message_id}_{random_num}"
+    name = f"chn_{last_message_id}"
     return f"https://t.me/{os.getenv('SENDER_BOT')}?start={name}"
 
 def register_movie(messages: list[int]) -> str:
 
     last_id = messages[-1]
 
-    name = f"chn_{last_id}_{random_num}"
-    insert(Game(name=name, file_ids=messages))
+    name = f"chn_{last_id}"
+    insert(Game(name=name, file_ids=messages, movie_genres=[]))
     return build_season_link(last_id)
 
 def save_to_json(subtitles: list[dict[str, int | str]], user_id: int, output_file: str):

@@ -108,6 +108,9 @@ async def hello(client: Client, message: Message):
                 await message.reply_sticker(
                     Path.cwd() / Path("assets") / Path("finished.webp")
                 )
+                
+                
+                
                 donation_message = """
 💖 ¿Te gusta el contenido del canal?
 
