@@ -32,6 +32,25 @@ def get_game(name: str) -> list[int]:
     except Exception as e:
         logger.error(f"Error al obtener desde la db -> {e}")
 
+def update_movie_genres(file_ids: list[int], movie_genres: list[str]):
+    
+    try:
+        with Session(cine_engine) as session:
+            statement = select(Game).where(str(Game.file_ids) == str(file_ids))
+            
+            result = session.exec(statement).first()
+            
+            result.movie_genres = movie_genres
+            
+            session.add(result)
+            session.commit()
+            session.refresh(result)
+            
+            return True
+
+    except Exception as e:
+        logger.error(f"Ha ocurrido una excepcion -> {e}")
+        return False
 
 #################################################################
 
@@ -74,7 +93,7 @@ def insert_user(query: Users) -> tuple[bool, str] | None:
     except Exception as e:
         logger.error(f"Error al annadir a la db -> {e}")
 
-
+########### apply this function tomorrow
 def update_user_genres(id: int, genres: list[str]):
     
     try:
@@ -305,3 +324,18 @@ def delete_post(id: int) -> tuple[bool, str]:
     except Exception as e:
         logger.error(f"Ha ocurrido una excepcion en los posts -> {e}")
         return (False, "Ocurrió un error al eliminar el post de la base de datos")
+
+def get_genres_from_post_by_file_ids(file_ids: list[int]):
+    
+    try:
+        with Session(posts_engine) as session:
+            statement = select(Post).where(Post.file_ids == file_ids)
+            
+            result = session.exec(statement).first()
+            
+            if not result:
+                return None
+            
+            return result
+    except Exception as e:
+        logger.error(f"Ha ocurrido una excepcion en los posts -> {e}")

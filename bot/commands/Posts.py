@@ -8,7 +8,7 @@ from entry.entry import bot
 from pyrogram.client import Client
 from pyrogram.filters import command, private
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
-from utils.db_reqs import delete_post, get_post_by_id, insert_post
+from utils.db_reqs import delete_post, get_post_by_id, insert_post, get_genres_from_post_by_file_ids, update_movie_genres
 from utils.functions import check_administration, clean_title, clean_genres
 from utils.rt_client import info
 
@@ -79,14 +79,23 @@ async def create_posts(client: Client, message: Message):
             sent_id = sent.id
             name_cleaned = await clean_title(sent.caption)
             genres_cleaned = await clean_genres(sent.caption)
-
+            
+            reply_markup = sent.reply_markup.inline_keyboard
+            buttons_id = [btid[0].url.split("=")[-1] for btid in reply_markup]
+            
             insert_post(
                 Post(
                     id=sent_id,
                     movie_name=name_cleaned,
                     movie_genres=genres_cleaned,
                     link=f"https://t.me/{os.getenv('CINEMA_ID')}/{sent_id}",
+                    file_ids=buttons_id
                 )
+            )
+            
+            update_movie_genres(
+                file_ids=buttons_id,
+                movie_genres=genres_cleaned
             )
 
             logger.info("Post enviado y anadido a la db")
