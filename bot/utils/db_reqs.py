@@ -32,11 +32,11 @@ def get_game(name: str) -> list[int]:
     except Exception as e:
         logger.error(f"Error al obtener desde la db -> {e}")
 
-def update_movie_genres(file_ids: list[int], movie_genres: list[str]):
+def update_movie_genres(file_id: str, movie_genres: list[str]):
     
     try:
         with Session(cine_engine) as session:
-            statement = select(Game).where(Game.name == file_ids[0])
+            statement = select(Game).where(Game.name == file_id)
             
             result = session.exec(statement).first()
             
