@@ -36,7 +36,7 @@ def update_movie_genres(file_ids: list[int], movie_genres: list[str]):
     
     try:
         with Session(cine_engine) as session:
-            statement = select(Game).where(str(Game.file_ids) == str(file_ids))
+            statement = select(Game).where(Game.name == file_ids[0])
             
             result = session.exec(statement).first()
             
