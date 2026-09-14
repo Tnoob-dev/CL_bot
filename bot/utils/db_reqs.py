@@ -21,13 +21,13 @@ def insert(query: Game) -> dict[str, str] | None:
 
 
 # get movie from db
-def get_game(name: str) -> list[int]:
+def get_game(name: str) -> Game:
     try:
         with Session(cine_engine) as session:
             statement = select(Game).where(Game.name == name)
             result = session.exec(statement).first()
 
-            return result.file_ids
+            return result
 
     except Exception as e:
         logger.error(f"Error al obtener desde la db -> {e}")
@@ -93,7 +93,7 @@ def insert_user(query: Users) -> tuple[bool, str] | None:
     except Exception as e:
         logger.error(f"Error al annadir a la db -> {e}")
 
-########### apply this function tomorrow
+
 def update_user_genres(id: int, genres: list[str]):
     
     try:
