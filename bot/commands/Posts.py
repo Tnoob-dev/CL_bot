@@ -92,6 +92,13 @@ async def create_posts(client: Client, message: Message):
                     file_ids=buttons_id
                 )
             )
+            
+            for bt in buttons_id:
+                
+                update_movie_genres(
+                    file_ids=bt,
+                    movie_genres=genres_cleaned
+                )
 
             logger.info("Post enviado y anadido a la db")
     except Exception as e:
