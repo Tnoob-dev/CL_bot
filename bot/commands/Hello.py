@@ -15,6 +15,7 @@ from utils.db_reqs import (
     insert_user,
     is_premium_active,
     update_user_downloads,
+    update_user_genres
 )
 from utils.functions import (
     check_administration,
@@ -69,8 +70,8 @@ async def hello(client: Client, message: Message):
     if message.command is not None and message.command[0] == "start":
         try:
             if len(message.command) >= 2:
-                file_ids: list[int] = get_game(message.command[1])
-                for id in file_ids:
+                result = get_game(message.command[1])
+                for id in result.file_ids:
                     success = False  # Flag
                     while not success:
                         try:
@@ -109,6 +110,10 @@ async def hello(client: Client, message: Message):
                     Path.cwd() / Path("assets") / Path("finished.webp")
                 )
                 
+                update_user_genres(
+                    id=message.from_user.id,
+                    genres=result.movie_genres
+                )
                 
                 
                 donation_message = """
