@@ -31,7 +31,7 @@ class Post(SQLModel, table=True):
     movie_name: str = Field(default=None)
     movie_genres: list[str] = Field(sa_column=Column(JSON))
     link: str = Field(default=None)
-    file_ids: list[int] = Field(sa_column=Column(JSON))
+    file_ids: list[str] = Field(sa_column=Column(JSON))
 
 
 # cine_engine = create_engine("sqlite:///./bot/core/cine.db")

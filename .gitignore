@@ -229,3 +229,5 @@ posts/
 *.txt
 
 bin/
+
+xd.py
