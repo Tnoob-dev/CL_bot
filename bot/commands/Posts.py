@@ -96,7 +96,7 @@ async def create_posts(client: Client, message: Message):
             for bt in buttons_id:
                 
                 update_movie_genres(
-                    file_ids=bt,
+                    file_id=bt,
                     movie_genres=genres_cleaned
                 )
 
