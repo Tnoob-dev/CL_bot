@@ -26,6 +26,7 @@ from commands.Order import get_orders
 from commands.Posts import create_posts, remove_posts
 from commands.Profile import profile_panel
 from commands.Publicity import publi_command
+from commands.Recommendations import recommend
 from commands.SearchPosts import search_posts
 from commands.Stream import stream_handler
 from commands.Subtitles import search_subtitles
@@ -83,6 +84,7 @@ bot.add_handler(MessageHandler(stream_handler))
 bot.add_handler(MessageHandler(make_old_posts))
 bot.add_handler(MessageHandler(profile_panel))
 bot.add_handler(MessageHandler(save_user_photo))
+bot.add_handler(MessageHandler(recommend))
 
 # Queries
 bot.add_handler(CallbackQueryHandler(query_manager))

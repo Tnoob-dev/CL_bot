@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import re
+import telegraph.aio as telegraph
 from pathlib import Path
 from typing import BinaryIO, List
 
@@ -333,3 +334,25 @@ async def gen_ids(id1: int, id2: int = None) -> list[int]:
 
     start, end = min(id1, id2), max(id1, id2)
     return list(range(start, end + 1))
+
+async def create_telegraph_page(short_name: str, content: str) -> str:
+    
+    username = "TitiLM10"
+    author_url = f"https://t.me/{username}"
+    
+    tgp = telegraph.Telegraph()
+    
+    await tgp.create_account(
+        short_name=short_name,
+        author_name=username,
+        author_url=author_url
+    )
+    
+    response = await tgp.create_page(
+        title=short_name,
+        author_name=username,
+        author_url=author_url,
+        html_content=content
+    )
+    
+    return response['url']
