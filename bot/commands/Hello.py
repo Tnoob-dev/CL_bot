@@ -110,6 +110,7 @@ async def hello(client: Client, message: Message):
                     Path.cwd() / Path("assets") / Path("finished.webp")
                 )
                 
+                # update user most downloaded genres in the db
                 update_user_genres(
                     id=message.from_user.id,
                     genres=result.movie_genres

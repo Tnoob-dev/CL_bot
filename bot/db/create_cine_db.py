@@ -2,6 +2,7 @@ import logging
 import os
 
 from sqlalchemy.ext.mutable import MutableDict
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import JSON, BigInteger, Column, Field, SQLModel, create_engine
 
 # Logger
@@ -24,7 +25,7 @@ class Users(SQLModel, table=True):
     premium_user: bool = Field(default=False)
     premium_expires: int | None = Field(default=None)
     int_downloaded: int = Field(default=0)
-    genre_stats: dict = Field(default_factory=dict, sa_column=Column(MutableDict.as_mutable(JSON)))
+    genre_stats: dict = Field(default_factory=dict, sa_column=Column(MutableDict.as_mutable(JSONB)))
 
 # Posts database to save and show posts when user or admin needs it
 class Post(SQLModel, table=True):

@@ -2,6 +2,8 @@ import logging
 from datetime import datetime
 
 from db.create_cine_db import Game, Post, Users, cine_engine, posts_engine, users_engine
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlmodel import cast
 from sqlmodel import Session, select
 
 # Logger
@@ -274,6 +276,22 @@ def get_post_by_name(name: str) -> list[dict[str, str]] | list:
             results = session.exec(statement).all()
 
             return [{"name": res.movie_name, "link": res.link} for res in results]
+    except Exception as e:
+        logger.error(e)
+        return []
+    
+def get_posts_by_genre(genre: str) -> list[Post | None]:
+    try:
+        with Session(posts_engine) as session:
+            statement = select(Post).where(
+                # search among all the posts and filter by the spcified genre
+                cast(Post.movie_genres, JSONB).op('?')(genre)
+            )
+            
+            posts = session.exec(statement).all()
+            
+            return posts
+            
     except Exception as e:
         logger.error(e)
         return []
