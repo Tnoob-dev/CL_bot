@@ -26,9 +26,9 @@ async def recommend(client: Client, message: Message):
         posts = get_posts_by_genre(fav_genre)
         random.shuffle(posts)
         
-        html = f"<h3>✨10 Posts sugeridos para ti segun tu género favorito ({fav_genre})🤟</h3><br><br>"
+        html = f"<h3>✨100 Posts sugeridos para ti segun tu género favorito ({fav_genre})🤟</h3><br><br>"
         
-        for post in posts:
+        for post in posts[:100]:
             html += f"<a href='{post.link}'>🇺🇸{post.movie_name}🇲🇽</a><br>"
         
         html += f"<br><h3>🦾Gracias por ser parte de <a href='https://t.me/{os.getenv('CINEMA_ID')}'>Cinema Library</a>🍿</h3>"
