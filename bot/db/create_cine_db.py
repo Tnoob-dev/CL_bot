@@ -44,8 +44,10 @@ posts_engine = create_engine(os.getenv("POSTGRE_DB_URL"))
 
 
 def create_db():
-    if not os.path.exists("./bot/core/cine.db"):
-        Game.__table__.create(cine_engine)
+    # if not os.path.exists("./bot/core/cine.db"):
+    #     Game.__table__.create(cine_engine)
+
+    Game.__table__.create(cine_engine, checkfirst=True)
 
     Users.__table__.create(users_engine, checkfirst=True)
 
