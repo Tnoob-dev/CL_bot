@@ -122,9 +122,6 @@ async def end_collection(client: Client, message: Message):
                 "Ha salido del modo coleccion, para iniciar una nueva coleccion "
                 f"escriba el comando /add\n\nSu enlace es {link}"
             )
-            await message.reply_document(
-                document=str(Path.cwd() / Path("bot") / Path("core") / "cine.db")
-            )
 
             # delete user from memory
             del state[str(user_id)]
