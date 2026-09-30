@@ -48,9 +48,6 @@ CHANNEL_ID=
 ORDERS_ID=""
 CINEMA_ID=""
 GROUP_ID=""
-GAME_LIBRARY_ID=""
-EQUINOX_ID=""
-ANIME_ID=""
 GUEST_NAME=""
 GUEST_ID=""
 GUEST_LINK=""
@@ -127,9 +124,6 @@ STREAM_URL=""
 | `ORDERS_ID` | Identificador del canal/grupo de pedidos. |
 | `CINEMA_ID` | Identificador de la biblioteca de cine. |
 | `GROUP_ID` | Identificador del grupo de chat. |
-| `GAME_LIBRARY_ID` | Identificador de la biblioteca de juegos. |
-| `EQUINOX_ID` | Identificador del canal de tecnología (Equinox). |
-| `ANIME_ID` | Identificador del canal de anime. |
 | `GUEST_NAME` | Nombre del usuario invitado. |
 | `GUEST_ID` | ID del usuario invitado. |
 | `GUEST_LINK` | Enlace al perfil del usuario invitado. |
