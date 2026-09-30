@@ -72,9 +72,6 @@ async def end_massive(client: Client, message: Message):
         season_counter += 1
 
     await message.reply(f"```python\n{formed_seasons}```")
-    await message.reply_document(
-        document=str(Path.cwd() / Path("bot") / Path("core") / "cine.db")
-    )
 
     del state[str(user_id)]
 
