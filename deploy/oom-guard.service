@@ -1,0 +1,19 @@
+# ============================================================================
+# Timer que ejecuta oom-guard.sh cada 2 minutos.
+#
+# Instalación (como root, desde la carpeta deploy/ del repo):
+#   sudo install -m 755 oom-guard.sh /usr/local/bin/oom-guard.sh
+#   sudo install -m 644 oom-guard.service oom-guard.timer /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now oom-guard.timer
+#
+# Verificar: systemctl list-timers oom-guard.timer && journalctl -t oom-guard
+# ============================================================================
+
+[Unit]
+Description=Guard contra tuneles cloudflared huérfanos / fuga de memoria
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/oom-guard.sh
+Nice=10
