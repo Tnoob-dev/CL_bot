@@ -35,18 +35,14 @@ class Post(SQLModel, table=True):
     link: str = Field(default=None)
     file_ids: list[str] = Field(sa_column=Column(JSON))
 
+# use sqlite or postgres, idk just specify it in your environment
 
-# cine_engine = create_engine("sqlite:///./bot/core/cine.db")
 cine_engine = create_engine(os.getenv("POSTGRE_CINE_DB"))
-# users_engine = create_engine("sqlite:///./bot/core/users.db")
 users_engine = create_engine(os.getenv("USER_DB"))
 posts_engine = create_engine(os.getenv("POSTGRE_DB_URL"))
 
 
 def create_db():
-    # if not os.path.exists("./bot/core/cine.db"):
-    #     Game.__table__.create(cine_engine)
-
     Game.__table__.create(cine_engine, checkfirst=True)
 
     Users.__table__.create(users_engine, checkfirst=True)
