@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 from pathlib import Path
 
 from entry.entry import bot
@@ -67,7 +68,7 @@ async def query_manager(client: Client, query: CallbackQuery):
             if user_founded[0]:
                 await query.message.delete()
 
-                create_subtitles_dl_path(query.from_user.id)
+                create_subtitles_dl_path(user_founded[1].id)
 
                 file_name = get_clicked_button_text(query=query)
 
@@ -77,7 +78,7 @@ async def query_manager(client: Client, query: CallbackQuery):
 
                 srt_file_original = download_subs(query.data.split("sub_")[1])
                 srt_file_renamed = (
-                    f"./bot/subts/{user_id}/{file_name.replace('🔡', '')}.srt"
+                    f"./bot/subts/{user_founded[1].id}/{file_name.replace('🔡', '')}.srt"
                 )
 
                 os.rename(srt_file_original, srt_file_renamed)
@@ -92,8 +93,47 @@ async def query_manager(client: Client, query: CallbackQuery):
         except Exception as error:
             logger.error(f"Error al descargar el subtitulo -> {error}")
             await query.message.reply("❌ Ocurrió un error al descargar el subtítulo. Inténtalo de nuevo más tarde.")
+    elif query.data.startswith("bulk_sub_"):
+        try:
+            if user_founded[0]:
+                create_subtitles_dl_path(user_founded[1].id)
+                file_name = get_clicked_button_text(query=query)
+                
+                m = await query.message.reply(
+                    f"🔽Descargando __{file_name.replace('🔡', '')}__.srt😏🔽"
+                )
+                
+                srt_file_original = download_subs(query.data.split("sub_")[1])
+                srt_file_renamed = (
+                    f"./bot/subts/{user_founded[1].id}/{file_name.replace('🔡', '')}.srt"
+                )
 
-    #  not confuse with order_404
+                os.rename(srt_file_original, srt_file_renamed)
+            
+                await m.edit(f"Descargado {file_name.replace('🔡', '')}")
+                
+            
+        except Exception as error:
+            logger.error(f"Error al descargar el subtitulo -> {error}")
+            await query.message.reply("❌ Ocurrió un error al descargar el subtítulo. Inténtalo de nuevo más tarde.")
+    
+    elif query.data == "bulk_end":
+
+        await query.message.delete()
+        
+        await query.message.reply("Subtitulos seleccionados✅, creando zip🗂...")
+        await query.message.reply_sticker(Path.cwd() / Path("assets") / Path("folderToZip.tgs"))
+        
+        zip_name = f"subs_{user_founded[1].id}"
+        zip_dir = shutil.make_archive(zip_name, 'zip', f"./bot/subts/{user_founded[1].id}")
+        
+        await query.message.reply_document(zip_dir)
+        
+        shutil.rmtree(f"./bot/subts/{user_founded[1].id}")
+        os.remove(zip_dir)
+    
+            
+    #  this is not equal to order_404
     # order_not_found its for when an order its not founded after the user asked and the bot searched for it
     # order_404 its for when the admin can't find the order and the user needs to be notified
     elif query.data.startswith("order_not_found_"):
