@@ -5,6 +5,11 @@ import asyncio
 # LOGGING
 import logging
 
+# SIGNAL HANDLERS (ver _install_signal_handlers al final del archivo).
+# Sin esto, Ctrl-C / `systemctl stop` puede dejar el túnel cloudflared vivo
+# como huérfano consumiendo RAM/CPU en el VPS.
+import signal
+
 from commands.Collection import collect_messages, end_collection
 from commands.Fusion import fusion_posts
 
@@ -91,11 +96,35 @@ bot.add_handler(CallbackQueryHandler(query_manager))
 bot.add_handler(InlineQueryHandler(inline_answer))
 
 
+def _install_signal_handlers(stop_event: asyncio.Event) -> None:
+    """Convierte SIGINT/SIGTERM en un apagado limpio.
+
+    Al correr bajo systemd, `systemctl stop` envía SIGTERM. Si el proceso
+    muere de golpe, el hijo `cloudflared` puede quedar huérfano (adoptado
+    por PID 1) comiéndose la RAM del VPS — una de las causas clásicas de
+    que el server "se congele". Con estos handlers podemos detener primero
+    el túnel y luego el bot.
+    """
+    loop = asyncio.get_running_loop()
+
+    def _handler(sig):
+        logger.info(f"Señal {signal.Signals(sig).name} recibida, apagando...")
+        loop.call_soon_threadsafe(stop_event.set)
+
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        try:
+            loop.add_signal_handler(sig, _handler, sig)
+        except NotImplementedError:  # p.ej. Windows
+            signal.signal(sig, lambda s, f: loop.call_soon_threadsafe(stop_event.set))
+
+
 async def main():
+    tunnel = None
+
     # Primero configura el tunnel si es necesario
     if "localhost" in StreamConfig.URL or "127.0.0.1" in StreamConfig.URL:
         logger.info("Starting Cloudflare tunnel...")
-        tunnel_url, _ = start_cloudflare_tunnel(StreamConfig.PORT)
+        tunnel_url, tunnel = start_cloudflare_tunnel(StreamConfig.PORT)
         if tunnel_url:
             StreamConfig.update_url(tunnel_url)
             logger.info(f"URL updated: {StreamConfig.URL}")
@@ -110,14 +139,34 @@ async def main():
     await bot.start()
     logger.info("Bot started")
 
-    await asyncio.Event().wait()
+    # Esperamos a una señal de apagado (en vez de Event().wait() para siempre)
+    stop_event = asyncio.Event()
+    _install_signal_handlers(stop_event)
+    await stop_event.wait()
+
+    # Apagado ordenado: primero el túnel (para no dejar cloudflared huérfano),
+    # después el bot.
+    if tunnel is not None:
+        try:
+            tunnel.stop()
+        except Exception as e:
+            logger.warning(f"Error deteniendo el túnel: {e}")
+    try:
+        await bot.stop()
+    except Exception as e:
+        logger.warning(f"Error deteniendo el bot: {e}")
+    logger.info("Apagado limpio completado.")
 
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     try:
         loop.run_until_complete(main())
     except KeyboardInterrupt:
         logger.info("Bot apagado por el usuario.")
     finally:
-        loop.close()
+        try:
+            loop.run_until_complete(loop.shutdown_asyncgens())
+        finally:
+            loop.close()

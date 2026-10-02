@@ -1,0 +1,77 @@
+# ============================================================================
+# Unidad systemd para Cinema Bot — copiar a /etc/systemd/system/cinema-bot.service
+# Ajusta las rutas (WorkingDirectory / ExecStart) y el usuario según tu VPS.
+#
+# Instalación:
+#   sudo cp cinema-bot.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now cinema-bot
+#
+# Este archivo es la MITAD de la solución a "el bot se marea y el VPS se congela":
+# límites de memoria/CPU + reinicio automático. La otra mitad está en
+# deploy/oom-guard.timer (mata cloudflared huérfanos, que son los que suelen
+# llenar la RAM y congelar el VPS).
+# ============================================================================
+
+[Unit]
+Description=Cinema Bot (Telegram + streaming)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Usuario normal, NUNCA root si puedes evitarlo:
+User=www-data
+Group=www-data
+
+# --- AJUSTA ESTAS DOS RUTAS -------------------------------------------------
+# Debe ser la raíz del repo (donde está la carpeta bot/), porque entry/entry.py
+# resuelve el .env con Path.cwd()/"bot"/"core"/".env"
+WorkingDirectory=/opt/cinema-bot
+ExecStart=/usr/bin/python3 -m bot
+# Si usas uv/poetry, algo como:
+# ExecStart=/usr/local/bin/uv run python -m bot
+# -----------------------------------------------------------------------------
+
+Environment=PYTHONUNBUFFERED=1
+# Bajamos el techo del cache de chunks del stream (default 200MB) para que el
+# bot nunca use más de ~150MB de RAM en buffers de vídeo:
+Environment=STREAM_MAX_CACHE_BYTES=150000000
+
+Restart=always
+RestartSec=5
+# Si el proceso se queda colgado (D-state / deadlock), systemd lo mata a los
+# 60s en vez de dejar un zombie inservible ocupando recursos.
+TimeoutStopSec=60
+
+# --- LÍMITES DE RECURSOS ------------------------------------------------------
+# Techo duro de memoria: si el bot se pasa, systemd lo mata Y LO REINICIA
+# (Restart=always), en vez de dejar que el OOM-killer del kernel congele todo
+# el VPS. Ponelo algo por encima de lo que usa el bot normalmente (~400-500M
+# para un VPS de 1GB; ajustá según tu RAM).
+MemoryMax=450M
+MemoryHigh=380M
+# CPU: deja siempre oxígeno para sshd/systemd aunque el bot esté al 100%
+CPUWeight=50
+# Anti fork-bomb / procesos huérfanos:
+TasksMax=256
+# El túnel de Cloudflare (cloudflared) se hereda de este servicio, así que
+# también queda limitado. KillMode=mixed asegura que al detener el bot mueran
+# sus hijos en vez de quedar cloudflared fantasma comiéndose la RAM:
+KillMode=mixed
+KillSignal=SIGTERM
+SendSIGKILL=yes
+
+# Un poco de endurecimiento (opcional pero recomendado)
+NoNewPrivileges=true
+ProtectSystem=full
+# El bot escribe su sesión de pyrogram, logs y descarga bin/cloudflared:
+ReadWritePaths=/opt/cinema-bot
+PrivateTmp=true
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cinema-bot
+
+[Install]
+WantedBy=multi-user.target

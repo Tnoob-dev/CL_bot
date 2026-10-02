@@ -1,0 +1,10 @@
+[Unit]
+Description=Corre oom-guard cada 2 minutos (limpia cloudflared fantasmas)
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=2min
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target

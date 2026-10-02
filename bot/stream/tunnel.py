@@ -126,11 +126,34 @@ class CloudflareTunnel:
             print(f"El proceso del túnel terminó con código: {return_code}")
 
     def stop(self):
-        """Detiene el túnel."""
+        """Detiene el túnel de forma robusta.
+
+        terminate() solo manda SIGTERM; si cloudflared tarda o se queda
+        colgado, el proceso quedaría huérfano comiendo RAM. Por eso:
+        espera unos segundos y si sigue vivo, lo mata con SIGKILL.
+        """
         if self._process:
-            self._process.terminate()
-            self._process = None
-            print("Túnel de Cloudflare detenido")
+            try:
+                self._process.terminate()
+                try:
+                    self._process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    print("cloudflared no respondió a SIGTERM, forzando SIGKILL")
+                    self._process.kill()
+                    self._process.wait(timeout=5)
+            except Exception as e:  # nunca dejar pasar una excepción aquí:
+                print(f"Error deteniendo el túnel: {e}")
+            finally:
+                # Cerrar la tubería desbloquea al hilo _monitor_tunnel si
+                # está esperando en readline().
+                try:
+                    if self._process.stdout:
+                        self._process.stdout.close()
+                except Exception:
+                    pass
+                self._stop_event.set()
+                self._process = None
+                print("Túnel de Cloudflare detenido")
 
 
 def start_cloudflare_tunnel(port: int):
