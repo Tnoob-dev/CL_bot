@@ -66,34 +66,49 @@ logger = logging.getLogger(__name__)
 # Create DBs
 create_db()
 
-# Commands
-bot.add_handler(MessageHandler(hello))
-bot.add_handler(MessageHandler(collect_messages))
-bot.add_handler(MessageHandler(end_collection))
-bot.add_handler(MessageHandler(get_orders))
-bot.add_handler(MessageHandler(send_admin_message))
-bot.add_handler(MessageHandler(count_users))
-bot.add_handler(MessageHandler(ascend_to_admin))
-bot.add_handler(MessageHandler(convert_user_premium))
-bot.add_handler(MessageHandler(get_top10))
-bot.add_handler(MessageHandler(search_subtitles))
-bot.add_handler(MessageHandler(help_command))
-bot.add_handler(MessageHandler(create_posts))
-bot.add_handler(MessageHandler(remove_posts))
-bot.add_handler(MessageHandler(info_posts))
-bot.add_handler(MessageHandler(search_posts))
-bot.add_handler(MessageHandler(donations))
-bot.add_handler(MessageHandler(publi_command))
-bot.add_handler(MessageHandler(fusion_posts))
-bot.add_handler(MessageHandler(stream_handler))
-bot.add_handler(MessageHandler(make_old_posts))
-bot.add_handler(MessageHandler(profile_panel))
-bot.add_handler(MessageHandler(save_user_photo))
-bot.add_handler(MessageHandler(recommend))
 
-# Queries
-bot.add_handler(CallbackQueryHandler(query_manager))
-bot.add_handler(InlineQueryHandler(inline_answer))
+def register_handlers():
+    """Registra TODOS los handlers dentro del event loop en ejecución.
+
+    IMPORTANTE: Pyrogram (>=2.0.167) hace `loop.create_task(fn())` dentro de
+    `Client.add_handler()` para registrar el filtro de "pending updates".
+    Si eso corre con `asyncio.get_event_loop()` devolviendo un loop DISTINTO
+    al que después usa `bot.start()`, obtenés el clásico error:
+
+        RuntimeError: got Future <...> attached to a different loop
+
+    Por eso los handlers NO se registran a nivel de módulo (fuera de la
+    corutina), sino desde `main()`, que ya corre dentro del loop definitivo.
+    """
+    # Commands
+    bot.add_handler(MessageHandler(hello))
+    bot.add_handler(MessageHandler(collect_messages))
+    bot.add_handler(MessageHandler(end_collection))
+    bot.add_handler(MessageHandler(get_orders))
+    bot.add_handler(MessageHandler(send_admin_message))
+    bot.add_handler(MessageHandler(count_users))
+    bot.add_handler(MessageHandler(ascend_to_admin))
+    bot.add_handler(MessageHandler(convert_user_premium))
+    bot.add_handler(MessageHandler(get_top10))
+    bot.add_handler(MessageHandler(search_subtitles))
+    bot.add_handler(MessageHandler(help_command))
+    bot.add_handler(MessageHandler(create_posts))
+    bot.add_handler(MessageHandler(remove_posts))
+    bot.add_handler(MessageHandler(info_posts))
+    bot.add_handler(MessageHandler(search_posts))
+    bot.add_handler(MessageHandler(donations))
+    bot.add_handler(MessageHandler(publi_command))
+    bot.add_handler(MessageHandler(fusion_posts))
+    bot.add_handler(MessageHandler(stream_handler))
+    bot.add_handler(MessageHandler(make_old_posts))
+    bot.add_handler(MessageHandler(profile_panel))
+    bot.add_handler(MessageHandler(save_user_photo))
+    bot.add_handler(MessageHandler(recommend))
+
+    # Queries
+    bot.add_handler(CallbackQueryHandler(query_manager))
+    bot.add_handler(InlineQueryHandler(inline_answer))
+    logger.info("Handlers registrados")
 
 
 def _install_signal_handlers(stop_event: asyncio.Event) -> None:
@@ -120,6 +135,9 @@ def _install_signal_handlers(stop_event: asyncio.Event) -> None:
 
 async def main():
     tunnel = None
+
+    # Handlers registrados DENTRO del loop en ejecución (ver docstring)
+    register_handlers()
 
     # Primero configura el tunnel si es necesario
     if "localhost" in StreamConfig.URL or "127.0.0.1" in StreamConfig.URL:
@@ -159,14 +177,12 @@ async def main():
 
 
 if __name__ == "__main__":
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
     try:
-        loop.run_until_complete(main())
+        # asyncio.run crea SIEMPRE un loop nuevo y lo deja como único loop de
+        # todo el programa. Así `bot.start()`, los handlers, aiohttp y Pyrogram
+        # comparten el mismo loop (con new_event_loop + run_until_complete en
+        # Python 3.12+ Pyrogram agarraba otro loop por dentro -> "attached to
+        # a different loop").
+        asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("Bot apagado por el usuario.")
-    finally:
-        try:
-            loop.run_until_complete(loop.shutdown_asyncgens())
-        finally:
-            loop.close()
