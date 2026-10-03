@@ -5,6 +5,10 @@ import asyncio
 # LOGGING
 import logging
 
+import urllib3
+
+urllib3.util.connection.HAS_IPV6 = False
+
 from commands.Collection import collect_messages, end_collection
 from commands.Fusion import fusion_posts
 

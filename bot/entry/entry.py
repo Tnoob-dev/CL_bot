@@ -1,5 +1,6 @@
 import logging
 import os
+import urllib3
 from pathlib import Path
 
 import dotenv as dt
@@ -13,7 +14,6 @@ logger = logging.getLogger(__name__)
 #######################
 
 env_path = Path.cwd() / Path("bot") / Path("core") / ".env"
-
 
 if env_path.exists():
     dt.load_dotenv(dotenv_path=env_path)
