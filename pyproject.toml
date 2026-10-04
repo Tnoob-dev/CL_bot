@@ -66,9 +66,6 @@ reportMissingImports = "none"
 reportGeneralTypeIssues = "none"
 reportOptionalMemberAccess = "none"
 
-[tool.ty.src]
-exclude = ["pyproject.toml"]
-
 [tool.ty.rules]
 all = "ignore"
 
