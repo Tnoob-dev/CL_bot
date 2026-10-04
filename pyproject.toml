@@ -67,7 +67,13 @@ reportGeneralTypeIssues = "none"
 reportOptionalMemberAccess = "none"
 
 [tool.ty.src]
-root = "./bot"
+exclude = ["pyproject.toml"]
 
 [tool.ty.rules]
 all = "ignore"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.10",
+    "ty>=0.0.84",
+]
