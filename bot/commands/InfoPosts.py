@@ -77,5 +77,5 @@ async def info_posts(client: Client, message: Message):
                 
                     await message.reply("Nada encontrado")
 
-    except (AttributeError, Exception) as e:
-        logger.error(e)
+    except (AttributeError, Exception):
+        logger.exception("Error al obtener info de los posts")

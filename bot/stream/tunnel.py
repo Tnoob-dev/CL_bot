@@ -6,6 +6,11 @@ import subprocess
 import threading
 import time
 import urllib.request
+import logging
+
+from contextlib import suppress
+
+logger = logging.getLogger(__name__)
 
 
 class CloudflareTunnel:
@@ -29,10 +34,12 @@ class CloudflareTunnel:
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
-            return "cloudflared"
+            
         except (subprocess.CalledProcessError, FileNotFoundError):
-            pass
-
+            suppress(subprocess.CalledProcessError)
+            suppress(FileNotFoundError)
+        else:
+            return "cloudflared"
         os.makedirs(os.path.dirname(local_bin), exist_ok=True)
 
         system = platform.system().lower()
@@ -52,21 +59,23 @@ class CloudflareTunnel:
         else:
             return "cloudflared"
 
-        print(f"Descargando cloudflared desde {url}...")
+        logger.info("Descargando cloudflared desde %s...", url)
         try:
             urllib.request.urlretrieve(url, local_bin)
 
             st = os.stat(local_bin)
             os.chmod(local_bin, st.st_mode | stat.S_IEXEC)
-            print("cloudflared descargado con éxito")
-            return local_bin
-        except Exception as e:
-            print(f"Error descargando cloudflared: {e}")
+            logger.info("cloudflared descargado con éxito")
+            
+        except Exception:
+            logger.exception("Error descargando cloudflared")
             return "cloudflared"
-
+        else:
+            return local_bin
+        
     def start(self):
         """Inicia el túnel de Cloudflare y extrae la URL."""
-        print(f"Iniciando túnel de Cloudflare para el puerto {self.port}...")
+        logger.info("Iniciando túnel de Cloudflare para el puerto %s...", self.port)
 
         cmd = [
             self.bin_path,
@@ -85,7 +94,7 @@ class CloudflareTunnel:
                 bufsize=1,
             )
         except FileNotFoundError:
-            print(
+            logger.exception(
                 "No se encontró el binario 'cloudflared'. Asegúrate de que esté en packages.txt"
             )
             return None
@@ -101,15 +110,15 @@ class CloudflareTunnel:
             match = re.search(r"https://[a-zA-Z0-9-]+\.trycloudflare\.com", line)
             if match:
                 self.url = match.group(0)
-                print(f"Túnel creado con éxito => URL pública: {self.url}")
+                logger.info("Túnel creado con éxito => URL pública: %s", self.url)
 
                 threading.Thread(target=self._monitor_tunnel, daemon=True).start()
                 return self.url
 
             if "error" in line.lower():
-                print(f"Error de Cloudflare: {line.strip()}")
+                logger.info("Error de Cloudflare: %s", line.strip())
 
-        print("Tiempo de espera agotado buscando la URL del túnel")
+        logger.info("Tiempo de espera agotado buscando la URL del túnel")
         self.stop()
         return None
 
@@ -119,18 +128,18 @@ class CloudflareTunnel:
             if not line:
                 break
 
-            print(f"Cloudflare: {line.strip()}")
+            logger.info("Cloudflare: %s", line.strip())
 
         if self._process:
             return_code = self._process.poll()
-            print(f"El proceso del túnel terminó con código: {return_code}")
+            logger.info("El proceso del túnel terminó con código: %s", return_code)
 
     def stop(self):
         """Detiene el túnel."""
         if self._process:
             self._process.terminate()
             self._process = None
-            print("Túnel de Cloudflare detenido")
+            logger.info("Túnel de Cloudflare detenido")
 
 
 def start_cloudflare_tunnel(port: int):

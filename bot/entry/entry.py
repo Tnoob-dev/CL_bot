@@ -1,6 +1,5 @@
 import logging
 import os
-import urllib3
 from pathlib import Path
 
 import dotenv as dt

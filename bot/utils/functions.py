@@ -3,10 +3,10 @@ import json
 import logging
 import os
 import re
-import telegraph.aio as telegraph
 from pathlib import Path
-from typing import BinaryIO, List
+from typing import BinaryIO
 
+import telegraph.aio as telegraph
 from db.create_cine_db import Game
 from deep_translator import GoogleTranslator
 from groq import AsyncGroq
@@ -50,7 +50,6 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
         await client.get_chat_member(chat_id=os.getenv("CINEMA_ID"), user_id=message.from_user.id)
         # await client.get_chat_member(chat_id=os.getenv("GUEST_ID"), user_id=message.from_user.id)
 
-        return True
     except UserNotParticipant:
         await message.reply_sticker(Path.cwd() / Path("assets") / Path("tongue_out.tgs"))
         await message.reply("Para usar este bot, primero debes unirte a nuestros canales.",
@@ -61,9 +60,11 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
                                 ]
                             ))
         return False
-    except Exception as e:
-        logger.error(f"Error inesperado en check_user_in_channel: {e}")
+    except Exception:
+        logger.exception("Error inesperado en check_user_in_channel")
         return False
+    else:
+        return True
 
 async def forward_messages(client: Client, messages: list[int]) -> list[int]:
     new_ids = []
@@ -108,8 +109,8 @@ def save_to_json(subtitles: list[dict[str, int | str]], user_id: int, output_fil
         with open(f"./bot/translations/downloads/{user_id}/{output_file}", 'w', encoding='utf-8') as f:
             json.dump(subtitles, f, ensure_ascii=False, indent=2)
 
-    except Exception as error:
-        logger.error(f"Error guardando el json -> {error}")
+    except Exception:
+        logger.exception("Error guardando el json")
 
 def clear_path(path: str) -> None:
 
@@ -127,7 +128,7 @@ def get_clicked_button_text(query: CallbackQuery) -> str | None:
         if markup[0].callback_data == key:
             return markup[0].text
 
-async def download_tg_files(client: Client, file_id: str, username: str) -> str | BinaryIO | List[str | BinaryIO] | None:
+async def download_tg_files(client: Client, file_id: str, username: str) -> str | BinaryIO | list[str | BinaryIO] | None:
     os.makedirs("./images_downloaded", exist_ok=True)
     full_path = await client.download_media(file_id, file_name=f"./images_downloaded/{username}.jpg")
 
@@ -158,8 +159,8 @@ Por favor, traduce la siguiente sinopsis de película o serie del inglés al esp
             max_tokens=1000
         )
         return response.choices[0].message.content
-    except Exception as e:
-        logger.error(f"Error: {e}")
+    except Exception:
+        logger.exception("Error")
 
 async def translate_title(title: str) -> str | None:
     client = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
@@ -201,8 +202,8 @@ Actúa como un traductor especializado en localización cinematográfica. Tu tar
         
         print(response)
         return response.choices[0].message.content
-    except Exception as e:
-        logger.error(f"Error: {e}")
+    except Exception:
+        logger.exception("Error traduciendo titulo")
 
 async def translate_words(words: list[str], target_lang: str = "es") -> list[str]:
     
@@ -220,7 +221,6 @@ async def translate_words(words: list[str], target_lang: str = "es") -> list[str
         'Crime': 'Crimen', 
         'Comedy': 'Comedia',
         'War': 'Guerra', 
-        'Romance': 'Romance',
         'Horror': 'Horror',
         'Sci-Fi & Fantasy': 'Ciencia ficción & Fantasía',
         'Sobrenatural': 'Sobrenatural', 
@@ -298,9 +298,9 @@ async def delete_after_delay(client: Client, chat_id: int, message_id: int, dela
     try:
         await asyncio.sleep(delay)
         await client.delete_messages(chat_id, message_id)
-        logger.info(f"Mensaje {message_id} eliminado del chat {chat_id} tras {delay}s")
-    except Exception as e:
-        logger.error(f"No se pudo eliminar el mensaje {message_id} en el chat {chat_id}: {e}")
+        logger.info("Mensaje %s eliminado del chat %s tras %ss", message_id, chat_id, delay)
+    except Exception:
+        logger.exception("No se pudo eliminar el mensaje %s en el chat %s", message_id, chat_id)
 
 
 async def generate_stream_link(target_message: Message) -> list[list[InlineKeyboardButton]]:
@@ -327,7 +327,7 @@ async def generate_stream_link(target_message: Message) -> list[list[InlineKeybo
 
     return buttons
 
-async def gen_ids(id1: int, id2: int = None) -> list[int]:
+async def gen_ids(id1: int, id2: int | None = None) -> list[int]:
 
     if id2 is None:
         return [id1]

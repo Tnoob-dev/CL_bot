@@ -3,8 +3,7 @@ from datetime import datetime
 
 from db.create_cine_db import Game, Post, Users, cine_engine, posts_engine, users_engine
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlmodel import cast
-from sqlmodel import Session, select
+from sqlmodel import Session, cast, select
 
 # Logger
 logger = logging.getLogger(__name__)
@@ -16,11 +15,12 @@ def insert(query: Game) -> dict[str, str] | None:
         with Session(cine_engine) as session:
             session.add(query)
             session.commit()
-        return {"message": "Pelicula o Serie annadida"}
-    except Exception as e:
+        
+    except Exception:
         session.rollback()
-        logger.error(f"Error al annadir a la db -> {e}")
-
+        logger.exception("Error al annadir a la db")
+    else:
+        return {"message": "Pelicula o Serie annadida"}
 
 # get movie from db
 def get_game(name: str) -> Game:
@@ -31,8 +31,8 @@ def get_game(name: str) -> Game:
 
             return result
 
-    except Exception as e:
-        logger.error(f"Error al obtener desde la db -> {e}")
+    except Exception:
+        logger.exception("Error al obtener desde la db")
 
 def update_movie_genres(file_id: str, movie_genres: list[str]):
     
@@ -50,8 +50,8 @@ def update_movie_genres(file_id: str, movie_genres: list[str]):
             
             return True
 
-    except Exception as e:
-        logger.error(f"Ha ocurrido una excepcion -> {e}")
+    except Exception:
+        logger.exception("Ha ocurrido una excepcion")
         return False
 
 #################################################################
@@ -73,8 +73,8 @@ def get_user(id: int = 0, all_the_users: bool = False) -> tuple[bool, Users | li
                 statement = select(Users)
                 users = session.exec(statement).all()
                 return True, list(users)
-    except Exception as e:
-        logger.error(f"Error al obtener desde la db -> {e}")
+    except Exception:
+        logger.exception("Error al obtener desde la db")
         return False, None
 
 
@@ -92,8 +92,8 @@ def insert_user(query: Users) -> tuple[bool, str] | None:
             return True, "Usuario añadido a la db"
         else:
             return False, "El usuario ya se encuentra en la db"
-    except Exception as e:
-        logger.error(f"Error al annadir a la db -> {e}")
+    except Exception:
+        logger.exception("Error al annadir a la db ")
 
 
 def update_user_genres(id: int, genres: list[str]):
@@ -114,8 +114,8 @@ def update_user_genres(id: int, genres: list[str]):
             session.add(user)
             session.commit()
             session.refresh(user)
-    except Exception as e:
-        logger.error(f"Error al actualizar contador de generos: USER_ID: {user.id}\n\nError:{e}")    
+    except Exception:
+        logger.exception("Error al actualizar contador de generos: USER_ID: %s", user.id)    
 
 # update user translations value, from 10, until 0
 def update_user_value(id: int) -> None:
@@ -129,11 +129,11 @@ def update_user_value(id: int) -> None:
             session.add(user)
             session.commit()
             session.refresh(user)
-        logger.info(f"al usuario {user.username} le quedan {user.rest_tries} intentos")
+        logger.info("Al usuario %s le quedan %s intentos", user.username, user.rest_tries)
 
-    except Exception as e:
+    except Exception:
         session.rollback()
-        logger.error(f"Error al actualizar al usuario {id}, error -> {e}")
+        logger.exception("Error al actualizar al usuario %s", id)
 
 
 def update_user_downloads(id: int) -> None:
@@ -147,11 +147,11 @@ def update_user_downloads(id: int) -> None:
             session.add(user)
             session.commit()
             session.refresh(user)
-        logger.info(f"al usuario {user.username} se le ha sumado una descarga")
+        logger.info("al usuario %s se le ha sumado una descarga", user.username)
 
-    except Exception as e:
+    except Exception:
         session.rollback()
-        logger.error(f"Error al actualizar al usuario {id}, error -> {e}")
+        logger.exception("Error al actualizar al usuario %s", id)
 
 
 def update_user_admin(id: int) -> tuple[bool, str]:
@@ -178,14 +178,14 @@ def update_user_admin(id: int) -> tuple[bool, str]:
                 key_word = "**degradado**"
             session.refresh(user)
 
-        logger.info(f"Se han desplegado acciones sobre el usuario {id}")
-        return (True, f"Usuario {id} ha sido {key_word}")
-
-    except Exception as e:
+        logger.info("Se han desplegado acciones sobre el usuario %s", id)
+        
+    except Exception:
         session.rollback()
-        logger.error(f"Ocurrio un error al cambiar ajustes de usuario -> {e}")
+        logger.exception("Ocurrio un error al cambiar ajustes de usuario")
         return False, "Ocurrió un error al actualizar los permisos del usuario"
-
+    else:
+        return (True, f"Usuario {id} ha sido {key_word}")
 
 def update_user_premium(id: int, days: int = 30) -> tuple[bool, str]:
     try:
@@ -221,13 +221,13 @@ def update_user_premium(id: int, days: int = 30) -> tuple[bool, str]:
                 "%d/%m/%Y"
             )
 
-        logger.info(f"Usuario {id} actualizado a premium hasta {expiration_date_str}")
-        return True, expiration_date_str
+        logger.info("Usuario %s actualizado a premium hasta %s", id, expiration_date_str)
 
-    except Exception as e:
-        logger.error(f"Error al cambiar ajustes premium del usuario {id} -> {e}")
+    except Exception:
+        logger.exception("Error al cambiar ajustes premium del usuario %s", id)
         return False, "Ocurrió un error al actualizar el plan premium del usuario"
-
+    else:
+        return True, expiration_date_str
 
 def is_premium_active(id: int) -> bool:
     try:
@@ -240,11 +240,11 @@ def is_premium_active(id: int) -> bool:
         if user.premium_expires and now > user.premium_expires:
             revoke_premium(id)  # Lo desactivamos automáticamente
             return False
-
-        return True
-    except Exception as e:
-        logger.error(f"Error verificando premium del usuario {id} -> {e}")
+    except Exception:
+        logger.exception("Error verificando premium del usuario %s", id)
         return False
+    else:
+        return True
 
 
 def revoke_premium(id: int) -> bool:
@@ -258,11 +258,12 @@ def revoke_premium(id: int) -> bool:
 
             session.add(user)
             session.commit()
-        logger.info(f"Premium revocado para usuario {id}")
-        return True
-    except Exception as e:
-        logger.error(f"Error revocando premium del usuario {id} -> {e}")
+        logger.info("Premium revocado para usuario %s", id)
+    except Exception:
+        logger.exception("Error revocando premium del usuario %s", id)
         return False
+    else:
+        return True
 
 
 #################################################################
@@ -275,10 +276,12 @@ def get_post_by_name(name: str) -> list[dict[str, str]] | list:
             statement = select(Post).where(Post.movie_name.ilike(pattern))
             results = session.exec(statement).all()
 
-            return [{"name": res.movie_name, "link": res.link} for res in results]
-    except Exception as e:
-        logger.error(e)
+    except Exception:
+        logger.exception("Error al obtener post por su nombre")
         return []
+    else:
+        return [{"name": res.movie_name, "link": res.link} for res in results]
+        
     
 def get_posts_by_genre(genre: str) -> list[Post | None]:
     try:
@@ -290,11 +293,11 @@ def get_posts_by_genre(genre: str) -> list[Post | None]:
             
             posts = session.exec(statement).all()
             
-            return posts
-            
-    except Exception as e:
-        logger.error(e)
+    except Exception:
+        logger.exception("Error al obtener posts por su genero")
         return []
+    else:
+        return posts
 
 
 def get_post_by_id(id: int) -> Post | None:
@@ -308,9 +311,8 @@ def get_post_by_id(id: int) -> Post | None:
                 return None
 
             return post
-    except Exception as e:
-        logger.error(e)
-        raise
+    except Exception:
+        logger.exception("Error al obtener post por su ID")
 
 
 def insert_post(query: Post) -> dict[str, str]:
@@ -318,10 +320,11 @@ def insert_post(query: Post) -> dict[str, str]:
         with Session(posts_engine) as session:
             session.add(query)
             session.commit()
-        return {"message": "Post added"}
-    except Exception as e:
+    except Exception:
         session.rollback()
-        logger.error(e)
+        logger.exception("Error al insertar post")
+    else:
+        return {"message": "Post added"}
 
 
 def delete_post(id: int) -> tuple[bool, str]:
@@ -336,11 +339,11 @@ def delete_post(id: int) -> tuple[bool, str]:
                 session.delete(founded_post)
                 session.commit()
 
-                logger.info(f"Post {id} eliminado correctamente")
+                logger.info("Post %s eliminado correctamente", id)
                 return (True, f"Post {id} eliminado correctamente de la db")
 
-    except Exception as e:
-        logger.error(f"Ha ocurrido una excepcion en los posts -> {e}")
+    except Exception:
+        logger.exception("Ha ocurrido una excepcion en los posts")
         return (False, "Ocurrió un error al eliminar el post de la base de datos")
 
 def get_genres_from_post_by_file_ids(file_ids: list[int]):
@@ -355,5 +358,5 @@ def get_genres_from_post_by_file_ids(file_ids: list[int]):
                 return None
             
             return result
-    except Exception as e:
-        logger.error(f"Ha ocurrido una excepcion en los posts -> {e}")
+    except Exception:
+        logger.exception("Ha ocurrido una excepcion en los posts")

@@ -1,8 +1,8 @@
 import logging
 import os
 
-from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.ext.mutable import MutableDict
 from sqlmodel import JSON, BigInteger, Column, Field, SQLModel, create_engine
 
 # Logger

@@ -15,7 +15,7 @@ from utils.db_reqs import (
     insert_user,
     is_premium_active,
     update_user_downloads,
-    update_user_genres
+    update_user_genres,
 )
 from utils.functions import (
     check_administration,
@@ -50,9 +50,9 @@ async def _safe_delete_after_delay(
     try:
         await asyncio.sleep(delay)
         await client.delete_messages(chat_id, message_ids)
-        logger.info(f"Mensajes {message_ids} eliminados del chat {chat_id}")
-    except Exception as e:
-        logger.error(f"No se pudieron eliminar mensajes en chat {chat_id}: {e}")
+        logger.info("Mensajes %s eliminados del chat %s", message_ids, chat_id)
+    except Exception:
+        logger.exception("No se pudieron eliminar mensajes en chat %s", chat_id)
 
 
 @bot.on_message(
@@ -74,7 +74,7 @@ async def hello(client: Client, message: Message):
         user_founded = await asyncio.to_thread(get_user, user_id)
 
         if not user_founded[0]:  # if the user is not in db, add it
-            logger.info(f"Insertando usuario {username} ({user_id}) a la db")
+            logger.info("Insertando usuario %s (%s) a la db", username, user_id)
             user = Users(
                 id=user_id,
                 username=username,
@@ -83,7 +83,7 @@ async def hello(client: Client, message: Message):
                 premium_user=False,
             )
             await asyncio.to_thread(insert_user, user)
-            logger.info(f"Usuario {username} añadido a la db")
+            logger.info("Usuario %s añadido a la db", username)
             user_founded = await asyncio.to_thread(get_user, user_id)
 
     if message.command is not None and len(message.command) == 1:
@@ -129,19 +129,24 @@ async def hello(client: Client, message: Message):
                                 sent = await client.copy_message(
                                     message.chat.id, channel_id, file_id
                                 )
-                                return sent.id
                             except FloodWait as f:
                                 # Respect Telegram's wait, but cap it; very
                                 # long waits are retried later, not blocked on.
                                 wait = min(f.value, 60)
                                 logger.warning(
-                                    f"FloodWait {f.value}s (esperando {wait}s), "
-                                    f"intento {attempt + 1}/3 para {file_id}"
+                                    "FloodWait %ss (esperando %ss), "
+                                    "intento %s/3 para %s", 
+                                    f.value, 
+                                    wait, 
+                                    attempt + 1, 
+                                    file_id
                                 )
                                 await asyncio.sleep(wait)
-                            except Exception as e:
-                                logger.error(f"Error copiando {file_id}: {e}")
+                            except Exception:
+                                logger.exception("Error copiando %s", file_id)
                                 break
+                            else:
+                                return sent.id
                         return None
 
                 # All parts of this download are copied concurrently (limited
@@ -194,5 +199,5 @@ Cada aporte ayuda a mantener el canal activo y mejorar la calidad del contenido.
 
                 # add 1 more download to user total downloads
                 await asyncio.to_thread(update_user_downloads, user_id)
-        except (TypeError, ValueError) as e:
-            logger.error(e)
+        except (TypeError, ValueError):
+            logger.exception("Error al obtener los archivos que pide el usuario")

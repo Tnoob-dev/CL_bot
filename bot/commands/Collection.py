@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 
 from entry.entry import bot
 from pyrogram.client import Client
@@ -141,5 +140,5 @@ async def collect_messages(client: Client, message: Message):
             user_state = get_user_state(user_id)
             if user_state and user_state.get("collecting"):
                 user_state["messages"].append(message.id)
-    except AttributeError as error:
-        logger.error(error)
+    except AttributeError:
+        logger.exception("Error al coleccionar mensajes")

@@ -24,8 +24,6 @@ async def check(client: Client, query: InlineQuery):
         await client.get_chat_member(
             chat_id=os.getenv("CINEMA_ID"), user_id=query.from_user.id
         )
-
-        return True
     except UserNotParticipant:
         await query.answer(
             results=[
@@ -39,9 +37,11 @@ async def check(client: Client, query: InlineQuery):
             ],
             cache_time=1,
         )
-    except Exception as e:
-        logger.error(f"Error inesperado en check_user_in_channel: {e}")
+    except Exception:
+        logger.exception("Error inesperado en check_user_in_channel")
         return False
+    else:
+        return True
 
 
 ######## INLINE QUERY
@@ -80,8 +80,8 @@ async def inline_answer(client: Client, inline_query: InlineQuery):
             next_offset=str(offset + limit) if len(movies_page) == limit else "",
         )
 
-    except QueryIdInvalid as msg:
-        logger.error(f"Error buscando, algo paso con el query: {msg}")
+    except QueryIdInvalid:
+        logger.exception("Error buscando, algo paso con el query")
 
     except MessageEmpty:
         pass

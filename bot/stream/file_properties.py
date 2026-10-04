@@ -124,7 +124,7 @@ def pack_file(file_name: str, file_size: int, mime_type: str, message_id: int) -
     for field in [file_name, str(file_size), mime_type, str(message_id)]:
         hasher.update(field.encode(encoding="utf-8"))
 
-    logger.info(f"Creado: {hasher.hexdigest()}")
+    logger.info("Creado: %s", hasher.hexdigest())
 
     return hasher.hexdigest()
 

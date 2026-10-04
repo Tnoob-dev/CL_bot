@@ -1,10 +1,13 @@
+import logging
+import os
 from typing import Any
 
 import aiohttp
-import os
-import logging
-
-from aiohttp.client_exceptions import ClientError, ClientConnectionError, ConnectionTimeoutError
+from aiohttp.client_exceptions import (
+    ClientConnectionError,
+    ClientError,
+    ConnectionTimeoutError,
+)
 from aiohttp.http_exceptions import HttpBadRequest
 
 logger = logging.getLogger(__name__)
@@ -31,12 +34,12 @@ async def get_results(query: str) -> list | None:
                         results.append(
                             await response.json()
                         )
-
+    except (ClientError, ClientConnectionError, ConnectionTimeoutError, HttpBadRequest):
+        logger.exception("Error del Cliente")
+    else:
         return results
-    except (ClientError, ClientConnectionError, ConnectionTimeoutError, HttpBadRequest) as error:
-        logger.error(error)
-        
-async def get_info_by_id(movieId: str) -> None | Any:
+    
+async def get_info_by_id(movieId: str) -> Any | None:
     try:
         async with (
             aiohttp.ClientSession() as session,
@@ -49,8 +52,8 @@ async def get_info_by_id(movieId: str) -> None | Any:
 
                 return movie
 
-    except (ClientError, ClientConnectionError, ConnectionTimeoutError, HttpBadRequest) as error:
-        logger.error(error)
+    except (ClientError, ClientConnectionError, ConnectionTimeoutError, HttpBadRequest):
+        logger.exception("Error del Cliente")
 
 
 ##### IMDB
@@ -73,8 +76,8 @@ async def search_tmdb(query: str):
             
             return results
     
-    except (ClientError, ClientConnectionError, ConnectionTimeoutError, HttpBadRequest) as error:
-        logger.error(error)
+    except (ClientError, ClientConnectionError, ConnectionTimeoutError, HttpBadRequest):
+        logger.exception("Error del Cliente")
         
 async def get_movie_info_by_id_tmdb(movieId: str):
     try:
@@ -92,8 +95,8 @@ async def get_movie_info_by_id_tmdb(movieId: str):
             
             return result
             
-    except (ClientError, ClientConnectionError, ConnectionTimeoutError, HttpBadRequest) as error:
-        logger.error(error)
+    except (ClientError, ClientConnectionError, ConnectionTimeoutError, HttpBadRequest):
+        logger.exception("Error del cliente")
 
 async def get_tv_info_by_id_tmdb(seriesId: str):
     try:
@@ -111,5 +114,5 @@ async def get_tv_info_by_id_tmdb(seriesId: str):
             
             return result
             
-    except (ClientError, ClientConnectionError, ConnectionTimeoutError, HttpBadRequest) as error:
-        logger.error(error)
+    except (ClientError, ClientConnectionError, ConnectionTimeoutError, HttpBadRequest):
+        logger.exception("Error del Cliente")

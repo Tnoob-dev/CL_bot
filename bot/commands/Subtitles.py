@@ -66,6 +66,6 @@ async def search_subtitles(client: Client, message: Message):
             await message.reply(
                 "❌Debe enviar el comando y luego el nombre de la serie/pelicula, junto a la temporada y/o episodio.❓Ejemplos:\n\n/srt Breaking Bad Season 1\n/srt Breaking Bad S01E01\n/srt Breaking Bad Temporada 2 Episodio 3"
             )
-    except OpenSubtitlesException as error:
-        logger.error(error)
+    except OpenSubtitlesException:
+        logger.exception("Error al buscar subtitulo")
         await message.reply("❌ Ocurrió un error al buscar subtítulos. Inténtalo de nuevo más tarde.")

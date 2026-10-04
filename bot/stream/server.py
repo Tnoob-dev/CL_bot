@@ -108,20 +108,16 @@ async def watch_handler(request: web.Request):
 
         # Verificaciones antes del hash
         logger.info(
-            "Nombre del archivo a stremear antes de crear hash: "
-            + str(file_info.file_name)
+            "Nombre del archivo a stremear antes de crear hash: %s", str(file_info.file_name)
         )
         logger.info(
-            "Tamanho del archivo a stremear antes de crear hash: "
-            + str(file_info.file_size)
+            "Tamanho del archivo a stremear antes de crear hash: %s", str(file_info.file_size)
         )
         logger.info(
-            "MimeType del archivo a stremear antes de crear hash: "
-            + str(file_info.mime_type)
+            "MimeType del archivo a stremear antes de crear hash: %s", str(file_info.mime_type)
         )
         logger.info(
-            "Message ID del archivo a stremear antes de crear hash: "
-            + str(file_info.message_id)
+            "Message ID del archivo a stremear antes de crear hash: %s", str(file_info.message_id)
         )
 
         # Verificar hash
@@ -132,9 +128,9 @@ async def watch_handler(request: web.Request):
             file_info.message_id,
         )
 
-        logger.info("Full hash: " + full_hash)
-        logger.info("Short Hash: " + get_short_hash(full_hash))
-        logger.info("Secure hash: " + secure_hash)
+        logger.info("Full hash: %s", full_hash)
+        logger.info("Short Hash: %s", get_short_hash(full_hash))
+        logger.info("Secure hash: %s", secure_hash)
 
         if get_short_hash(full_hash) != secure_hash:
             # patch por si todo explota
@@ -147,8 +143,8 @@ async def watch_handler(request: web.Request):
 
         return web.Response(text=html, content_type="text/html")
 
-    except Exception as e:
-        logger.error(f"Error en watch_handler: {e}")
+    except Exception:
+        logger.exception("Error en watch_handler")
         return web.Response(status=500, text="Error interno")
 
 
@@ -157,7 +153,7 @@ async def stream_handler(request: web.Request):
     try:
         message_id = int(request.match_info["messageID"])
         secure_hash = request.rel_url.query.get("hash")
-        logger.info(f"--- Recibida petición HTTP para /stream/{message_id} ---")
+        logger.info("--- Recibida petición HTTP para /stream/%s ---", message_id)
 
         return await media_streamer(request, message_id, secure_hash)
 
@@ -184,7 +180,12 @@ async def media_streamer(request: web.Request, message_id: int, secure_hash: str
     if _streamer is None:
         return web.Response(status=503, text="Servidor de streaming no inicializado")
 
-    logger.info(f"Petición de stream: ID={message_id} | IP={ip} | Range={range_header}")
+    logger.info(
+        "Petición de stream: ID=%s | IP=%s | Range=%s", 
+        message_id, 
+        ip, 
+        range_header
+    )
 
     # Obtener propiedades del archivo
     file_info = await _streamer.get_file_properties(message_id)
@@ -199,7 +200,7 @@ async def media_streamer(request: web.Request, message_id: int, secure_hash: str
         file_info.message_id,
     )
     if get_short_hash(full_hash) != secure_hash:
-        logger.debug(f"Hash inválido para message_id {message_id}")
+        logger.debug("Hash inválido para message_id %s", message_id)
         return web.HTTPForbidden(text="Hash inválido")
 
     file_size = file_info.file_size
@@ -282,7 +283,7 @@ async def media_streamer(request: web.Request, message_id: int, secure_hash: str
             async for chunk in body:
                 await response.write(chunk)
     except (ConnectionResetError, ConnectionAbortedError, ConnectionError):
-        logger.info(f"Conexión cerrada por el cliente: {ip}")
+        logger.info("Conexión cerrada por el cliente: %s", ip)
     finally:
         _ongoing_requests[ip] -= 1
 
@@ -300,5 +301,5 @@ async def start_stream_server(client):
     await runner.setup()
     await web.TCPSite(runner, StreamConfig.BIND_ADDRESS, StreamConfig.PORT).start()
 
-    logger.info(f"Servidor de streaming iniciado en {StreamConfig.URL}")
+    logger.info("Servidor de streaming iniciado en %s", StreamConfig.URL)
     return runner

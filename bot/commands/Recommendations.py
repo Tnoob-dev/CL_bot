@@ -2,11 +2,11 @@ import os
 import random
 
 from entry.entry import bot
-from utils.db_reqs import get_user, get_posts_by_genre
-from utils.functions import create_telegraph_page
 from pyrogram.client import Client
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.filters import command, private
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from utils.db_reqs import get_posts_by_genre, get_user
+from utils.functions import create_telegraph_page
 
 
 @bot.on_message(command("recommend", prefixes=["/"]) & private)

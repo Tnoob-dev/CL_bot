@@ -49,14 +49,14 @@ class PyrogramStreamer:
             self.client, StreamConfig.BIN_CHANNEL, message_id
         )
         if not file_info:
-            logger.debug(f"Archivo no encontrado para message_id {message_id}")
+            logger.debug("Archivo no encontrado para message_id %s", message_id)
             return None
 
         if len(self.cached_files) >= StreamConfig.CACHE_SIZE:
             self.cached_files.popitem(last=False)
 
         self.cached_files[message_id] = file_info
-        logger.debug(f"FileInfo cacheado para message_id {message_id}")
+        logger.debug("FileInfo cacheado para message_id %s", message_id)
         return file_info
 
     async def _refresh_file_reference(self, message_id: int) -> FileInfo | None:
@@ -67,7 +67,7 @@ class PyrogramStreamer:
         )
         if fresh_info:
             self.cached_files[message_id] = fresh_info
-            logger.info(f"file_reference refrescado para message_id {message_id}")
+            logger.info("file_reference refrescado para message_id %s", message_id)
         return fresh_info
 
     async def download(
@@ -94,7 +94,11 @@ class PyrogramStreamer:
         prefetch_count = StreamConfig.PREFETCH_COUNT
 
         logger.debug(
-            f"Streaming: chunks {first_part}-{last_part} de {part_count} (total {total_parts})"
+            "Streaming: chunks %s-%s de %s (total %s)",
+            first_part, 
+            last_part, 
+            part_count, 
+            total_parts
         )
 
         try:
@@ -159,7 +163,7 @@ class PyrogramStreamer:
                                             StreamConfig.MAX_TELEGRAM_RETRIES,
                                             StreamConfig.RETRY_BASE_DELAY,
                                         )
-                                    except Exception as e:
+                                    except Exception:
                                         # Si vuelve a fallar (incluso con otro
                                         # FileReferenceExpiredError) NO debe escaparse:
                                         # antes esto terminaba el generador a medias,
@@ -167,9 +171,7 @@ class PyrogramStreamer:
                                         # el navegador interpretaba como un corte de red
                                         # y disparaba una reconexión que repetía el
                                         # mismo fallo indefinidamente.
-                                        logger.error(
-                                            f"Fallo también tras refrescar file_reference: {e}"
-                                        )
+                                        logger.exception("Fallo también tras refrescar file_reference")
                                         chunk = None
                                 else:
                                     chunk = None
@@ -189,12 +191,15 @@ class PyrogramStreamer:
 
                 if not chunk:
                     consecutive_failures += 1
-                    logger.error(
-                        f"No se pudo obtener el chunk en offset {current_offset} "
-                        f"(fallo consecutivo {consecutive_failures}/{max_consecutive_failures})"
+                    logger.info(
+                        "No se pudo obtener el chunk en offset %s "
+                        "(fallo consecutivo %s/%s)",
+                        current_offset,
+                        consecutive_failures,
+                        max_consecutive_failures
                     )
                     if consecutive_failures >= max_consecutive_failures:
-                        logger.error(
+                        logger.info(
                             "Demasiados fallos consecutivos, abortando el stream."
                         )
                         break
@@ -241,4 +246,4 @@ class PyrogramStreamer:
             logger.debug("Streaming interrumpido por el cliente")
             raise
         except Exception:
-            logger.error("Error durante el streaming", exc_info=True)
+            logger.exception("Error durante el streaming")

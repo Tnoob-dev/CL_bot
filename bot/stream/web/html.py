@@ -325,7 +325,7 @@ def clean_title(filename: str) -> str:
 
 def _read_static(path: Path) -> str:
     if not path.is_file():
-        raise FileNotFoundError(f"Required static asset missing: {path}")
+        raise FileNotFoundError(f"Required static asset missing: {path}") #noqa: TRY003
     return path.read_text(encoding="utf-8")
 
 
@@ -405,12 +405,12 @@ def create_html(
         <!-- Moved into .plyr on ready so it survives fullscreen. -->
         <div class="gesture-ui" data-gesture-ui aria-hidden="true">
           <div class="gesture-flash gesture-flash--left" data-seek-flash="left">
-            <span class="gesture-flash-label">−10</span>
+            <span class="gesture-flash-label">-10</span>
           </div>
           <div class="gesture-flash gesture-flash--right" data-seek-flash="right">
             <span class="gesture-flash-label">+10</span>
           </div>
-          <div class="gesture-speed" data-speed-badge>2×</div>
+          <div class="gesture-speed" data-speed-badge>2x</div>
           <!-- Side rails: brightness left, volume right -->
           <div class="gesture-level gesture-level--left" data-level-badge="brightness" hidden>
             <span class="gesture-level-value" data-level-value></span>

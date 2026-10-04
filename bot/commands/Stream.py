@@ -51,20 +51,16 @@ async def stream_handler(client: Client, message: Message):
                 return
 
             logger.info(
-                "Nombre del archivo a stremear despues de crear hash: "
-                + str(file_info.file_name)
+                "Nombre del archivo a stremear despues de crear hash: %s", str(file_info.file_name)
             )
             logger.info(
-                "Tamanho del archivo a stremear despues de crear hash: "
-                + str(file_info.file_size)
+                "Tamanho del archivo a stremear despues de crear hash: %s", str(file_info.file_size)
             )
             logger.info(
-                "MimeType del archivo a stremear despues de crear hash: "
-                + str(file_info.mime_type)
+                "MimeType del archivo a stremear despues de crear hash: %s", str(file_info.mime_type)
             )
             logger.info(
-                "MessageID del archivo a stremear despues de crear hash: "
-                + str(file_info.message_id)
+                "MessageID del archivo a stremear despues de crear hash: %s", str(file_info.message_id)
             )
 
             # hash y link
@@ -75,8 +71,8 @@ async def stream_handler(client: Client, message: Message):
                 file_info.message_id,
             )
 
-            logger.info("Full hash: " + full_hash)
-            logger.info("Short Hash: " + get_short_hash(full_hash))
+            logger.info("Full hash: %s", full_hash)
+            logger.info("Short Hash: %s", get_short_hash(full_hash))
 
             file_hash = get_short_hash(full_hash)
             stream_link = f"{StreamConfig.URL}stream/{forwarded.id}?hash={file_hash}"
@@ -97,8 +93,8 @@ async def stream_handler(client: Client, message: Message):
 
             print(f"Stream link generado: {stream_link} (msg_id={forwarded.id})")
 
-        except Exception as e:
-            logger.error(f"Error generando stream link: {e}")
+        except Exception:
+            logger.exception("Error generando stream link")
             await message.reply(
                 "<blockquote><b>Error:</b> No se pudo generar el enlace de stream. Inténtalo de nuevo más tarde.</blockquote>"
             )

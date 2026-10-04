@@ -34,6 +34,7 @@ def download_subs(file_id: str):
 
     try:
         file = op.download_and_save(file_id)
+    except OpenSubtitlesException:
+        logger.exception("Error en la busqueda de subtitulos")
+    else:
         return file
-    except OpenSubtitlesException as error:
-        logger.error(f"Error -> {error}")

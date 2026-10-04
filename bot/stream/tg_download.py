@@ -48,12 +48,13 @@ async def fetch_chunk(
                 )
             if isinstance(result, raw.types.upload.File) and result.bytes:
                 return result.bytes
-            return None
 
         except FloodWait as e:
             wait_time = e.value + 1
             logger.warning(
-                f"FloodWait de Telegram: esperando {wait_time}s (offset={offset})"
+                "FloodWait de Telegram: esperando %ss (offset=%s)",
+                wait_time, 
+                offset
             )
             await asyncio.sleep(wait_time)
             attempt += 1
@@ -65,25 +66,34 @@ async def fetch_chunk(
 
             attempt += 1
             if attempt > max_retries:
-                logger.error(f"Se agotaron los reintentos en offset {offset}: {e}")
+                logger.info("Se agotaron los reintentos en offset %s: %s", offset, e)
                 return None
             delay = base_delay * (2 ** (attempt - 1))
             logger.warning(
-                f"Error de Telegram ({e.__class__.__name__}) en offset {offset}, "
-                f"intento {attempt}/{max_retries}: {e}"
+                "Error de Telegram (%s) en offset %s, "
+                "intento %s/%s: %s",
+                e.__class__.__name__,
+                offset,
+                attempt,
+                max_retries,
+                e
             )
             await asyncio.sleep(delay)
 
-        except Exception as e:
+        except Exception:
             attempt += 1
             if attempt > max_retries:
-                logger.error(f"Se agotaron los reintentos en offset {offset}: {e}")
+                logger.info("Se agotaron los reintentos en offset %s", offset)
                 return None
             delay = base_delay * (2 ** (attempt - 1))
             logger.warning(
-                f"Error inesperado descargando offset {offset}, "
-                f"intento {attempt}/{max_retries}: {e}"
+                "Error inesperado descargando offset %s, "
+                "intento %s/%s",
+                offset,
+                attempt,
+                max_retries
             )
+            logger.exception("Error al hacer fetch a los chunks")
             await asyncio.sleep(delay)
-
-    return None
+        else:
+            return None

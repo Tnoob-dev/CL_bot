@@ -73,7 +73,7 @@ Para cubanos en la isla 🇨🇺:
 🎁 Saldo Movil: {os.getenv("MOBILE")}
 
 Para Residentes de otros Países 🌎:
-🎁 Wallet BNB (BEP20): {os.getenv("Wallet_BEP")}
+🎁 Wallet BNB (BEP20): {os.getenv("WALLET_BEP")}
 
 En caso de ser otro tipo de moneda u otro tipo de incentivo,
 puede escribir directamente al DM: @TitiLM10
@@ -116,12 +116,13 @@ async def send_admin_message(client: Client, message: Message):
                             InputUserDeactivated,
                             PeerIdInvalid,
                         ) as e:
-                            logger.warning(f"No se puede enviar a {user.id}: {e}")
+                            logger.warning("No se puede enviar a %s: %s", user.id, e)
                             blocked_users += 1
                             success = True
                         except UserIsBot:
                             logger.warning(
-                                f"No se puede enviar a {user.id} porque es un bot"
+                                "No se puede enviar a %s porque es un bot",
+                                user.id
                             )
                             bots += 1
                             success = True
@@ -132,8 +133,8 @@ async def send_admin_message(client: Client, message: Message):
         else:
             await message.reply("❌No tiene permisos para usar este comando❌")
 
-    except Exception as error:
-        logger.error(error)
+    except Exception:
+        logger.exception("Error al enviar mensaje a usuarios")
 
 
 @bot.on_message(command("admin") & private)
@@ -153,8 +154,8 @@ async def ascend_to_admin(client: Client, message: Message):
             else:
                 logger.error(msg)
                 await message.reply(f"❌{msg}❌")
-    except Exception as e:
-        logger.error(e)
+    except Exception:
+        logger.exception("Error al ascender como administrador")
         await message.reply("❌ Error interno. Si el problema persiste, contacta al administrador.")
 
 
@@ -172,25 +173,23 @@ async def convert_user_premium(client: Client, message: Message):
 
             if boolean:
                 logger.info(
-                    f"Se le ha otorgado premium al usuario {user_command[-1]} hasta "
-                    + dead_date
+                    "Se le ha otorgado premium al usuario %s hasta %s", user_command[-1], dead_date
                 )
                 await message.reply(
-                    f"Se le ha otorgado premium al usuario {user_command[-1]} hasta "
-                    + dead_date
+                    f"Se le ha otorgado premium al usuario {user_command[-1]} hasta {dead_date}"
                 )
                 await client.send_message(
                     chat_id=int(message.command[-1]),
-                    text="Se le ha otorgado premium hasta " + dead_date,
+                    text=f"Se le ha otorgado premium hasta {dead_date}",
                 )
             else:
-                logger.error(f"Error al otorgar premium al usuario {user_command[-1]}")
+                logger.error("Error al otorgar premium al usuario %s", user_command[-1])
                 await message.reply(
-                    f"Error al otorgar premium al usuario {user_command[-1]}"
+                    "Error al otorgar premium al usuario %s", user_command[-1]
                 )
 
-    except Exception as e:
-        logger.error(e)
+    except Exception:
+        logger.exception("Error al convertir al usuario en premium")
         await message.reply("❌ Error interno. Si el problema persiste, contacta al administrador.")
 
 

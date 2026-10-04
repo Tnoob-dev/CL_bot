@@ -1,13 +1,18 @@
 import logging
 import os
+from contextlib import suppress
 from pathlib import Path
 
+from entry.entry import bot
 from pyrogram import Client
 from pyrogram.errors import WebpageMediaEmpty
 from pyrogram.filters import photo, private
-from pyrogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
-
-from entry.entry import bot
+from pyrogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+)
 from utils.create_paths import create_subtitles_dl_path
 from utils.db_reqs import delete_post, get_user, update_user_premium
 from utils.functions import (
@@ -17,7 +22,11 @@ from utils.functions import (
     translate_title,
     translate_words,
 )
-from utils.movie_search import get_info_by_id, get_movie_info_by_id_tmdb, get_tv_info_by_id_tmdb
+from utils.movie_search import (
+    get_info_by_id,
+    get_movie_info_by_id_tmdb,
+    get_tv_info_by_id_tmdb,
+)
 from utils.rt_client import info
 from utils.search_subts import download_subs
 
@@ -182,15 +191,14 @@ async def _handle_orders(client: Client, query: CallbackQuery):
                 ])
             )
             await query.answer("Tu orden fue enviada a los administradores ✅")
-        except Exception as e:
-            logger.error(f"Error en order_not_found -> {e}")
+        except Exception:
+            logger.exception("Error en order_not_found")
             await query.answer("Ocurrió un error al reenviar tu orden.", show_alert=True)
             
-    elif data.startswith("order_404_"):
-        if check_administration(query):
-            msg_id = int(data.split("_")[-1])
-            await client.send_message(group_chat, "Lo sentimos, no encontramos su pedido.", reply_to_message_id=msg_id)
-            await query.message.delete()
+    elif data.startswith("order_404_") and check_administration(query):
+        msg_id = int(data.split("_")[-1])
+        await client.send_message(group_chat, "Lo sentimos, no encontramos su pedido.", reply_to_message_id=msg_id)
+        await query.message.delete()
 
 
 async def _handle_subtitles(client: Client, query: CallbackQuery):
@@ -215,8 +223,8 @@ async def _handle_subtitles(client: Client, query: CallbackQuery):
                 f"Gracias por usar nuestro bot. 🦾🤖\nSiga disfrutando de @{clibrary} 🎟**"
             )
             os.remove(srt_file_renamed)
-        except Exception as error:
-            logger.error(f"Error al descargar el subtítulo -> {error}")
+        except Exception:
+            logger.exception("Error al descargar el subtítulo")
             await m.edit("❌ Ocurrió un error al descargar el subtítulo. Inténtalo de nuevo más tarde.")
     else:
         await query.answer("No tienes permisos para descargar subtítulos.", show_alert=True)
@@ -253,8 +261,8 @@ async def _handle_remove_post(client: Client, query: CallbackQuery):
         delete_post(post_id)
         await query.message.edit("Post eliminado del canal y BD")
         await client.delete_messages(chat_id=clibrary, message_ids=int(post_id))
-    except Exception as e:
-        logger.error(f"Error al eliminar el post -> {e}")
+    except Exception:
+        logger.exception("Error al eliminar el post")
         await query.message.reply("❌ Ocurrió un error al eliminar el post.")
 
 
@@ -410,9 +418,10 @@ async def query_manager(client: Client, query: CallbackQuery):
         else:
             await query.answer("Acción no reconocida.", show_alert=True)
             
-    except Exception as e:
-        logger.error(f"Error crítico en query_manager (data: {data}): {e}", exc_info=True)
+    except Exception:
+        logger.exception("Error crítico en query_manager (data: %s)", data)
         try:
             await query.answer("Ocurrió un error inesperado. Inténtalo de nuevo.", show_alert=True)
         except Exception:
-            pass
+            logger.exception()
+            suppress(Exception)

@@ -1,8 +1,6 @@
-import aiohttp
-import asyncio
 import logging
 
-from typing import Optional
+import aiohttp
 from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
@@ -21,7 +19,7 @@ headers = {
         "User-Agent": USER_AGENT,
     }
 
-async def find_first_movie_link(soup: BeautifulSoup) -> Optional[str]:
+async def find_first_movie_link(soup: BeautifulSoup) -> str | None:
     
     movie_link = soup.select_one(
         "a[data-qa='info-name']"
@@ -42,7 +40,7 @@ async def find_first_movie_link(soup: BeautifulSoup) -> Optional[str]:
     
     return href
 
-async def search_movie(session: aiohttp.ClientSession, query: str) -> Optional[str]:
+async def search_movie(session: aiohttp.ClientSession, query: str) -> str | None:
     
     url = f"{URL}{SEARCH_PATH}"
     params = {"search": query}
@@ -51,15 +49,15 @@ async def search_movie(session: aiohttp.ClientSession, query: str) -> Optional[s
         async with session.get(url=url, params=params, headers=headers, timeout=TIMEOUT) as response:
             response.raise_for_status()
             html = await response.text(encoding="utf-8")
-    except (aiohttp.ClientError, asyncio.TimeoutError):
-        logger.error("error al buscar la pelicula")
+    except (TimeoutError, aiohttp.ClientError):
+        logger.exception("Error al buscar la pelicula")
         return
     
     soup = BeautifulSoup(html, "html.parser")
     
     return await find_first_movie_link(soup=soup)
 
-async def find_scorecard(soup: BeautifulSoup) -> Optional[dict[str, dict]]:
+async def find_scorecard(soup: BeautifulSoup) -> dict[str, dict] | None:
     
     score_info = {}
     
@@ -115,14 +113,14 @@ async def find_scorecard(soup: BeautifulSoup) -> Optional[dict[str, dict]]:
         
     return score_info
     
-async def init_scorecard_search(session: aiohttp.ClientSession, link: str) -> Optional[dict[str, dict]]:
+async def init_scorecard_search(session: aiohttp.ClientSession, link: str) -> dict[str, dict] | None:
     
     try:
         async with session.get(url=link, headers=headers, timeout=TIMEOUT) as response:
             response.raise_for_status()
             html = await response.text(encoding="utf-8")
-    except (aiohttp.ClientError, asyncio.TimeoutError):
-        logger.error("Error al obtener la pagina de la pelicula/serie")
+    except (TimeoutError, aiohttp.ClientError):
+        logger.exception("Error al obtener la pagina de la pelicula/serie")
         return None
     
     soup = BeautifulSoup(html, "html.parser")

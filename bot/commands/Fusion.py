@@ -71,8 +71,8 @@ async def fusion_posts(client: Client, message: Message):
                 f"Post #1 ||{post1_id}|| editado con el nuevo inline markup✅📝\n\nPost #2 ha sido eliminado🗑"
             )
 
-            logger.info(f"Se ha editado el post de {post1_id}")
+            logger.info("Se ha editado el post de %s", post1_id)
 
-        except Exception as e:
-            logger.error(e)
+        except Exception:
+            logger.exception("Error al fusionar los posts")
             await message.reply("❌ Ocurrió un error al fusionar los posts. Inténtalo de nuevo más tarde.")

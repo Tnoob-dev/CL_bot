@@ -25,7 +25,6 @@ from commands.Misc import (
     make_old_posts,
     send_admin_message,
 )
-
 from commands.Order import get_orders
 from commands.Posts import create_posts, remove_posts
 from commands.Profile import profile_panel
@@ -102,13 +101,13 @@ async def main():
         tunnel_url, _ = start_cloudflare_tunnel(StreamConfig.PORT)
         if tunnel_url:
             StreamConfig.update_url(tunnel_url)
-            logger.info(f"URL updated: {StreamConfig.URL}")
+            logger.info("URL updated: %s", StreamConfig.URL)
         else:
             logger.info("Could not start tunnel, using local URL")
 
     # Luego inicia el stream server
     await start_stream_server(bot)
-    logger.info(f"Stream server active at: {StreamConfig.URL}")
+    logger.info("Stream server active at: %s", StreamConfig.URL)
 
     # Finalmente inicia el bot
     await bot.start()

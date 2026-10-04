@@ -96,15 +96,13 @@ class PrefetchManager:
                                 await global_chunk_cache.put(
                                     file_id_str, current_offset, result.bytes
                                 )
-                        except Exception as e:
-                            logger.debug(
-                                f"Prefetch: chunk descartado en offset {current_offset}: {e}"
-                            )
+                        except Exception:
+                            logger.exception("Prefetch: chunk descartado en offset %s", current_offset)
                         finally:
                             await global_coordinator.finish(file_id_str, current_offset)
                 current_offset += chunk_size
-        except Exception as e:
-            logger.debug(f"Prefetch abortado/fallo: {e}")
+        except Exception:
+            logger.exception("Prefetch abortado/fallo")
 
 
 global_prefetch_manager = PrefetchManager()
