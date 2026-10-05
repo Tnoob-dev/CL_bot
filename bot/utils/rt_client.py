@@ -128,12 +128,6 @@ async def init_scorecard_search(session: aiohttp.ClientSession, link: str) -> di
     return await find_scorecard(soup=soup)
 
 
-
-
-
-##############################
-############ MAIN ############
-##############################
 async def info(search: str):
     
     async with aiohttp.ClientSession() as session:

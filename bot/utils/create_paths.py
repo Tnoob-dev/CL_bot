@@ -4,11 +4,6 @@ from pathlib import Path
 # Logger
 logger = logging.getLogger(__name__)
 
-##################
-# PATH CREATIONS #
-##################
-
-
 # bot/{path}/{user_id}
 def create_user_path(path: str, user_id: int) -> bool:
     logger.info("Creando carpeta para el usuario %s", user_id)
