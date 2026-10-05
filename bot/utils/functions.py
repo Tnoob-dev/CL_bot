@@ -226,7 +226,8 @@ async def translate_words(words: list[str], target_lang: str = "es") -> list[str
         'Sobrenatural': 'Sobrenatural', 
         'Terror/Mystery': 'Terror/Misterio', 
         'Drama': 'Drama',
-        'Musical': 'Música', 
+        'Musical': 'Música',
+        'Music': 'Música',
         'Animation': 'Animación', 
         'Thriller': 'Thriller',
         'History': 'Historia', 
@@ -245,8 +246,6 @@ async def translate_words(words: list[str], target_lang: str = "es") -> list[str
             results.append(words_dict[word])
         except KeyError:
             results.append(translator.translate(word))
-            await asyncio.sleep(.5)
-
     return results
 
 async def clean_title(text: str) -> str:
