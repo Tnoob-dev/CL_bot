@@ -3,6 +3,7 @@ import os
 from contextlib import suppress
 from pathlib import Path
 
+from commands.Subtitles import srt_state
 from entry.entry import bot
 from pyrogram import Client
 from pyrogram.errors import WebpageMediaEmpty
@@ -28,7 +29,7 @@ from utils.movie_search import (
     get_tv_info_by_id_tmdb,
 )
 from utils.rt_client import info
-from utils.search_subts import download_subs
+from utils.search_subts import download_subs, subs
 
 # Logging config
 logger = logging.getLogger(__name__)
@@ -41,8 +42,6 @@ async def save_user_photo(client: Client, message: Message):
     """Guarda el file_id de la última foto enviada por el usuario en privado."""
     user_id = message.from_user.id
     last_user_photo[user_id] = message.photo.file_id
-
-
 
 # helpers
 def _get_env(key: str, default: str = "") -> str:
@@ -229,6 +228,34 @@ async def _handle_subtitles(client: Client, query: CallbackQuery):
     else:
         await query.answer("No tienes permisos para descargar subtítulos.", show_alert=True)
 
+async def _handle_subtitles_languages(client: Client, query: CallbackQuery):
+    
+    data = query.data.split("_")
+    lang = data[-1]
+    
+    query = srt_state[str(query.from_user.id)]
+    
+    result = subs(query, lang=lang)
+    
+    if result is not None and len(result) > 0:
+        await query.message.reply(
+            f"🔥Resultados de la busqueda ||{query}||🔎:",
+            reply_markup=InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(
+                            text=f"🔡{sub.file_name}🔡",
+                            callback_data=f"sub_{sub.file_id}",
+                        )
+                    ]
+                    for sub in result
+                ]
+            ),
+        )
+    else:
+        await query.message.reply(
+            "No se ha encontrado nada, asegurese de que haya escrito bien el nombre."
+        )
 
 async def _handle_media_info(client: Client, query: CallbackQuery):
     data = query.data.split("_")
@@ -405,6 +432,8 @@ async def query_manager(client: Client, query: CallbackQuery):
     try:
         if data.startswith("order_"):
             await _handle_orders(client, query)
+        elif data.startswith("srt_"):
+            await _handle_subtitles_languages(client, query)
         elif data.startswith("sub_"):
             await _handle_subtitles(client, query)
         elif data.startswith("info_"):

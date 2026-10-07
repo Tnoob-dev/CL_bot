@@ -302,4 +302,4 @@ async def make_old_posts(client: Client, message: Message):
                 )
 
         link = register_movie(generated_id)
-        await message.reply(f"[('Temporada 1', '{link}')]")
+        await message.reply(f"[('Temporada 1', '{link}')]")   
