@@ -233,9 +233,9 @@ async def _handle_subtitles_languages(client: Client, query: CallbackQuery):
     data = query.data.split("_")
     lang = data[-1]
     
-    query = srt_state.user_srt[str(query.from_user.id)]
+    user_query = srt_state.user_srt[str(query.from_user.id)]
     
-    result = subs(query, lang=lang)
+    result = subs(user_query, lang=lang)
     
     if result is not None and len(result) > 0:
         await query.message.reply(
