@@ -3,6 +3,8 @@ import json
 import logging
 import os
 import re
+import shutil
+
 from pathlib import Path
 from typing import BinaryIO
 
@@ -355,3 +357,9 @@ async def create_telegraph_page(short_name: str, content: str) -> str:
     )
     
     return response['url']
+
+async def create_zip_file(filename: str, dir: str) -> str:
+    
+    path = shutil.make_archive(f"subs_{filename}", "zip", dir)
+    
+    return path

@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 from contextlib import suppress
 from pathlib import Path
 
@@ -18,6 +19,7 @@ from utils.create_paths import create_subtitles_dl_path
 from utils.db_reqs import delete_post, get_user, update_user_premium
 from utils.functions import (
     check_administration,
+    create_zip_file,
     get_clicked_button_text,
     translate_synopsis,
     translate_title,
@@ -199,6 +201,30 @@ async def _handle_orders(client: Client, query: CallbackQuery):
         await client.send_message(group_chat, "Lo sentimos, no encontramos su pedido.", reply_to_message_id=msg_id)
         await query.message.delete()
 
+async def subs_operation(mode: str, query: CallbackQuery, user_id: int | str, file_name: str):
+    
+    MAIN_PATH = f"./bot/subts/{user_id}"
+    try:
+        
+        if mode == "srt":
+            
+            srt_file_original = download_subs(query.data.split("sub_")[1])
+            srt_file_renamed = f"{MAIN_PATH}/{file_name}.srt"
+            os.rename(srt_file_original, srt_file_renamed)
+            
+            await query.message.reply_document(srt_file_renamed)
+            
+            os.remove(srt_file_renamed)
+        
+        if mode == "bsrt":
+            
+            srt_file_original = download_subs(query.data.split("sub_")[1])
+            srt_file_renamed = f"{MAIN_PATH}/{file_name}.srt"
+            os.rename(srt_file_original, srt_file_renamed)
+            
+    except Exception:
+        logger.exception("Error al descargar el subtítulo")
+        await query.message.reply("❌ Ocurrió un error al descargar el subtítulo. Inténtalo de nuevo más tarde.")
 
 async def _handle_subtitles(client: Client, query: CallbackQuery):
     user_id = query.from_user.id
@@ -206,53 +232,82 @@ async def _handle_subtitles(client: Client, query: CallbackQuery):
     clibrary = _get_env("CINEMA_ID")
     
     if user_founded[0]:
-        await query.message.delete()
         create_subtitles_dl_path(user_id)
+        
         file_name = get_clicked_button_text(query).replace('🔡', '')
         
-        m = await query.message.reply(f"🔽 Descargando __{file_name}__.srt 😏🔽")
-        try:
-            srt_file_original = download_subs(query.data.split("sub_")[1])
-            srt_file_renamed = f"./bot/subts/{user_id}/{file_name}.srt"
-            os.rename(srt_file_original, srt_file_renamed)
-            
-            await query.message.reply_document(srt_file_renamed)
-            await m.edit(
-                f"**🔼 Subtítulo enviado, asegúrese de que sea el correcto ✅.\n"
-                f"Gracias por usar nuestro bot. 🦾🤖\nSiga disfrutando de @{clibrary} 🎟**"
+        if query.message.reply_markup.inline_keyboard[-1][-1].callback_data != "end_bulk":
+            await query.message.delete()
+        
+            m = await query.message.reply(f"🔽 Descargando __{file_name}__.srt 😏🔽")
+            await subs_operation(
+                mode="srt",
+                query=query,
+                user_id=user_id,
+                file_name=file_name
             )
-            os.remove(srt_file_renamed)
-        except Exception:
-            logger.exception("Error al descargar el subtítulo")
-            await m.edit("❌ Ocurrió un error al descargar el subtítulo. Inténtalo de nuevo más tarde.")
+            await m.edit(
+                        f"**🔼 Subtítulo enviado, asegúrese de que sea el correcto ✅.\n"
+                        f"Gracias por usar nuestro bot. 🦾🤖\nSiga disfrutando de @{clibrary} 🎟**"
+                    )
+        
+        else:
+            m = await query.message.reply(f"🔽 Descargando __{file_name}__.srt 😏🔽")
+            await subs_operation(
+                mode="bsrt",
+                query=query,
+                user_id=user_id,
+                file_name=file_name
+            )
+            await m.edit(f"Añadido {file_name} a su carpeta de Subtitulos📁🤖")
+        
     else:
         await query.answer("No tienes permisos para descargar subtítulos.", show_alert=True)
+
+async def _handle_end_bulk(client: Client, query: CallbackQuery):
+    
+    
+    await query.message.delete()
+    
+    user_id = query.from_user.id
+    subs_dir = f"./bot/subts/{user_id}/"
+    await query.message.delete()
+    
+    zip_path = await create_zip_file(
+        filename=user_id,
+        dir=subs_dir
+    )
+    
+    await query.message.reply_document(zip_path)
+    
+    shutil.rmtree(subs_dir)
+    os.remove(zip_path)
 
 async def _handle_subtitles_languages(client: Client, query: CallbackQuery):
     
     data = query.data.split("_")
+    mode = data[0]
     lang = data[-1]
     
-    query.message.delete()
+    await query.message.delete()
     
     user_query = srt_state.user_srt[str(query.from_user.id)]
     
     result = subs(user_query, lang=lang)
     
+    keyboard = [
+        [
+            InlineKeyboardButton(text=f"🔡{sub.file_name}🔡", callback_data=f"sub_{sub.file_id}")] 
+            for sub in result
+        ]
+    
+    if mode == "bsrt":
+        keyboard.extend([[InlineKeyboardButton(text="Finalizar❌", callback_data="end_bulk")]])
+    
     if result is not None and len(result) > 0:
         await query.message.reply(
             f"🔥Resultados de la busqueda ||{user_query}||🔎:",
-            reply_markup=InlineKeyboardMarkup(
-                [
-                    [
-                        InlineKeyboardButton(
-                            text=f"🔡{sub.file_name}🔡",
-                            callback_data=f"sub_{sub.file_id}",
-                        )
-                    ]
-                    for sub in result
-                ]
-            ),
+            reply_markup=InlineKeyboardMarkup(keyboard),
         )
     else:
         await query.message.reply(
@@ -434,10 +489,12 @@ async def query_manager(client: Client, query: CallbackQuery):
     try:
         if data.startswith("order_"):
             await _handle_orders(client, query)
-        elif data.startswith("srt_"):
+        elif data.startswith("srt_") or data.startswith("bsrt_"):
             await _handle_subtitles_languages(client, query)
         elif data.startswith("sub_"):
             await _handle_subtitles(client, query)
+        elif data == "end_bulk":
+            await _handle_end_bulk(client, query)
         elif data.startswith("info_"):
             await _handle_media_info(client, query)
         elif data.startswith("remove_"):

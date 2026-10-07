@@ -17,7 +17,7 @@ class SrtUser:
 
 srt_state = SrtUser()
 
-@bot.on_message(command("srt", prefixes=["/"]) & private)
+@bot.on_message(command(["srt", "bsrt"], prefixes=["/"]) & private)
 async def search_subtitles(client: Client, message: Message):
 
     user_founded = get_user(message.from_user.id)[0]
@@ -46,11 +46,15 @@ async def search_subtitles(client: Client, message: Message):
         
         srt_state.user_srt[str(message.from_user.id)] = query
         
+        spanish_cbdata = "srt_es" if message.command[0] == "srt" else "bsrt_es"
+        english_cbdata = "srt_en" if message.command[0] == "srt" else "bsrt_en"
+        arabic_cbdata = "srt_ar" if message.command[0] == "srt" else "bsrt_ar"
+        
         await message.reply(
             text="Seleccione un idioma para continuar:",
             reply_markup=InlineKeyboardMarkup(
                 [
-                    [InlineKeyboardButton(text="🇪🇸Español", callback_data="srt_es"), InlineKeyboardButton(text="🇺🇸English", callback_data="srt_en")],
-                    [InlineKeyboardButton(text="عربي🇸🇦", callback_data="srt_ar")]
+                    [InlineKeyboardButton(text="🇪🇸Español", callback_data=spanish_cbdata), InlineKeyboardButton(text="🇺🇸English", callback_data=english_cbdata)],
+                    [InlineKeyboardButton(text="عربي🇸🇦", callback_data=arabic_cbdata)]
                 ]
             ))
