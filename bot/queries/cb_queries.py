@@ -233,7 +233,7 @@ async def _handle_subtitles_languages(client: Client, query: CallbackQuery):
     data = query.data.split("_")
     lang = data[-1]
     
-    query = srt_state[str(query.from_user.id)]
+    query = srt_state.user_srt[str(query.from_user.id)]
     
     result = subs(query, lang=lang)
     
