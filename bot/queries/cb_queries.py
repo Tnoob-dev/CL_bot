@@ -239,7 +239,7 @@ async def _handle_subtitles_languages(client: Client, query: CallbackQuery):
     
     if result is not None and len(result) > 0:
         await query.message.reply(
-            f"🔥Resultados de la busqueda ||{query}||🔎:",
+            f"🔥Resultados de la busqueda ||{user_query}||🔎:",
             reply_markup=InlineKeyboardMarkup(
                 [
                     [
