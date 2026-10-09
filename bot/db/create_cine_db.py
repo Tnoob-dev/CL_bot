@@ -4,6 +4,7 @@ from functools import cache
 
 from sqlalchemy import Index, make_url, text
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.schema import CreateIndex, CreateTable
@@ -34,7 +35,6 @@ class Users(SQLModel, table=True):
 # Posts database to save and show posts when user or admin needs it
 class Post(SQLModel, table=True):
     __table_args__ = (
-        Index("ix_post_movie_name_trgm", "movie_name", postgresql_using="gin", postgresql_ops={"movie_name": "gin_trgm_ops"}),
         Index("ix_post_movie_genres", "movie_genres", postgresql_using="gin"),
     )
 
@@ -65,7 +65,6 @@ posts_engine = _engine(os.getenv("POSTGRE_DB_URL"))
 
 
 _MIGRATIONS = {
-    "pg_trgm": "CREATE EXTENSION IF NOT EXISTS pg_trgm",
     "post.movie_genres a jsonb": """
         DO $$ BEGIN
             IF (SELECT data_type FROM information_schema.columns
@@ -83,8 +82,8 @@ async def _run(engine: AsyncEngine, description: str, statement) -> None:
         async with engine.begin() as conn:
             await conn.execute(text("SET LOCAL lock_timeout = '10s'"))
             await conn.execute(statement)
-    except Exception:
-        logger.exception("No se pudo aplicar la migracion: %s", description)
+    except DBAPIError as error:
+        logger.warning("No se pudo aplicar la migracion %s: %s", description, error.orig)
 
 
 async def _create(engine: AsyncEngine, model: type[SQLModel], migrations: dict[str, str] | None = None) -> None:
