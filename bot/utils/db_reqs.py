@@ -2,7 +2,9 @@ import logging
 from datetime import datetime
 
 from db.create_cine_db import Game, Post, Users, cine_engine, posts_engine, users_engine
+from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlmodel import Session, cast, select
 
 # Logger
@@ -81,41 +83,49 @@ def get_user(id: int = 0, all_the_users: bool = False) -> tuple[bool, Users | li
 # insert user to db
 def insert_user(query: Users) -> tuple[bool, str] | None:
     try:
-        r = get_user(query.id)
-
-        # logger.info(r)
-
-        if not r[0]:
-            with Session(users_engine) as session:
-                session.add(query)
-                session.commit()
-            return True, "Usuario añadido a la db"
-        else:
-            return False, "El usuario ya se encuentra en la db"
+        statement = (
+            pg_insert(Users)
+            .values(**query.model_dump())
+            .on_conflict_do_nothing(index_elements=[Users.id])
+        )
+        with Session(users_engine) as session:
+            inserted = session.exec(statement).rowcount
+            session.commit()
     except Exception:
         logger.exception("Error al annadir a la db ")
+    else:
+        if inserted:
+            return True, "Usuario añadido a la db"
+        return False, "El usuario ya se encuentra en la db"
 
 
-def update_user_genres(id: int, genres: list[str]):
-    
+def get_or_create_user(user: Users) -> Users | None:
+    found, db_user = get_user(user.id)
+    if found:
+        return db_user
+    insert_user(user)
+    return get_user(user.id)[1]
+
+
+_RECORD_DOWNLOAD = text(f"""
+    UPDATE {Users.__tablename__}
+    SET int_downloaded = int_downloaded + 1,
+        genre_stats = COALESCE(genre_stats, '{{}}'::jsonb) || COALESCE((
+            SELECT jsonb_object_agg(g, COALESCE((genre_stats ->> g)::int, 0) + n)
+            FROM (SELECT g, count(*) AS n FROM unnest(CAST(:genres AS text[])) AS g GROUP BY g) AS counts
+        ), '{{}}'::jsonb)
+    WHERE id = :id
+""")
+
+
+def record_download(id: int, genres: list[str]) -> None:
+    genres = [genre.strip() for genre in genres or [] if genre and genre.strip()]
     try:
         with Session(users_engine) as session:
-            statement = select(Users).where(Users.id == id)
-            user = session.exec(statement).one()
-            
-            if user.genre_stats is None:
-                user.genre_stats = {}
-                
-            for genre in genres:
-                genre_clean = genre.strip()
-                if genre_clean:
-                    user.genre_stats[genre_clean] =  user.genre_stats.get(genre_clean, 0) + 1
-                    
-            session.add(user)
+            session.exec(_RECORD_DOWNLOAD, params={"id": id, "genres": genres})
             session.commit()
-            session.refresh(user)
     except Exception:
-        logger.exception("Error al actualizar contador de generos: USER_ID: %s", user.id)    
+        logger.exception("Error al registrar la descarga del usuario %s", id)
 
 # update user translations value, from 10, until 0
 def update_user_value(id: int) -> None:
@@ -135,23 +145,6 @@ def update_user_value(id: int) -> None:
         session.rollback()
         logger.exception("Error al actualizar al usuario %s", id)
 
-
-def update_user_downloads(id: int) -> None:
-    try:
-        with Session(users_engine) as session:
-            statement = select(Users).where(Users.id == id)
-            user = session.exec(statement).one()
-
-            user.int_downloaded += 1
-
-            session.add(user)
-            session.commit()
-            session.refresh(user)
-        logger.info("al usuario %s se le ha sumado una descarga", user.username)
-
-    except Exception:
-        session.rollback()
-        logger.exception("Error al actualizar al usuario %s", id)
 
 
 def update_user_admin(id: int) -> tuple[bool, str]:
@@ -229,22 +222,20 @@ def update_user_premium(id: int, days: int = 30) -> tuple[bool, str]:
     else:
         return True, expiration_date_str
 
-def is_premium_active(id: int) -> bool:
-    try:
-        boolean, user = get_user(id, all_the_users=False)
-        if not boolean or not user or not user.premium_user:
-            return False
-
-        now = int(datetime.now().timestamp())
-        # Si tiene fecha de expiración y la fecha actual es mayor, expiró
-        if user.premium_expires and now > user.premium_expires:
-            revoke_premium(id)  # Lo desactivamos automáticamente
-            return False
-    except Exception:
-        logger.exception("Error verificando premium del usuario %s", id)
+def is_premium(user: Users) -> bool:
+    if not user.premium_user:
         return False
-    else:
-        return True
+
+    if user.premium_expires and int(datetime.now().timestamp()) > user.premium_expires:
+        revoke_premium(user.id)
+        return False
+
+    return True
+
+
+def is_premium_active(id: int) -> bool:
+    found, user = get_user(id, all_the_users=False)
+    return found and is_premium(user)
 
 
 def revoke_premium(id: int) -> bool:
