@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 
 from db.create_cine_db import Game, Post, Users, cine_engine, posts_engine, users_engine
-from sqlalchemy import text
+from sqlalchemy import func, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlmodel import Session, cast, select
@@ -81,6 +81,26 @@ def get_user(id: int = 0, all_the_users: bool = False) -> tuple[bool, Users | li
     except Exception:
         logger.exception("Error al obtener desde la db")
         return False, None
+
+
+def get_user_counts() -> tuple[int, int]:
+    try:
+        with Session(users_engine) as session:
+            statement = select(func.count(), func.count().filter(Users.premium_user))
+            return tuple(session.exec(statement).one())
+    except Exception:
+        logger.exception("Error al contar usuarios")
+        return 0, 0
+
+
+def get_top_users(limit: int = 10) -> list[Users]:
+    try:
+        with Session(users_engine) as session:
+            statement = select(Users).order_by(Users.int_downloaded.desc()).limit(limit)
+            return list(session.exec(statement).all())
+    except Exception:
+        logger.exception("Error al obtener el top de usuarios")
+        return []
 
 
 # insert user to db

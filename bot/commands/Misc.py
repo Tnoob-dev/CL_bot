@@ -13,7 +13,7 @@ from pyrogram.errors import (
 )
 from pyrogram.filters import command, group, private
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
-from utils.db_reqs import get_user, update_user_admin, update_user_premium
+from utils.db_reqs import get_top_users, get_user, get_user_counts, update_user_admin, update_user_premium
 from utils.functions import (
     check_administration,
     check_user_in_channel,
@@ -217,13 +217,11 @@ async def vip_command(client: Client, message: Message):
 @bot.on_message(command("count"))
 async def count_users(client: Client, message: Message):
 
-    _, users = get_user(all_the_users=True)
-
-    premium_users = [user for user in users if user.premium_user]
+    total, premium = get_user_counts()
 
     await client.send_message(
         chat_id=message.chat.id,
-        text=f"Actualmente tengo registrados a {len(users)} usuarios 👤\n\n{len(premium_users)} son premium 💎",
+        text=f"Actualmente tengo registrados a {total} usuarios 👤\n\n{premium} son premium 💎",
     )
 
 
@@ -231,24 +229,14 @@ async def count_users(client: Client, message: Message):
 async def get_top10(client: Client, message: Message):
 
     bot_username = os.getenv("SENDER_BOT")
-    _, users = get_user(all_the_users=True)
-
-    sorted_users = sorted(users, key=lambda u: u.int_downloaded, reverse=True)
-
     emojis = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
-
-    top10 = sorted_users[:10]
 
     template = f"🦾TOP 10 Usuarios de @{bot_username}🤖\n"
 
-    for i in range(10):
-        username = (
-            "@" + top10[i].username if top10[i].username is not None else top10[i].id
-        )
-        emoji = emojis[i]
-        downloads = top10[i].int_downloaded
+    for emoji, user in zip(emojis, get_top_users(len(emojis)), strict=False):
+        username = "@" + user.username if user.username is not None else user.id
 
-        template += f"{emoji}**{username}** - {downloads} Descargas\n"
+        template += f"{emoji}**{username}** - {user.int_downloaded} Descargas\n"
 
     await message.reply(template)
 
