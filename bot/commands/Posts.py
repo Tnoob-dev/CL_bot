@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 async def create_posts(client: Client, message: Message):
 
     try:
-        if check_administration(message):
+        if await check_administration(message):
             if not message.reply_to_message or not message.reply_to_message.photo:
                 await message.reply(
                     "Responde a un mensaje con foto para crear el post."
@@ -90,7 +90,7 @@ async def create_posts(client: Client, message: Message):
             reply_markup = sent.reply_markup.inline_keyboard
             buttons_id = [btid[0].url.split("=")[-1] for btid in reply_markup]
             
-            insert_post(
+            await insert_post(
                 Post(
                     id=sent_id,
                     movie_name=name_cleaned,
@@ -102,7 +102,7 @@ async def create_posts(client: Client, message: Message):
             
             for bt in buttons_id:
                 
-                update_movie_genres(
+                await update_movie_genres(
                     file_id=bt,
                     movie_genres=genres_cleaned
                 )
@@ -119,11 +119,11 @@ async def remove_posts(client: Client, message: Message):
     user_command = message.command
     clibrary = os.getenv("CINEMA_ID")
 
-    if check_administration(message) and len(user_command) >= 2:
+    if await check_administration(message) and len(user_command) >= 2:
         post_id = int(user_command[-1])
-        post = get_post_by_id(post_id)
+        post = await get_post_by_id(post_id)
 
-        boolean, msg = delete_post(post_id)
+        boolean, msg = await delete_post(post_id)
 
         if not boolean:
             await message.reply(f"❌{msg}❌")

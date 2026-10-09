@@ -61,15 +61,14 @@ async def hello(client: Client, message: Message):
         return
 
     user_id = message.from_user.id
-    user = await asyncio.to_thread(
-        get_or_create_user,
+    user = await get_or_create_user(
         Users(
             id=user_id,
             username=message.from_user.username,
             rest_tries=10,
             is_admin=False,
             premium_user=False,
-        ),
+        )
     )
     if user is None:
         return
@@ -92,14 +91,9 @@ async def hello(client: Client, message: Message):
     if message.command is not None and message.command[0] == "start":
         try:
             if len(message.command) >= 2:
-                # Blocking DB access (sync SQLAlchemy/psycopg2) moved off the
-                # event loop so other users' requests keep being served while
-                # this query runs.
-                result = await asyncio.to_thread(get_game, message.command[1])
+                result = await get_game(message.command[1])
 
-                is_restricted = not user.is_admin and not await asyncio.to_thread(
-                    is_premium, user
-                )
+                is_restricted = not user.is_admin and not await is_premium(user)
                 delete_delay = int(os.getenv("DELETE_MESSAGE_DELAY", "180"))
                 channel_id = int(os.getenv("CHANNEL_ID"))
                 sent_ids: list[int] = []
@@ -176,8 +170,6 @@ Cada aporte ayuda a mantener el canal activo y mejorar la calidad del contenido.
 ¡Gracias por ser parte de esta comunidad! 🙌"""
                 await message.reply(donation_message)
 
-                await asyncio.to_thread(
-                    record_download, user_id, result.movie_genres
-                )
+                await record_download(user_id, result.movie_genres)
         except (TypeError, ValueError):
             logger.exception("Error al obtener los archivos que pide el usuario")

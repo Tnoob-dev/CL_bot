@@ -20,7 +20,7 @@ srt_state = SrtUser()
 @bot.on_message(command(["srt", "bsrt"], prefixes=["/"]) & private)
 async def search_subtitles(client: Client, message: Message):
 
-    user_founded = get_user(message.from_user.id)[0]
+    user_founded = (await get_user(message.from_user.id))[0]
 
     if not user_founded:
         await message.reply(
@@ -32,7 +32,7 @@ async def search_subtitles(client: Client, message: Message):
             else ""
         )
         user = Users(id=message.from_user.id, username=username)
-        insert_user(user)
+        await insert_user(user)
         
     if not await check_user_in_channel(client, message):
         return

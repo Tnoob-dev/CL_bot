@@ -24,7 +24,7 @@ async def search_posts(client: Client, message: Message):
             await m.delete()
             user_message = " ".join(message.command[1:])
 
-            results = get_post_by_name(user_message)
+            results = await get_post_by_name(user_message)
 
             if len(results) > 0:
                 keyboard = InlineKeyboardMarkup(

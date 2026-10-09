@@ -35,11 +35,11 @@ def check_existence(path: Path) -> bool:
     return not path.exists()
 
 # check if a user is admin
-def check_administration(message: Message) -> bool:
+async def check_administration(message: Message) -> bool:
 
     user_id = message.from_user.id
 
-    _, user = get_user(user_id, all_the_users=False)
+    _, user = await get_user(user_id, all_the_users=False)
 
     return user.is_admin
 
@@ -109,12 +109,12 @@ def build_season_link(last_message_id: int) -> str:
     name = f"chn_{last_message_id}_{random_num}"
     return f"https://t.me/{os.getenv('SENDER_BOT')}?start={name}"
 
-def register_movie(messages: list[int]) -> str:
+async def register_movie(messages: list[int]) -> str:
 
     last_id = messages[-1]
 
     name = f"chn_{last_id}_{random_num}"
-    insert(Game(name=name, file_ids=messages, movie_genres=[]))
+    await insert(Game(name=name, file_ids=messages, movie_genres=[]))
     return build_season_link(last_id)
 
 def save_to_json(subtitles: list[dict[str, int | str]], user_id: int, output_file: str):

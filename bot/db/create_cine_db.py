@@ -2,11 +2,12 @@ import logging
 import os
 from functools import cache
 
-from sqlalchemy import Engine, Index, text
+from sqlalchemy import Index, make_url, text
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.schema import CreateIndex, CreateTable
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy.ext.mutable import MutableDict
-from sqlmodel import JSON, BigInteger, Column, Field, SQLModel, create_engine
+from sqlalchemy.schema import CreateIndex, CreateTable
+from sqlmodel import JSON, BigInteger, Column, Field, SQLModel
 
 # Logger
 logger = logging.getLogger(__name__)
@@ -43,8 +44,6 @@ class Post(SQLModel, table=True):
     link: str = Field(default=None)
     file_ids: list[str] = Field(sa_column=Column(JSON))
 
-# use sqlite or postgres, idk just specify it in your environment
-
 # The DB host caps each database at 5 connections
 _POOL = {
     "pool_size": int(os.getenv("DB_POOL_SIZE", "4")),
@@ -56,8 +55,8 @@ _POOL = {
 
 
 @cache
-def _engine(url: str) -> Engine:
-    return create_engine(url, **_POOL)
+def _engine(url: str) -> AsyncEngine:
+    return create_async_engine(make_url(url).set(drivername="postgresql+asyncpg"), **_POOL)
 
 
 cine_engine = _engine(os.getenv("POSTGRE_CINE_DB"))
@@ -78,30 +77,30 @@ _MIGRATIONS = {
 }
 
 
-def _run(engine: Engine, description: str, statement) -> None:
+async def _run(engine: AsyncEngine, description: str, statement) -> None:
     # A failed migration must not stop the bot: queries work without it, only slower
     try:
-        with engine.begin() as conn:
-            conn.execute(text("SET LOCAL lock_timeout = '10s'"))
-            conn.execute(statement)
+        async with engine.begin() as conn:
+            await conn.execute(text("SET LOCAL lock_timeout = '10s'"))
+            await conn.execute(statement)
     except Exception:
         logger.exception("No se pudo aplicar la migracion: %s", description)
 
 
-def _create(engine: Engine, model: type[SQLModel], migrations: dict[str, str] | None = None) -> None:
+async def _create(engine: AsyncEngine, model: type[SQLModel], migrations: dict[str, str] | None = None) -> None:
     table = model.__table__
-    with engine.begin() as conn:
-        conn.execute(CreateTable(table, if_not_exists=True))
+    async with engine.begin() as conn:
+        await conn.execute(CreateTable(table, if_not_exists=True))
 
     for description, sql in (migrations or {}).items():
-        _run(engine, description, text(sql))
+        await _run(engine, description, text(sql))
 
     for index in table.indexes:
-        _run(engine, f"indice {index.name}", CreateIndex(index, if_not_exists=True))
+        await _run(engine, f"indice {index.name}", CreateIndex(index, if_not_exists=True))
 
 
-def create_db():
-    _create(cine_engine, Game)
-    _create(users_engine, Users)
-    _create(posts_engine, Post, _MIGRATIONS)
+async def create_db():
+    await _create(cine_engine, Game)
+    await _create(users_engine, Users)
+    await _create(posts_engine, Post, _MIGRATIONS)
     logger.info("Todas las db han sido creadas")

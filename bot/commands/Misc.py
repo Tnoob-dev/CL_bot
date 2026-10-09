@@ -90,7 +90,7 @@ async def send_admin_message(client: Client, message: Message):
     try:
         owner_id = os.getenv("OWNER_ID")
         if message.from_user.id == int(owner_id):
-            _, users = get_user(all_the_users=True)
+            _, users = await get_user(all_the_users=True)
             quantity_users = len(users)
             await message.reply(f"Enviando mensaje {quantity_users} a usuarios")
 
@@ -146,7 +146,7 @@ async def ascend_to_admin(client: Client, message: Message):
 
     try:
         if user_id == int(owner_id) and len(user_command) == 2:
-            boolean, msg = update_user_admin(user_command[-1])
+            boolean, msg = await update_user_admin(user_command[-1])
 
             if boolean:
                 logger.info(msg)
@@ -162,14 +162,14 @@ async def ascend_to_admin(client: Client, message: Message):
 @bot.on_message(command("premium", prefixes=["/"]) & private)
 async def convert_user_premium(client: Client, message: Message):
 
-    if not check_administration(message):
+    if not await check_administration(message):
         return
 
     user_command = message.command
 
     try:
         if len(user_command) == 2:
-            boolean, dead_date = update_user_premium(user_command[-1], 32)
+            boolean, dead_date = await update_user_premium(user_command[-1], 32)
 
             if boolean:
                 logger.info(
@@ -217,7 +217,7 @@ async def vip_command(client: Client, message: Message):
 @bot.on_message(command("count"))
 async def count_users(client: Client, message: Message):
 
-    total, premium = get_user_counts()
+    total, premium = await get_user_counts()
 
     await client.send_message(
         chat_id=message.chat.id,
@@ -233,7 +233,7 @@ async def get_top10(client: Client, message: Message):
 
     template = f"🦾TOP 10 Usuarios de @{bot_username}🤖\n"
 
-    for emoji, user in zip(emojis, get_top_users(len(emojis)), strict=False):
+    for emoji, user in zip(emojis, await get_top_users(len(emojis)), strict=False):
         username = "@" + user.username if user.username is not None else user.id
 
         template += f"{emoji}**{username}** - {user.int_downloaded} Descargas\n"
@@ -244,7 +244,7 @@ async def get_top10(client: Client, message: Message):
 @bot.on_message(command("old", prefixes=["/"]) & private)
 async def make_old_posts(client: Client, message: Message):
 
-    if not check_administration(message):
+    if not await check_administration(message):
         return
 
     if message.reply_to_message and message.reply_to_message.text:
@@ -270,7 +270,7 @@ async def make_old_posts(client: Client, message: Message):
                 errores.append(f"Línea {i}: IDs no numéricos ➜ '{line}'")
                 continue
 
-            link = register_movie(generated_id)
+            link = await register_movie(generated_id)
             resultados.append((f"Temporada {i}", link))
 
         await message.reply(f"```python\n\n{resultados!s}```")
@@ -289,5 +289,5 @@ async def make_old_posts(client: Client, message: Message):
                     int(message.command[1]), int(message.command[-1])
                 )
 
-        link = register_movie(generated_id)
+        link = await register_movie(generated_id)
         await message.reply(f"[('Temporada 1', '{link}')]")   

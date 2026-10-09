@@ -12,7 +12,7 @@ from utils.functions import download_tg_files, get_profile_info
 async def profile_panel(client: Client, message: Message):
 
     profile = await get_profile_info(client, message.from_user.id)
-    _, db_info = get_user(message.from_user.id, all_the_users=False)
+    _, db_info = await get_user(message.from_user.id, all_the_users=False)
     pic_path = await download_tg_files(
         client, profile.photo.big_file_id, profile.username
     )

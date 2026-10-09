@@ -55,7 +55,7 @@ async def inline_answer(client: Client, inline_query: InlineQuery):
         offset = int(inline_query.offset) if inline_query.offset else 0
         limit = 50
 
-        movies = get_post_by_name(inline_query.query)
+        movies = await get_post_by_name(inline_query.query)
         movies_page = movies[offset : offset + limit]
 
         await inline_query.answer(

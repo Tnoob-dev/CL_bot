@@ -30,7 +30,7 @@ def get_user_state(user_id: int) -> dict | None:
 
 @bot.on_message(command("massive") & private)
 async def massive_collection(client: Client, message: Message):
-    if not check_administration(message):
+    if not await check_administration(message):
         await message.reply("No tiene permisos para utilizar este comando")
         return
 
@@ -49,7 +49,7 @@ async def massive_collection(client: Client, message: Message):
 # end_massive command, to end the complete task
 @bot.on_message(command("end_massive") & private)
 async def end_massive(client: Client, message: Message):
-    if not check_administration(message):
+    if not await check_administration(message):
         await message.reply("No tiene permisos para utilizar este comando")
         return
 
@@ -79,7 +79,7 @@ async def end_massive(client: Client, message: Message):
 @bot.on_message(command("end") & private)
 async def end_collection(client: Client, message: Message):
     try:
-        if not check_administration(message):
+        if not await check_administration(message):
             await message.reply("No tiene permisos para utilizar este comando")
             return
 
@@ -104,14 +104,14 @@ async def end_collection(client: Client, message: Message):
         messages[:] = ids_in_channel
 
         if user_state.get("massive_mode"):
-            link = register_movie(messages)
+            link = await register_movie(messages)
             user_state["links"].append(link)
             messages.clear()
             await message.reply(
                 "Mensajes reenviados, envie la siguiente temporada, o envie /end_massive"
             )
         else:
-            link = register_movie(messages)
+            link = await register_movie(messages)
 
             await message.reply("Mensaje(s) enviados al chat de backup")
             await message.reply(
@@ -135,7 +135,7 @@ async def end_collection(client: Client, message: Message):
 @bot.on_message(private & (document | video | photo), group=1)
 async def collect_messages(client: Client, message: Message):
     try:
-        if message.from_user and message.from_user.id is not None and check_administration(message):
+        if message.from_user and message.from_user.id is not None and await check_administration(message):
             user_id = message.from_user.id
             user_state = get_user_state(user_id)
             if user_state and user_state.get("collecting"):
