@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 @bot.on_message(command("stream", prefixes=["/"]) & private)
 async def stream_handler(client: Client, message: Message):
 
-    if is_premium_active(message.from_user.id) or check_administration(message):
+    if await is_premium_active(message.from_user.id) or await check_administration(message):
         if not message.reply_to_message and not _has_media(message):
             await message.reply(
                 "<blockquote><b>Uso:</b> Envía un archivo y responde con "

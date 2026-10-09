@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import BinaryIO
 
 import telegraph.aio as telegraph
+from cachetools import TTLCache
 from db.create_cine_db import Game
 from deep_translator import GoogleTranslator
 from groq import AsyncGroq
@@ -34,13 +35,24 @@ def check_existence(path: Path) -> bool:
     return not path.exists()
 
 # check if a user is admin
-def check_administration(message: Message) -> bool:
+async def check_administration(message: Message) -> bool:
 
     user_id = message.from_user.id
 
-    _, user = get_user(user_id, all_the_users=False)
+    _, user = await get_user(user_id, all_the_users=False)
 
     return user.is_admin
+
+_CHANNEL_MEMBERS = TTLCache(maxsize=50_000, ttl=300)
+
+
+# raises UserNotParticipant when the user is not in the channel
+async def ensure_channel_member(client: Client, user_id: int) -> None:
+    if user_id in _CHANNEL_MEMBERS:
+        return
+    await client.get_chat_member(chat_id=os.getenv("CINEMA_ID"), user_id=user_id)
+    _CHANNEL_MEMBERS[user_id] = True
+
 
 # check if a user is in the channel
 async def check_user_in_channel(client: Client, message: Message) -> bool:
@@ -49,7 +61,7 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
         return False
 
     try:
-        await client.get_chat_member(chat_id=os.getenv("CINEMA_ID"), user_id=message.from_user.id)
+        await ensure_channel_member(client, message.from_user.id)
         # await client.get_chat_member(chat_id=os.getenv("GUEST_ID"), user_id=message.from_user.id)
 
     except UserNotParticipant:
@@ -97,12 +109,12 @@ def build_season_link(last_message_id: int) -> str:
     name = f"chn_{last_message_id}_{random_num}"
     return f"https://t.me/{os.getenv('SENDER_BOT')}?start={name}"
 
-def register_movie(messages: list[int]) -> str:
+async def register_movie(messages: list[int]) -> str:
 
     last_id = messages[-1]
 
     name = f"chn_{last_id}_{random_num}"
-    insert(Game(name=name, file_ids=messages, movie_genres=[]))
+    await insert(Game(name=name, file_ids=messages, movie_genres=[]))
     return build_season_link(last_id)
 
 def save_to_json(subtitles: list[dict[str, int | str]], user_id: int, output_file: str):

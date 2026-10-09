@@ -161,7 +161,7 @@ async def _handle_orders(client: Client, query: CallbackQuery):
     group_chat = _get_env("GROUP_ID")
     
     if data.startswith("order_ready"):
-        if check_administration(query):
+        if await check_administration(query):
             msg_id = int(data.split("_")[-1])
             await client.send_message(group_chat, "Su pedido ha sido completado", reply_to_message_id=msg_id)
             await query.message.delete()
@@ -196,7 +196,7 @@ async def _handle_orders(client: Client, query: CallbackQuery):
             logger.exception("Error en order_not_found")
             await query.answer("Ocurrió un error al reenviar tu orden.", show_alert=True)
             
-    elif data.startswith("order_404_") and check_administration(query):
+    elif data.startswith("order_404_") and await check_administration(query):
         msg_id = int(data.split("_")[-1])
         await client.send_message(group_chat, "Lo sentimos, no encontramos su pedido.", reply_to_message_id=msg_id)
         await query.message.delete()
@@ -228,7 +228,7 @@ async def subs_operation(mode: str, query: CallbackQuery, user_id: int | str, fi
 
 async def _handle_subtitles(client: Client, query: CallbackQuery):
     user_id = query.from_user.id
-    user_founded = get_user(user_id)
+    user_founded = await get_user(user_id)
     clibrary = _get_env("CINEMA_ID")
     
     if user_founded[0]:
@@ -335,14 +335,14 @@ async def _handle_media_info(client: Client, query: CallbackQuery):
 
 
 async def _handle_remove_post(client: Client, query: CallbackQuery):
-    if not check_administration(query):
+    if not await check_administration(query):
         await query.answer("🤨", show_alert=True)
         return
         
     post_id = query.data.split("_")[-1]
     clibrary = _get_env("CINEMA_ID")
     try:
-        delete_post(post_id)
+        await delete_post(post_id)
         await query.message.edit("Post eliminado del canal y BD")
         await client.delete_messages(chat_id=clibrary, message_ids=int(post_id))
     except Exception:
@@ -454,7 +454,7 @@ async def _handle_payments(client: Client, query: CallbackQuery):
         action, username, target_user_id = parts[1], parts[2], int(parts[-1])
         
         if action == "accept":
-            success, dead_date = update_user_premium(target_user_id, days=32)
+            success, dead_date = await update_user_premium(target_user_id, days=32)
             if success:
                 await client.send_message(
                     chat_id=target_user_id,

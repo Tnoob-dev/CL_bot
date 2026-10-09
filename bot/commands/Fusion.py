@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 @bot.on_message(command("fusion", prefixes=["/"]) & private)
 async def fusion_posts(client: Client, message: Message):
 
-    if check_administration(message) and message.command is not None and len(message.command) == 3:
+    if await check_administration(message) and message.command is not None and len(message.command) == 3:
         command = message.command
 
         try:
@@ -65,7 +65,7 @@ async def fusion_posts(client: Client, message: Message):
             )
 
             await client.delete_messages(chat_id=chat_id, message_ids=post2_id)
-            delete_post(post2_id)
+            await delete_post(post2_id)
 
             await message.reply(
                 f"Post #1 ||{post1_id}|| editado con el nuevo inline markup✅📝\n\nPost #2 ha sido eliminado🗑"

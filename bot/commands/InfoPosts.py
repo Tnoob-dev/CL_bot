@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 async def info_posts(client: Client, message: Message):
 
     try:
-        if check_administration(message) and message.command is not None and len(message.command) >= 2:
+        if await check_administration(message) and message.command is not None and len(message.command) >= 2:
             
             m = await message.reply("Buscando contenido audiovisual🔎🎬")
             movie = message.command

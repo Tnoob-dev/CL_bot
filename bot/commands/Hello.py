@@ -11,16 +11,11 @@ from pyrogram.filters import command, private
 from pyrogram.types import Message
 from utils.db_reqs import (
     get_game,
-    get_user,
-    insert_user,
-    is_premium_active,
-    update_user_downloads,
-    update_user_genres,
+    get_or_create_user,
+    is_premium,
+    record_download,
 )
-from utils.functions import (
-    check_administration,
-    check_user_in_channel,
-)
+from utils.functions import check_user_in_channel
 
 # Logger
 logger = logging.getLogger(__name__)
@@ -62,32 +57,24 @@ async def _safe_delete_after_delay(
 )
 async def hello(client: Client, message: Message):
 
-    if message.from_user is not None:
-        user_id = message.from_user.id
-        username = (
-            message.from_user.username
-            if message.from_user.username is not None
-            else None
-        )
-        # Sync DB calls moved to a worker thread so they don't stall the
-        # event loop for every other user currently downloading.
-        user_founded = await asyncio.to_thread(get_user, user_id)
+    if message.from_user is None:
+        return
 
-        if not user_founded[0]:  # if the user is not in db, add it
-            logger.info("Insertando usuario %s (%s) a la db", username, user_id)
-            user = Users(
-                id=user_id,
-                username=username,
-                rest_tries=10,
-                is_admin=False,
-                premium_user=False,
-            )
-            await asyncio.to_thread(insert_user, user)
-            logger.info("Usuario %s añadido a la db", username)
-            user_founded = await asyncio.to_thread(get_user, user_id)
+    user_id = message.from_user.id
+    user = await get_or_create_user(
+        Users(
+            id=user_id,
+            username=message.from_user.username,
+            rest_tries=10,
+            is_admin=False,
+            premium_user=False,
+        )
+    )
+    if user is None:
+        return
 
     if message.command is not None and len(message.command) == 1:
-        if check_administration(message):
+        if user.is_admin:
             await message.reply(f"Hola Administrador: {message.from_user.first_name}")
         else:
             await message.reply_sticker(
@@ -104,17 +91,9 @@ async def hello(client: Client, message: Message):
     if message.command is not None and message.command[0] == "start":
         try:
             if len(message.command) >= 2:
-                # Blocking DB access (sync SQLAlchemy/psycopg2) moved off the
-                # event loop so other users' requests keep being served while
-                # this query runs.
-                result = await asyncio.to_thread(get_game, message.command[1])
+                result = await get_game(message.command[1])
 
-                # Compute once (was repeated per file inside the loop):
-                # one DB round-trip instead of N+1 blocking calls.
-                is_restricted = await asyncio.to_thread(
-                    lambda: not is_premium_active(user_founded[1].id)
-                    and not check_administration(message)
-                )
+                is_restricted = not user.is_admin and not await is_premium(user)
                 delete_delay = int(os.getenv("DELETE_MESSAGE_DELAY", "180"))
                 channel_id = int(os.getenv("CHANNEL_ID"))
                 sent_ids: list[int] = []
@@ -178,12 +157,6 @@ async def hello(client: Client, message: Message):
                     Path.cwd() / Path("assets") / Path("finished.webp")
                 )
 
-                # update user most downloaded genres in the db
-                await asyncio.to_thread(
-                    update_user_genres,
-                    id=message.from_user.id,
-                    genres=result.movie_genres,
-                )
 
                 donation_message = """
 💖 ¿Te gusta el contenido del canal?
@@ -197,7 +170,6 @@ Cada aporte ayuda a mantener el canal activo y mejorar la calidad del contenido.
 ¡Gracias por ser parte de esta comunidad! 🙌"""
                 await message.reply(donation_message)
 
-                # add 1 more download to user total downloads
-                await asyncio.to_thread(update_user_downloads, user_id)
+                await record_download(user_id, result.movie_genres)
         except (TypeError, ValueError):
             logger.exception("Error al obtener los archivos que pide el usuario")

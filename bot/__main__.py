@@ -61,9 +61,6 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# Create DBs
-create_db()
-
 # Commands
 bot.add_handler(MessageHandler(hello))
 bot.add_handler(MessageHandler(collect_messages))
@@ -95,6 +92,8 @@ bot.add_handler(InlineQueryHandler(inline_answer))
 
 
 async def main():
+    await create_db()
+
     # Primero configura el tunnel si es necesario
     if "localhost" in StreamConfig.URL or "127.0.0.1" in StreamConfig.URL:
         logger.info("Starting Cloudflare tunnel...")

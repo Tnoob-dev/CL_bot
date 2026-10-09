@@ -10,6 +10,7 @@ dependencies = [
     "aiosignal==1.4.0",
     "annotated-types==0.7.0",
     "anyio==4.11.0",
+    "asyncpg==0.30.0",
     "attrs==25.4.0",
     "beautifulsoup4==4.14.3",
     "cachetools==6.2.1",

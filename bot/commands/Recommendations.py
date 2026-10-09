@@ -12,7 +12,7 @@ from utils.functions import create_telegraph_page
 @bot.on_message(command("recommend", prefixes=["/"]) & private)
 async def recommend(client: Client, message: Message):
     
-    user = get_user(
+    user = await get_user(
         id=message.from_user.id,
         all_the_users=False
     )
@@ -23,7 +23,7 @@ async def recommend(client: Client, message: Message):
     if len(sorted_genres) > 0:
         fav_genre = sorted_genres[0][0]
         
-        posts = get_posts_by_genre(fav_genre)
+        posts = await get_posts_by_genre(fav_genre)
         random.shuffle(posts)
         
         html = f"<h3>✨100 Posts sugeridos para ti segun tu género favorito ({fav_genre})🤟</h3><br><br>"
