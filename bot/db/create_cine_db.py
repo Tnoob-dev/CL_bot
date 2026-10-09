@@ -1,6 +1,8 @@
 import logging
 import os
+from functools import cache
 
+from sqlalchemy import Engine
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
 from sqlmodel import JSON, BigInteger, Column, Field, SQLModel, create_engine
@@ -37,9 +39,24 @@ class Post(SQLModel, table=True):
 
 # use sqlite or postgres, idk just specify it in your environment
 
-cine_engine = create_engine(os.getenv("POSTGRE_CINE_DB"))
-users_engine = create_engine(os.getenv("USER_DB"))
-posts_engine = create_engine(os.getenv("POSTGRE_DB_URL"))
+# The DB host caps each database at 5 connections
+_POOL = {
+    "pool_size": int(os.getenv("DB_POOL_SIZE", "4")),
+    "max_overflow": 0,
+    "pool_timeout": int(os.getenv("DB_POOL_TIMEOUT", "30")),
+    "pool_pre_ping": True,
+    "pool_recycle": 300,
+}
+
+
+@cache
+def _engine(url: str) -> Engine:
+    return create_engine(url, **_POOL)
+
+
+cine_engine = _engine(os.getenv("POSTGRE_CINE_DB"))
+users_engine = _engine(os.getenv("USER_DB"))
+posts_engine = _engine(os.getenv("POSTGRE_DB_URL"))
 
 
 def create_db():
