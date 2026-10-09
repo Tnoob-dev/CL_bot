@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import BinaryIO
 
 import telegraph.aio as telegraph
+from cachetools import TTLCache
 from db.create_cine_db import Game
 from deep_translator import GoogleTranslator
 from groq import AsyncGroq
@@ -42,6 +43,17 @@ def check_administration(message: Message) -> bool:
 
     return user.is_admin
 
+_CHANNEL_MEMBERS = TTLCache(maxsize=50_000, ttl=300)
+
+
+# raises UserNotParticipant when the user is not in the channel
+async def ensure_channel_member(client: Client, user_id: int) -> None:
+    if user_id in _CHANNEL_MEMBERS:
+        return
+    await client.get_chat_member(chat_id=os.getenv("CINEMA_ID"), user_id=user_id)
+    _CHANNEL_MEMBERS[user_id] = True
+
+
 # check if a user is in the channel
 async def check_user_in_channel(client: Client, message: Message) -> bool:
 
@@ -49,7 +61,7 @@ async def check_user_in_channel(client: Client, message: Message) -> bool:
         return False
 
     try:
-        await client.get_chat_member(chat_id=os.getenv("CINEMA_ID"), user_id=message.from_user.id)
+        await ensure_channel_member(client, message.from_user.id)
         # await client.get_chat_member(chat_id=os.getenv("GUEST_ID"), user_id=message.from_user.id)
 
     except UserNotParticipant:

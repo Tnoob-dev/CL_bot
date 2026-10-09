@@ -1,5 +1,4 @@
 import logging
-import os
 
 from entry.entry import bot
 from pyrogram.client import Client
@@ -12,6 +11,7 @@ from pyrogram.types import (
     InputTextMessageContent,
 )
 from utils.db_reqs import get_post_by_name
+from utils.functions import ensure_channel_member
 
 logger = logging.getLogger(__name__)
 
@@ -21,9 +21,7 @@ async def check(client: Client, query: InlineQuery):
         return False
 
     try:
-        await client.get_chat_member(
-            chat_id=os.getenv("CINEMA_ID"), user_id=query.from_user.id
-        )
+        await ensure_channel_member(client, query.from_user.id)
     except UserNotParticipant:
         await query.answer(
             results=[

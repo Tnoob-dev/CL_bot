@@ -7,6 +7,8 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlmodel import Session, cast, select
 
+from .cache import ttl_cache
+
 # Logger
 logger = logging.getLogger(__name__)
 
@@ -25,6 +27,7 @@ def insert(query: Game) -> dict[str, str] | None:
         return {"message": "Pelicula o Serie annadida"}
 
 # get movie from db
+@ttl_cache(maxsize=5_000, ttl=600)
 def get_game(name: str) -> Game:
     try:
         with Session(cine_engine) as session:
@@ -49,32 +52,32 @@ def update_movie_genres(file_id: str, movie_genres: list[str]):
             session.add(result)
             session.commit()
             session.refresh(result)
-            
-            return True
+        get_game.forget(file_id)
 
     except Exception:
         logger.exception("Ha ocurrido una excepcion")
         return False
+    else:
+        return True
 
 #################################################################
+
+
+@ttl_cache(maxsize=20_000, ttl=60)
+def _get_user_by_id(id: int) -> Users | None:
+    with Session(users_engine) as session:
+        return session.exec(select(Users).where(Users.id == id)).first()
 
 
 # get user from db
 def get_user(id: int = 0, all_the_users: bool = False) -> tuple[bool, Users | list[Users] | None]:
     try:
+        if id != 0 and not all_the_users:
+            user = _get_user_by_id(id)
+            return user is not None, user
+
         with Session(users_engine) as session:
-            if id != 0 and not all_the_users:
-                statement = select(Users).where(Users.id == id)
-                result = session.exec(statement)
-                user = result.first()
-                if user is not None:
-                    return True, user
-                else:
-                    return False, None
-            else:
-                statement = select(Users)
-                users = session.exec(statement).all()
-                return True, list(users)
+            return True, list(session.exec(select(Users)).all())
     except Exception:
         logger.exception("Error al obtener desde la db")
         return False, None
@@ -124,6 +127,7 @@ def record_download(id: int, genres: list[str]) -> None:
         with Session(users_engine) as session:
             session.exec(_RECORD_DOWNLOAD, params={"id": id, "genres": genres})
             session.commit()
+        _get_user_by_id.forget(id)
     except Exception:
         logger.exception("Error al registrar la descarga del usuario %s", id)
 
@@ -139,6 +143,7 @@ def update_user_value(id: int) -> None:
             session.add(user)
             session.commit()
             session.refresh(user)
+        _get_user_by_id.forget(id)
         logger.info("Al usuario %s le quedan %s intentos", user.username, user.rest_tries)
 
     except Exception:
@@ -170,6 +175,7 @@ def update_user_admin(id: int) -> tuple[bool, str]:
                 session.commit()
                 key_word = "**degradado**"
             session.refresh(user)
+        _get_user_by_id.forget(id)
 
         logger.info("Se han desplegado acciones sobre el usuario %s", id)
         
@@ -213,6 +219,7 @@ def update_user_premium(id: int, days: int = 30) -> tuple[bool, str]:
             expiration_date_str = datetime.fromtimestamp(new_expiration).strftime(
                 "%d/%m/%Y"
             )
+        _get_user_by_id.forget(id)
 
         logger.info("Usuario %s actualizado a premium hasta %s", id, expiration_date_str)
 
@@ -249,6 +256,7 @@ def revoke_premium(id: int) -> bool:
 
             session.add(user)
             session.commit()
+        _get_user_by_id.forget(id)
         logger.info("Premium revocado para usuario %s", id)
     except Exception:
         logger.exception("Error revocando premium del usuario %s", id)
@@ -260,6 +268,7 @@ def revoke_premium(id: int) -> bool:
 #################################################################
 
 
+@ttl_cache(maxsize=2_000, ttl=60)
 def get_post_by_name(name: str) -> list[dict[str, str]] | list:
     try:
         with Session(posts_engine) as session:
@@ -311,6 +320,7 @@ def insert_post(query: Post) -> dict[str, str]:
         with Session(posts_engine) as session:
             session.add(query)
             session.commit()
+        get_post_by_name.clear()
     except Exception:
         session.rollback()
         logger.exception("Error al insertar post")
@@ -329,6 +339,7 @@ def delete_post(id: int) -> tuple[bool, str]:
             if founded_post is not None:
                 session.delete(founded_post)
                 session.commit()
+                get_post_by_name.clear()
 
                 logger.info("Post %s eliminado correctamente", id)
                 return (True, f"Post {id} eliminado correctamente de la db")
