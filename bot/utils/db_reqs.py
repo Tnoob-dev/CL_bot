@@ -70,12 +70,14 @@ async def update_movie_genres(file_id: str, movie_genres: list[str]):
 
 @ttl_cache(maxsize=20_000, ttl=60)
 async def _get_user_by_id(id: int) -> Users | None:
+    id = int(id)
     async with _session(users_engine) as session:
         return (await session.exec(select(Users).where(Users.id == id))).first()
 
 
 # get user from db
 async def get_user(id: int = 0, all_the_users: bool = False) -> tuple[bool, Users | list[Users] | None]:
+    id = int(id)
     try:
         if id != 0 and not all_the_users:
             user = await _get_user_by_id(id)
@@ -147,6 +149,7 @@ _RECORD_DOWNLOAD = text(f"""
 
 
 async def record_download(id: int, genres: list[str]) -> None:
+    id = int(id)
     genres = [genre.strip() for genre in genres or [] if genre and genre.strip()]
     try:
         async with _session(users_engine) as session:
@@ -158,6 +161,7 @@ async def record_download(id: int, genres: list[str]) -> None:
 
 # update user translations value, from 10, until 0
 async def update_user_value(id: int) -> None:
+    id = int(id)
     try:
         async with _session(users_engine) as session:
             statement = select(Users).where(Users.id == id)
@@ -178,6 +182,7 @@ async def update_user_value(id: int) -> None:
 
 async def update_user_admin(id: int) -> tuple[bool, str]:
 
+    id = int(id)
     try:
         boolean, _ = await get_user(id, all_the_users=False)
 
@@ -210,6 +215,7 @@ async def update_user_admin(id: int) -> tuple[bool, str]:
         return (True, f"Usuario {id} ha sido {key_word}")
 
 async def update_user_premium(id: int, days: int = 30) -> tuple[bool, str]:
+    id = int(id)
     try:
         boolean, _ = await get_user(id, all_the_users=False)
         if not boolean:
@@ -264,11 +270,13 @@ async def is_premium(user: Users) -> bool:
 
 
 async def is_premium_active(id: int) -> bool:
+    id = int(id)
     found, user = await get_user(id, all_the_users=False)
     return found and await is_premium(user)
 
 
 async def revoke_premium(id: int) -> bool:
+    id = int(id)
     try:
         async with _session(users_engine) as session:
             statement = select(Users).where(Users.id == id)
