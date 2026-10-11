@@ -332,6 +332,7 @@ async def get_posts_by_genre(genre: str) -> list[Post | None]:
 
 
 async def get_post_by_id(id: int) -> Post | None:
+    id = int(id)
     try:
         async with _session(posts_engine) as session:
             statement = select(Post).where(Post.id == id)
@@ -360,6 +361,7 @@ async def insert_post(query: Post) -> dict[str, str]:
 
 async def delete_post(id: int) -> tuple[bool, str]:
 
+    id = int(id)
     try:
         async with _session(posts_engine) as session:
             statement = select(Post).where(Post.id == id)
