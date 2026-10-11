@@ -30,7 +30,7 @@ async def get_orders(client: Client, message: Message):
                     [
                         InlineKeyboardButton(
                             text="❌Mi orden no esta❌",
-                            callback_data=f"order_not_found_{user_id}_{user_message}",
+                            callback_data=f"order_not_found_{user_id}_{message.id}",
                         )
                     ]
                 ]

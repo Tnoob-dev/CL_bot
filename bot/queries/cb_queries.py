@@ -170,17 +170,28 @@ async def _handle_orders(client: Client, query: CallbackQuery):
             
     elif data.startswith("order_not_found_"):
         try:
-            parts = data.split("_")
-            user_id_cb, msg_id = int(parts[-2]), int(parts[-1])
-            
+            # order_not_found_<user_id>_<msg_id>; los botones antiguos traen el texto del pedido en lugar del id
+            user_id_cb, _, tail = data[len("order_not_found_"):].partition("_")
+            user_id_cb = int(user_id_cb)
+            if tail.isdigit():
+                msg_id = int(tail)
+                try:
+                    original = await client.get_messages(query.message.chat.id, msg_id)
+                    pedido = " ".join((original.caption or original.text or "").split()[1:])
+                except Exception:
+                    pedido = ""
+            else:
+                msg_id = query.message.reply_to_message_id or query.message.id
+                pedido = tail
+
             # do not delete the message before answeer, it cause pyrogram errors
             await query.message.edit_text("✅ Orden Reenviada a los administradores ✅")
-            
+
             await client.send_message(
                 chat_id=_get_env("ORDERS_ID"),
                 text=(
                     f"🎟 Nueva solicitud:\n\n"
-                    f"📩 **Pedido**: <code>{parts[-1]}</code>\n"
+                    f"📩 **Pedido**: <code>{pedido or 'ver enlace'}</code>\n"
                     f"👤 **Usuario**: {query.from_user.mention} (__{user_id_cb}__)\n"
                     f"🔗 **Link**: https://t.me/{group_chat}/{msg_id}"
                 ),
@@ -209,6 +220,9 @@ async def subs_operation(mode: str, query: CallbackQuery, user_id: int | str, fi
         if mode == "srt":
             
             srt_file_original = download_subs(query.data.split("sub_")[1])
+            if srt_file_original is None:
+                await query.message.reply("❌ No se pudo descargar el subtítulo ahora mismo (límite de descargas alcanzado). Inténtalo más tarde.")
+                return False
             srt_file_renamed = f"{MAIN_PATH}/{file_name}.srt"
             os.rename(srt_file_original, srt_file_renamed)
             
@@ -219,12 +233,17 @@ async def subs_operation(mode: str, query: CallbackQuery, user_id: int | str, fi
         if mode == "bsrt":
             
             srt_file_original = download_subs(query.data.split("sub_")[1])
+            if srt_file_original is None:
+                await query.message.reply("❌ No se pudo descargar el subtítulo ahora mismo (límite de descargas alcanzado). Inténtalo más tarde.")
+                return False
             srt_file_renamed = f"{MAIN_PATH}/{file_name}.srt"
             os.rename(srt_file_original, srt_file_renamed)
             
+        return True
     except Exception:
         logger.exception("Error al descargar el subtítulo")
         await query.message.reply("❌ Ocurrió un error al descargar el subtítulo. Inténtalo de nuevo más tarde.")
+        return False
 
 async def _handle_subtitles(client: Client, query: CallbackQuery):
     user_id = query.from_user.id
@@ -240,12 +259,15 @@ async def _handle_subtitles(client: Client, query: CallbackQuery):
             await query.message.delete()
         
             m = await query.message.reply(f"🔽 Descargando __{file_name}__.srt 😏🔽")
-            await subs_operation(
+            ok = await subs_operation(
                 mode="srt",
                 query=query,
                 user_id=user_id,
                 file_name=file_name
             )
+            if not ok:
+                await m.delete()
+                return
             await m.edit(
                         f"**🔼 Subtítulo enviado, asegúrese de que sea el correcto ✅.\n"
                         f"Gracias por usar nuestro bot. 🦾🤖\nSiga disfrutando de @{clibrary} 🎟**"
@@ -253,12 +275,15 @@ async def _handle_subtitles(client: Client, query: CallbackQuery):
         
         else:
             m = await query.message.reply(f"🔽 Descargando __{file_name}__.srt 😏🔽")
-            await subs_operation(
+            ok = await subs_operation(
                 mode="bsrt",
                 query=query,
                 user_id=user_id,
                 file_name=file_name
             )
+            if not ok:
+                await m.delete()
+                return
             await m.edit(f"Añadido {file_name} a su carpeta de Subtitulos📁🤖")
         
     else:
@@ -272,6 +297,9 @@ async def _handle_end_bulk(client: Client, query: CallbackQuery):
     user_id = query.from_user.id
     subs_dir = f"./bot/subts/{user_id}/"
     await query.message.delete()
+    if not os.path.isdir(subs_dir) or not os.listdir(subs_dir):
+        await query.message.reply("📁 Tu carpeta de subtítulos está vacía (alguna descarga pudo fallar). Inténtalo más tarde.")
+        return
     
     zip_path = await create_zip_file(
         filename=user_id,

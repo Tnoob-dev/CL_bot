@@ -41,7 +41,7 @@ async def check_administration(message: Message) -> bool:
 
     _, user = await get_user(user_id, all_the_users=False)
 
-    return user.is_admin
+    return user is not None and user.is_admin
 
 _CHANNEL_MEMBERS = TTLCache(maxsize=50_000, ttl=300)
 

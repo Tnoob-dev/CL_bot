@@ -51,6 +51,9 @@ async def update_movie_genres(file_id: str, movie_genres: list[str]):
             statement = select(Game).where(Game.name == file_id)
             
             result = (await session.exec(statement)).first()
+            if result is None:
+                logger.warning("update_movie_genres: no existe %s", file_id)
+                return False
             
             result.movie_genres = movie_genres
             
