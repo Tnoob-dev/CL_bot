@@ -92,6 +92,9 @@ async def hello(client: Client, message: Message):
         try:
             if len(message.command) >= 2:
                 result = await get_game(message.command[1])
+                if result is None:
+                    await message.reply("⚠️ No pude cargar ese contenido ahora mismo. Inténtalo de nuevo en unos segundos.")
+                    return
 
                 is_restricted = not user.is_admin and not await is_premium(user)
                 delete_delay = int(os.getenv("DELETE_MESSAGE_DELAY", "180"))

@@ -24,7 +24,7 @@ async def info_posts(client: Client, message: Message):
 
             results = await get_results(query)
 
-            if len(results) >= 1:
+            if results:
                 await m.delete()
 
                 await message.reply(
@@ -46,7 +46,7 @@ async def info_posts(client: Client, message: Message):
                 
                 results = await search_tmdb(query)
                                             
-                if len(results) >= 1:
+                if results:
                     
                     keyboard: list[InlineKeyboardButton] = []
                     
