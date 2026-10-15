@@ -231,3 +231,4 @@ posts/
 bin/
 
 xd.py
+*.zip
